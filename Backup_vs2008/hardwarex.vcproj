@@ -45,7 +45,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".;..;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;DISABLE_THREADS_OSNET"
+				PreprocessorDefinitions="WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -124,7 +124,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".;..;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;DISABLE_THREADS_OSNET"
+				PreprocessorDefinitions="WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -202,7 +202,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories=""
-				PreprocessorDefinitions="WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;DISABLE_THREADS_OSNET"
+				PreprocessorDefinitions="WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -280,7 +280,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories=".;..;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;DISABLE_THREADS_OSNET"
+				PreprocessorDefinitions="WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -353,11 +353,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\OSCriticalSection.c"
+				>
+			</File>
+			<File
 				RelativePath=".\OSMisc.c"
 				>
 			</File>
 			<File
 				RelativePath=".\OSNet.c"
+				>
+			</File>
+			<File
+				RelativePath=".\OSThread.c"
 				>
 			</File>
 			<File
@@ -407,11 +415,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\OSCriticalSection.h"
+				>
+			</File>
+			<File
 				RelativePath=".\OSMisc.h"
 				>
 			</File>
 			<File
 				RelativePath=".\OSNet.h"
+				>
+			</File>
+			<File
+				RelativePath=".\OSThread.h"
 				>
 			</File>
 			<File
@@ -428,6 +444,10 @@
 			</File>
 			<File
 				RelativePath=".\RS232Port.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Seanet.h"
 				>
 			</File>
 			<File

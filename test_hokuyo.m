@@ -13,12 +13,24 @@ set(fig,'WindowStyle','Modal');
 axis('off');
 scale = 6;
 
+% while (true)
+%     clf; hold on; axis([-scale,scale,-scale,scale]);
+%     [result, distances, angles] = GetLatestDataHokuyo(pHokuyo);
+%     plot(distances.*cos(angles), distances.*sin(angles), '.');
+%     pause(0.1);
+% end
+
+% If GetLatestDataHokuyo() takes too much time, use a thread to access data faster... 
+[result] = StartThreadHokuyo(pHokuyo); 
+
 while (true)
     clf; hold on; axis([-scale,scale,-scale,scale]);
-    [result, distances, angles] = GetLatestDataHokuyo(pHokuyo);
+    [result, distances, angles] = GetLatestDataFromThreadHokuyo(pHokuyo);
     plot(distances.*cos(angles), distances.*sin(angles), '.');
     pause(0.1);
 end
+
+[result] = StopThreadHokuyo(pHokuyo);
 
 %close(fig);
 
