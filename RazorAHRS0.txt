@@ -1,0 +1,27 @@
+% IP address and TCP port or local RS232 port
+%127.0.0.1:4010
+COM5
+% BaudRate
+57600
+% Timeout (in ms)
+2000
+% bSaveRawData
+0
+% rollorientation
+0.0
+% rollp1
+0.0
+% rollp2
+0.0
+% pitchorientation
+0.0
+% pitchp1
+0.0
+% pitchp2
+0.0
+% yaworientation
+0.0
+% yawp1
+0.0
+% yawp2
+0.0
