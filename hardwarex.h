@@ -16,11 +16,27 @@
 //#endif // DISABLE_THREADS_OSNET
 
 #include "OSCriticalSection.h"
+#include "MT.h"
+#include "RazorAHRS.h"
+#include "NMEADevice.h"
+#include "SSC32.h"
+#include "Maestro.h"
 #include "Hokuyo.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+	HARDWAREX_API NMEADEVICE* CreateNMEADevicex(void);
+	HARDWAREX_API void DestroyNMEADevicex(NMEADEVICE* pNMEADevice);
+	HARDWAREX_API NMEADATA* CreateNMEADatax(void);
+	HARDWAREX_API void DestroyNMEADatax(NMEADATA* pNMEAData);
+	HARDWAREX_API int GetLatestDataNMEADevicex(NMEADEVICE* pNMEADevice, NMEADATA* pNMEAData);
+	HARDWAREX_API int ConnectNMEADevicex(NMEADEVICE* pNMEADevice, char* szCfgFilePath);
+	HARDWAREX_API int DisconnectNMEADevicex(NMEADEVICE* pNMEADevice);
+	HARDWAREX_API int GetLatestDataFromThreadNMEADevicex(NMEADEVICE* pNMEADevice, NMEADATA* pNMEAData);
+	HARDWAREX_API int StartThreadNMEADevicex(NMEADEVICE* pNMEADevice);
+	HARDWAREX_API int StopThreadNMEADevicex(NMEADEVICE* pNMEADevice);
 
 	HARDWAREX_API HOKUYO* CreateHokuyox(void);
 	HARDWAREX_API void DestroyHokuyox(HOKUYO* pHokuyo);

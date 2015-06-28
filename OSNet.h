@@ -512,19 +512,19 @@ inline int setsockettimeouts(SOCKET sock, int timeout)
 	iOptLen = sizeof(int);
 	if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char*)&iOptVal, iOptLen) == SOCKET_ERROR) 
 	{
-		PRINT_DEBUG_ERROR_OSNET(("setsockettimeouts error (%s) : %s(sock=%d, timeout=%d)\n", 
+		PRINT_DEBUG_WARNING_OSNET(("setsockettimeouts warning (%s) : %s(sock=%d, timeout=%d)\n", 
 			strtime_m(), 
 			"setsockopt failed. ", 
 			(int)sock, timeout));
-		return EXIT_FAILURE;
+		//return EXIT_FAILURE;
 	}
 	if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&iOptVal, iOptLen) == SOCKET_ERROR) 
 	{
-		PRINT_DEBUG_ERROR_OSNET(("setsockettimeouts error (%s) : %s(sock=%d, timeout=%d)\n", 
+		PRINT_DEBUG_WARNING_OSNET(("setsockettimeouts warning (%s) : %s(sock=%d, timeout=%d)\n", 
 			strtime_m(), 
 			"setsockopt failed. ", 
 			(int)sock, timeout));
-		return EXIT_FAILURE;
+		//return EXIT_FAILURE;
 	}
 #else
 	tv.tv_sec = (long)(timeout/1000);
@@ -532,19 +532,19 @@ inline int setsockettimeouts(SOCKET sock, int timeout)
 	iOptLen = sizeof(struct timeval);
 	if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char*)&tv, iOptLen) == SOCKET_ERROR)
 	{
-		PRINT_DEBUG_ERROR_OSNET(("setsockettimeouts error (%s) : %s(sock=%d, timeout=%d)\n", 
+		PRINT_DEBUG_WARNING_OSNET(("setsockettimeouts warning (%s) : %s(sock=%d, timeout=%d)\n", 
 			strtime_m(), 
 			"setsockopt failed. ", 
 			(int)sock, timeout));
-		return EXIT_FAILURE;
+		//return EXIT_FAILURE;
 	}
 	if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, iOptLen) == SOCKET_ERROR)
 	{
-		PRINT_DEBUG_ERROR_OSNET(("setsockettimeouts error (%s) : %s(sock=%d, timeout=%d)\n", 
+		PRINT_DEBUG_WARNING_OSNET(("setsockettimeouts warning (%s) : %s(sock=%d, timeout=%d)\n", 
 			strtime_m(), 
 			"setsockopt failed. ", 
 			(int)sock, timeout));
-		return EXIT_FAILURE;
+		//return EXIT_FAILURE;
 	}
 #endif // _WIN32
 

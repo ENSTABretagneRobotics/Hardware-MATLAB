@@ -389,6 +389,18 @@ inline int GetLatestDataNMEADevice(NMEADEVICE* pNMEADevice, NMEADATA* pNMEAData)
 			(sscanf(ptr_GPVTG, "$GPVTG,%lf,T,,M,%lf,N", &pNMEAData->cog, &pNMEAData->sog) != 2)
 			&&
 			(sscanf(ptr_GPVTG, "$GPVTG,%lf,T,,,%lf,N", &pNMEAData->cog, &pNMEAData->sog) != 2)
+			&&
+			(sscanf(ptr_GPVTG, "$GPVTG,nan,T,nan,M,%lf,N", &pNMEAData->sog) != 1)
+			&&
+			(sscanf(ptr_GPVTG, "$GPVTG,NAN,T,NAN,M,%lf,N", &pNMEAData->sog) != 1)
+			&&
+			(sscanf(ptr_GPVTG, "$GPVTG,NaN,T,NaN,M,%lf,N", &pNMEAData->sog) != 1)
+			&&
+			(sscanf(ptr_GPVTG, "$GPVTG,nan,T,,,%lf,N", &pNMEAData->sog) != 1)
+			&&
+			(sscanf(ptr_GPVTG, "$GPVTG,NAN,T,,,%lf,N", &pNMEAData->sog) != 1)
+			&&
+			(sscanf(ptr_GPVTG, "$GPVTG,NaN,T,,,%lf,N", &pNMEAData->sog) != 1)
 			)
 		{
 			printf("Error reading data from a NMEADevice : Invalid data. \n");

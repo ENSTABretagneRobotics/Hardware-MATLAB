@@ -230,7 +230,11 @@ inline int OpenComputerRS232Port(HANDLE* phDev, char* szDevice)
 	// To be able to use COM10 and greater we need to add "\\.\" (that becomes "\\\\.\\" 
 	// in C because the '\' is a special character).
 	memset(szDeviceTemp, 0, sizeof(szDeviceTemp));
+#ifdef WINCE
+	sprintf(szDeviceTemp, "%s", szDevice);
+#else
 	sprintf(szDeviceTemp, "\\\\.\\%s", szDevice);
+#endif // WINCE
 
 #ifdef UNICODE
 	mbstowcs(tstr, szDeviceTemp, sizeof(szDeviceTemp)/2);

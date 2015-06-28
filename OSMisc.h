@@ -119,6 +119,14 @@ inline double fmod_360(double theta)
 	return fmod(fmod(theta, 2*180.0)+3*180.0, 2*180.0)-180.0;
 }
 
+inline double quantification(double v, double step)
+{
+	//double q = 0;
+	//q = q >= 0? floor(v/step+0.5): ceil(v/step-0.5);
+	//q = q*step;
+	return floor(v/step+0.5)*step;
+}
+
 #ifndef SQR_DEFINED
 #define SQR_DEFINED
 /*
