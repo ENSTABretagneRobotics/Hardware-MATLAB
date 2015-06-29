@@ -27,6 +27,28 @@
 extern "C" {
 #endif
 
+	HARDWAREX_API MT* CreateMTx(void);
+	HARDWAREX_API void DestroyMTx(MT* pMT);
+	HARDWAREX_API MTDATA* CreateMTDatax(void);
+	HARDWAREX_API void DestroyMTDatax(MTDATA* pMTData);
+	HARDWAREX_API int GetLatestDataMTx(MT* pMT, MTDATA* pMTData);
+	HARDWAREX_API int ConnectMTx(MT* pMT, char* szCfgFilePath);
+	HARDWAREX_API int DisconnectMTx(MT* pMT);
+	HARDWAREX_API int GetLatestDataFromThreadMTx(MT* pMT, MTDATA* pMTData);
+	HARDWAREX_API int StartThreadMTx(MT* pMT);
+	HARDWAREX_API int StopThreadMTx(MT* pMT);
+
+	HARDWAREX_API RAZORAHRS* CreateRazorAHRSx(void);
+	HARDWAREX_API void DestroyRazorAHRSx(RAZORAHRS* pRazorAHRS);
+	HARDWAREX_API RAZORAHRSDATA* CreateRazorAHRSDatax(void);
+	HARDWAREX_API void DestroyRazorAHRSDatax(RAZORAHRSDATA* pRazorAHRSData);
+	HARDWAREX_API int GetLatestDataRazorAHRSx(RAZORAHRS* pRazorAHRS, RAZORAHRSDATA* pRazorAHRSData);
+	HARDWAREX_API int ConnectRazorAHRSx(RAZORAHRS* pRazorAHRS, char* szCfgFilePath);
+	HARDWAREX_API int DisconnectRazorAHRSx(RAZORAHRS* pRazorAHRS);
+	HARDWAREX_API int GetLatestDataFromThreadRazorAHRSx(RAZORAHRS* pRazorAHRS, RAZORAHRSDATA* pRazorAHRSData);
+	HARDWAREX_API int StartThreadRazorAHRSx(RAZORAHRS* pRazorAHRS);
+	HARDWAREX_API int StopThreadRazorAHRSx(RAZORAHRS* pRazorAHRS);
+
 	HARDWAREX_API NMEADEVICE* CreateNMEADevicex(void);
 	HARDWAREX_API void DestroyNMEADevicex(NMEADEVICE* pNMEADevice);
 	HARDWAREX_API NMEADATA* CreateNMEADatax(void);

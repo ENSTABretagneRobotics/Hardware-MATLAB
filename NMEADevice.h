@@ -403,8 +403,8 @@ inline int GetLatestDataNMEADevice(NMEADEVICE* pNMEADevice, NMEADATA* pNMEAData)
 			(sscanf(ptr_GPVTG, "$GPVTG,NaN,T,,,%lf,N", &pNMEAData->sog) != 1)
 			)
 		{
-			printf("Error reading data from a NMEADevice : Invalid data. \n");
-			return EXIT_FAILURE;
+			//printf("Error reading data from a NMEADevice : Invalid data. \n");
+			//return EXIT_FAILURE;
 		}
 
 		// Convert SOG to speed in m/s and COG to angle in rad.
@@ -418,8 +418,8 @@ inline int GetLatestDataNMEADevice(NMEADEVICE* pNMEADevice, NMEADATA* pNMEAData)
 		if (sscanf(ptr_HCHDG, "$HCHDG,%lf,%lf,%c,%lf,%c", 
 			&pNMEAData->heading, &pNMEAData->deviation, &pNMEAData->dev_east, &pNMEAData->variation, &pNMEAData->var_east) != 5)
 		{
-			printf("Error reading data from a NMEADevice : Invalid data. \n");
-			return EXIT_FAILURE;
+			//printf("Error reading data from a NMEADevice : Invalid data. \n");
+			//return EXIT_FAILURE;
 		}
 
 		// Convert heading to angle in rad.
@@ -433,8 +433,8 @@ inline int GetLatestDataNMEADevice(NMEADEVICE* pNMEADevice, NMEADATA* pNMEAData)
 			&f0, &c0, &pNMEAData->pressure, &pNMEAData->cpressure, &pNMEAData->temperature, &pNMEAData->ctemperature, &f1, &c1,  
 			&pNMEAData->winddir, &pNMEAData->cwinddir, &f2, &c2, &pNMEAData->windspeed, &pNMEAData->cwindspeed) != 14)
 		{
-			printf("Error reading data from a NMEADevice : Invalid data. \n");
-			return EXIT_FAILURE;
+			//printf("Error reading data from a NMEADevice : Invalid data. \n");
+			//return EXIT_FAILURE;
 		}
 		// Do other else if (sscanf() != x) if more/less complete WIMDA sentence...
 

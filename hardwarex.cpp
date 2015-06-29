@@ -1,5 +1,15 @@
 #include "hardwarex.h"
 
+THREAD_IDENTIFIER MTThreadId;
+CRITICAL_SECTION MTCS;
+MTDATA mtdataMT;
+BOOL bExitMT = FALSE;
+
+THREAD_IDENTIFIER RazorAHRSThreadId;
+CRITICAL_SECTION RazorAHRSCS;
+RAZORAHRSDATA razorahrsdataRazorAHRS;
+BOOL bExitRazorAHRS = FALSE;
+
 THREAD_IDENTIFIER NMEADeviceThreadId;
 CRITICAL_SECTION NMEADeviceCS;
 NMEADATA nmeadataNMEADevice;
@@ -11,6 +21,179 @@ double anglesHokuyo[MAX_SLITDIVISION_HOKUYO];
 double distancesHokuyo[MAX_SLITDIVISION_HOKUYO];
 BOOL bExitHokuyo = FALSE;
 
+#pragma region MT
+HARDWAREX_API MT* CreateMTx(void)
+{
+	return (MT*)calloc(1, sizeof(MT));
+}
+
+HARDWAREX_API void DestroyMTx(MT* pMT)
+{
+	return free(pMT);
+}
+
+HARDWAREX_API MTDATA* CreateMTDatax(void)
+{
+	return (MTDATA*)calloc(1, sizeof(MTDATA));
+}
+
+HARDWAREX_API void DestroyMTDatax(MTDATA* pMTData)
+{
+	return free(pMTData);
+}
+
+HARDWAREX_API int GetLatestDataMTx(MT* pMT, MTDATA* pMTData)
+{
+	return GetLatestDataMT(pMT, pMTData);
+}
+
+HARDWAREX_API int ConnectMTx(MT* pMT, char* szCfgFilePath)
+{
+	return ConnectMT(pMT, szCfgFilePath);
+}
+
+HARDWAREX_API int DisconnectMTx(MT* pMT)
+{
+	return DisconnectMT(pMT);
+}
+
+THREAD_PROC_RETURN_VALUE MTThread(void* pParam)
+{
+	MTDATA mtdata;
+	MT* pMT = (MT*)pParam;
+
+	for (;;)
+	{
+		mSleep(100);
+		memset(&mtdata, 0, sizeof(MTDATA));
+		GetLatestDataMT(pMT, &mtdata);
+		EnterCriticalSection(&MTCS);
+		mtdataMT = mtdata;
+		LeaveCriticalSection(&MTCS);
+		if (bExitMT) break;
+	}
+
+	return 0;
+}
+
+HARDWAREX_API int GetLatestDataFromThreadMTx(MT* pMT, MTDATA* pMTData)
+{
+	UNREFERENCED_PARAMETER(pMT);
+
+	// id[pMT->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&MTCS);
+	*pMTData = mtdataMT;
+	LeaveCriticalSection(&MTCS);
+
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int StartThreadMTx(MT* pMT)
+{
+	bExitMT = FALSE;
+	InitCriticalSection(&MTCS);
+	return CreateDefaultThread(MTThread, (void*)pMT, &MTThreadId);
+}
+
+HARDWAREX_API int StopThreadMTx(MT* pMT)
+{
+	UNREFERENCED_PARAMETER(pMT);
+
+	bExitMT = TRUE;
+	WaitForThread(MTThreadId);
+	DeleteCriticalSection(&MTCS);
+	return EXIT_SUCCESS;
+}
+#pragma endregion
+
+#pragma region RazorAHRS
+HARDWAREX_API RAZORAHRS* CreateRazorAHRSx(void)
+{
+	return (RAZORAHRS*)calloc(1, sizeof(RAZORAHRS));
+}
+
+HARDWAREX_API void DestroyRazorAHRSx(RAZORAHRS* pRazorAHRS)
+{
+	return free(pRazorAHRS);
+}
+
+HARDWAREX_API RAZORAHRSDATA* CreateRazorAHRSDatax(void)
+{
+	return (RAZORAHRSDATA*)calloc(1, sizeof(RAZORAHRSDATA));
+}
+
+HARDWAREX_API void DestroyRazorAHRSDatax(RAZORAHRSDATA* pRazorAHRSData)
+{
+	return free(pRazorAHRSData);
+}
+
+HARDWAREX_API int GetLatestDataRazorAHRSx(RAZORAHRS* pRazorAHRS, RAZORAHRSDATA* pRazorAHRSData)
+{
+	return GetLatestDataRazorAHRS(pRazorAHRS, pRazorAHRSData);
+}
+
+HARDWAREX_API int ConnectRazorAHRSx(RAZORAHRS* pRazorAHRS, char* szCfgFilePath)
+{
+	return ConnectRazorAHRS(pRazorAHRS, szCfgFilePath);
+}
+
+HARDWAREX_API int DisconnectRazorAHRSx(RAZORAHRS* pRazorAHRS)
+{
+	return DisconnectRazorAHRS(pRazorAHRS);
+}
+
+THREAD_PROC_RETURN_VALUE RazorAHRSThread(void* pParam)
+{
+	RAZORAHRSDATA razorahrsdata;
+	RAZORAHRS* pRazorAHRS = (RAZORAHRS*)pParam;
+
+	for (;;)
+	{
+		mSleep(100);
+		memset(&razorahrsdata, 0, sizeof(RAZORAHRSDATA));
+		GetLatestDataRazorAHRS(pRazorAHRS, &razorahrsdata);
+		EnterCriticalSection(&RazorAHRSCS);
+		razorahrsdataRazorAHRS = razorahrsdata;
+		LeaveCriticalSection(&RazorAHRSCS);
+		if (bExitRazorAHRS) break;
+	}
+
+	return 0;
+}
+
+HARDWAREX_API int GetLatestDataFromThreadRazorAHRSx(RAZORAHRS* pRazorAHRS, RAZORAHRSDATA* pRazorAHRSData)
+{
+	UNREFERENCED_PARAMETER(pRazorAHRS);
+
+	// id[pRazorAHRS->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&RazorAHRSCS);
+	*pRazorAHRSData = razorahrsdataRazorAHRS;
+	LeaveCriticalSection(&RazorAHRSCS);
+
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int StartThreadRazorAHRSx(RAZORAHRS* pRazorAHRS)
+{
+	bExitRazorAHRS = FALSE;
+	InitCriticalSection(&RazorAHRSCS);
+	return CreateDefaultThread(RazorAHRSThread, (void*)pRazorAHRS, &RazorAHRSThreadId);
+}
+
+HARDWAREX_API int StopThreadRazorAHRSx(RAZORAHRS* pRazorAHRS)
+{
+	UNREFERENCED_PARAMETER(pRazorAHRS);
+
+	bExitRazorAHRS = TRUE;
+	WaitForThread(RazorAHRSThreadId);
+	DeleteCriticalSection(&RazorAHRSCS);
+	return EXIT_SUCCESS;
+}
+#pragma endregion
+
+#pragma region NMEADevice
 HARDWAREX_API NMEADEVICE* CreateNMEADevicex(void)
 {
 	return (NMEADEVICE*)calloc(1, sizeof(NMEADEVICE));
@@ -75,7 +258,7 @@ HARDWAREX_API int GetLatestDataFromThreadNMEADevicex(NMEADEVICE* pNMEADevice, NM
 	*pNMEAData = nmeadataNMEADevice;
 	LeaveCriticalSection(&NMEADeviceCS);
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 HARDWAREX_API int StartThreadNMEADevicex(NMEADEVICE* pNMEADevice)
@@ -92,9 +275,11 @@ HARDWAREX_API int StopThreadNMEADevicex(NMEADEVICE* pNMEADevice)
 	bExitNMEADevice = TRUE;
 	WaitForThread(NMEADeviceThreadId);
 	DeleteCriticalSection(&NMEADeviceCS);
-	return 0;
+	return EXIT_SUCCESS;
 }
+#pragma endregion
 
+#pragma region Hokuyo
 HARDWAREX_API HOKUYO* CreateHokuyox(void)
 {
 	return (HOKUYO*)calloc(1, sizeof(HOKUYO));
@@ -163,7 +348,7 @@ HARDWAREX_API int GetLatestDataFromThreadHokuyox(HOKUYO* pHokuyo, double* pDista
 	memcpy(pAngles, anglesHokuyo, MAX_SLITDIVISION_HOKUYO*sizeof(double));
 	LeaveCriticalSection(&HokuyoCS);
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 HARDWAREX_API int StartThreadHokuyox(HOKUYO* pHokuyo)
@@ -180,5 +365,6 @@ HARDWAREX_API int StopThreadHokuyox(HOKUYO* pHokuyo)
 	bExitHokuyo = TRUE;
 	WaitForThread(HokuyoThreadId);
 	DeleteCriticalSection(&HokuyoCS);
-	return 0;
+	return EXIT_SUCCESS;
 }
+#pragma endregion
