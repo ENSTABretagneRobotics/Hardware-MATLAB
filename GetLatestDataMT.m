@@ -1,9 +1,9 @@
 function [result, mtdata] = GetLatestDataMT(pMT)
 
-pMTData_p = calllib('hardwarex', 'CreateMTDatax');
+pMTData = calllib('hardwarex', 'CreateMTDatax');
 
-result = calllib('hardwarex', 'GetLatestDataMTx', pMT, pMTData_p);
+result = calllib('hardwarex', 'GetLatestDataMTx', pMT, pMTData);
 
-mtdata = pMTData_p.value;
+mtdata = pMTData.value;
 
-calllib('hardwarex', 'DestroyMTDatax', pMTData_p);
+calllib('hardwarex', 'DestroyMTDatax', pMTData);

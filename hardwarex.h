@@ -60,6 +60,28 @@ extern "C" {
 	HARDWAREX_API int StartThreadNMEADevicex(NMEADEVICE* pNMEADevice);
 	HARDWAREX_API int StopThreadNMEADevicex(NMEADEVICE* pNMEADevice);
 
+	HARDWAREX_API SSC32* CreateSSC32x(void);
+	HARDWAREX_API void DestroySSC32x(SSC32* pSSC32);
+	HARDWAREX_API int SetPWMSSC32x(SSC32* pSSC32, int channel, int pw);
+	HARDWAREX_API int SetAllPWMsSSC32x(SSC32* pSSC32, int* selectedchannels, int* pws);
+	HARDWAREX_API int ConnectSSC32x(SSC32* pSSC32, char* szCfgFilePath);
+	HARDWAREX_API int DisconnectSSC32x(SSC32* pSSC32);
+	HARDWAREX_API int SetAllPWMsFromThreadSSC32x(SSC32* pSSC32, int* selectedchannels, int* pws);
+	HARDWAREX_API int StartThreadSSC32x(SSC32* pSSC32);
+	HARDWAREX_API int StopThreadSSC32x(SSC32* pSSC32);
+
+	HARDWAREX_API MAESTRO* CreateMaestrox(void);
+	HARDWAREX_API void DestroyMaestrox(MAESTRO* pMaestro);
+	HARDWAREX_API int GetValueMaestrox(MAESTRO* pMaestro, int channel, int* pValue);
+	HARDWAREX_API int SetPWMMaestrox(MAESTRO* pMaestro, int channel, int pw);
+	HARDWAREX_API int SetAllPWMsMaestrox(MAESTRO* pMaestro, int* selectedchannels, int* pws);
+	HARDWAREX_API int ConnectMaestrox(MAESTRO* pMaestro, char* szCfgFilePath);
+	HARDWAREX_API int DisconnectMaestrox(MAESTRO* pMaestro);
+	HARDWAREX_API int SetAllPWMsFromThreadMaestrox(MAESTRO* pMaestro, int* selectedchannels, int* pws);
+	HARDWAREX_API int GetValueFromThreadMaestrox(MAESTRO* pMaestro, int channel, int* pValue);
+	HARDWAREX_API int StartThreadMaestrox(MAESTRO* pMaestro);
+	HARDWAREX_API int StopThreadMaestrox(MAESTRO* pMaestro);
+
 	HARDWAREX_API HOKUYO* CreateHokuyox(void);
 	HARDWAREX_API void DestroyHokuyox(HOKUYO* pHokuyo);
 	HARDWAREX_API double k2angleHokuyox(HOKUYO* pHokuyo, int k);

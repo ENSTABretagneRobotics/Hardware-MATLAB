@@ -15,6 +15,19 @@ CRITICAL_SECTION NMEADeviceCS;
 NMEADATA nmeadataNMEADevice;
 BOOL bExitNMEADevice = FALSE;
 
+THREAD_IDENTIFIER SSC32ThreadId;
+CRITICAL_SECTION SSC32CS;
+int selectedchannelsSSC32[NB_CHANNELS_PWM_SSC32];
+int pwsSSC32[NB_CHANNELS_PWM_SSC32];
+BOOL bExitSSC32 = FALSE;
+
+THREAD_IDENTIFIER MaestroThreadId;
+CRITICAL_SECTION MaestroCS;
+int selectedchannelsMaestro[NB_CHANNELS_PWM_MAESTRO];
+int pwsMaestro[NB_CHANNELS_PWM_MAESTRO];
+int valueMaestro = 0;
+BOOL bExitMaestro = FALSE;
+
 THREAD_IDENTIFIER HokuyoThreadId;
 CRITICAL_SECTION HokuyoCS;
 double anglesHokuyo[MAX_SLITDIVISION_HOKUYO];
@@ -59,8 +72,8 @@ HARDWAREX_API int DisconnectMTx(MT* pMT)
 
 THREAD_PROC_RETURN_VALUE MTThread(void* pParam)
 {
-	MTDATA mtdata;
 	MT* pMT = (MT*)pParam;
+	MTDATA mtdata;
 
 	for (;;)
 	{
@@ -145,8 +158,8 @@ HARDWAREX_API int DisconnectRazorAHRSx(RAZORAHRS* pRazorAHRS)
 
 THREAD_PROC_RETURN_VALUE RazorAHRSThread(void* pParam)
 {
-	RAZORAHRSDATA razorahrsdata;
 	RAZORAHRS* pRazorAHRS = (RAZORAHRS*)pParam;
+	RAZORAHRSDATA razorahrsdata;
 
 	for (;;)
 	{
@@ -231,8 +244,8 @@ HARDWAREX_API int DisconnectNMEADevicex(NMEADEVICE* pNMEADevice)
 
 THREAD_PROC_RETURN_VALUE NMEADeviceThread(void* pParam)
 {
-	NMEADATA nmeadata;
 	NMEADEVICE* pNMEADevice = (NMEADEVICE*)pParam;
+	NMEADATA nmeadata;
 
 	for (;;)
 	{
@@ -279,6 +292,199 @@ HARDWAREX_API int StopThreadNMEADevicex(NMEADEVICE* pNMEADevice)
 }
 #pragma endregion
 
+#pragma region SSC32
+HARDWAREX_API SSC32* CreateSSC32x(void)
+{
+	return (SSC32*)calloc(1, sizeof(SSC32));
+}
+
+HARDWAREX_API void DestroySSC32x(SSC32* pSSC32)
+{
+	return free(pSSC32);
+}
+
+HARDWAREX_API int SetPWMSSC32x(SSC32* pSSC32, int channel, int pw)
+{
+	return SetPWMSSC32(pSSC32, channel, pw);
+}
+
+HARDWAREX_API int SetAllPWMsSSC32x(SSC32* pSSC32, int* selectedchannels, int* pws)
+{
+	return SetAllPWMsSSC32(pSSC32, selectedchannels, pws);
+}
+
+HARDWAREX_API int ConnectSSC32x(SSC32* pSSC32, char* szCfgFilePath)
+{
+	return ConnectSSC32(pSSC32, szCfgFilePath);
+}
+
+HARDWAREX_API int DisconnectSSC32x(SSC32* pSSC32)
+{
+	return DisconnectSSC32(pSSC32);
+}
+
+THREAD_PROC_RETURN_VALUE SSC32Thread(void* pParam)
+{
+	SSC32* pSSC32 = (SSC32*)pParam;
+	int selectedchannels[NB_CHANNELS_PWM_SSC32];
+	int pws[NB_CHANNELS_PWM_SSC32];
+
+	for (;;)
+	{
+		mSleep(50);
+		EnterCriticalSection(&SSC32CS);
+		memcpy(selectedchannels, selectedchannelsSSC32, NB_CHANNELS_PWM_SSC32*sizeof(int));
+		memcpy(pws, pwsSSC32, NB_CHANNELS_PWM_SSC32*sizeof(int));
+		LeaveCriticalSection(&SSC32CS);
+		SetAllPWMsSSC32(pSSC32, selectedchannels, pws);
+		if (bExitSSC32) break;
+	}
+
+	return 0;
+}
+
+HARDWAREX_API int SetAllPWMsFromThreadSSC32x(SSC32* pSSC32, int* selectedchannels, int* pws)
+{
+	UNREFERENCED_PARAMETER(pSSC32);
+
+	// id[pSSC32->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&SSC32CS);
+	memcpy(selectedchannelsSSC32, selectedchannels, NB_CHANNELS_PWM_SSC32*sizeof(int));
+	memcpy(pwsSSC32, pws, NB_CHANNELS_PWM_SSC32*sizeof(int));
+	LeaveCriticalSection(&SSC32CS);
+
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int StartThreadSSC32x(SSC32* pSSC32)
+{
+	bExitSSC32 = FALSE;
+	InitCriticalSection(&SSC32CS);
+	return CreateDefaultThread(SSC32Thread, (void*)pSSC32, &SSC32ThreadId);
+}
+
+HARDWAREX_API int StopThreadSSC32x(SSC32* pSSC32)
+{
+	UNREFERENCED_PARAMETER(pSSC32);
+
+	bExitSSC32 = TRUE;
+	WaitForThread(SSC32ThreadId);
+	DeleteCriticalSection(&SSC32CS);
+	return EXIT_SUCCESS;
+}
+#pragma endregion
+
+#pragma region Maestro
+HARDWAREX_API MAESTRO* CreateMaestrox(void)
+{
+	return (MAESTRO*)calloc(1, sizeof(MAESTRO));
+}
+
+HARDWAREX_API void DestroyMaestrox(MAESTRO* pMaestro)
+{
+	return free(pMaestro);
+}
+
+HARDWAREX_API int GetValueMaestrox(MAESTRO* pMaestro, int channel, int* pValue)
+{
+	return GetValueMaestro(pMaestro, channel, pValue);
+}
+
+HARDWAREX_API int SetPWMMaestrox(MAESTRO* pMaestro, int channel, int pw)
+{
+	return SetPWMMaestro(pMaestro, channel, pw);
+}
+
+HARDWAREX_API int SetAllPWMsMaestrox(MAESTRO* pMaestro, int* selectedchannels, int* pws)
+{
+	return SetAllPWMsMaestro(pMaestro, selectedchannels, pws);
+}
+
+HARDWAREX_API int ConnectMaestrox(MAESTRO* pMaestro, char* szCfgFilePath)
+{
+	return ConnectMaestro(pMaestro, szCfgFilePath);
+}
+
+HARDWAREX_API int DisconnectMaestrox(MAESTRO* pMaestro)
+{
+	return DisconnectMaestro(pMaestro);
+}
+
+THREAD_PROC_RETURN_VALUE MaestroThread(void* pParam)
+{
+	MAESTRO* pMaestro = (MAESTRO*)pParam;
+	int selectedchannels[NB_CHANNELS_PWM_MAESTRO];
+	int pws[NB_CHANNELS_PWM_MAESTRO];
+	int value = 0;
+
+	for (;;)
+	{
+		mSleep(25);
+		EnterCriticalSection(&MaestroCS);
+		memcpy(selectedchannels, selectedchannelsMaestro, NB_CHANNELS_PWM_MAESTRO*sizeof(int));
+		memcpy(pws, pwsMaestro, NB_CHANNELS_PWM_MAESTRO*sizeof(int));
+		LeaveCriticalSection(&MaestroCS);
+		SetAllPWMsMaestro(pMaestro, selectedchannels, pws);
+		mSleep(25);
+		// Channel 11...
+		value = 0;
+		GetValueMaestro(pMaestro, 11, &value);
+		EnterCriticalSection(&MaestroCS);
+		valueMaestro = value;
+		LeaveCriticalSection(&MaestroCS);
+		if (bExitMaestro) break;
+	}
+
+	return 0;
+}
+
+HARDWAREX_API int SetAllPWMsFromThreadMaestrox(MAESTRO* pMaestro, int* selectedchannels, int* pws)
+{
+	UNREFERENCED_PARAMETER(pMaestro);
+
+	// id[pMaestro->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&MaestroCS);
+	memcpy(selectedchannelsMaestro, selectedchannels, NB_CHANNELS_PWM_MAESTRO*sizeof(int));
+	memcpy(pwsMaestro, pws, NB_CHANNELS_PWM_MAESTRO*sizeof(int));
+	LeaveCriticalSection(&MaestroCS);
+
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int GetValueFromThreadMaestrox(MAESTRO* pMaestro, int channel, int* pValue)
+{
+	UNREFERENCED_PARAMETER(pMaestro);
+	UNREFERENCED_PARAMETER(channel);
+
+	// id[pMaestro->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&MaestroCS);
+	*pValue = valueMaestro;
+	LeaveCriticalSection(&MaestroCS);
+
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int StartThreadMaestrox(MAESTRO* pMaestro)
+{
+	bExitMaestro = FALSE;
+	InitCriticalSection(&MaestroCS);
+	return CreateDefaultThread(MaestroThread, (void*)pMaestro, &MaestroThreadId);
+}
+
+HARDWAREX_API int StopThreadMaestrox(MAESTRO* pMaestro)
+{
+	UNREFERENCED_PARAMETER(pMaestro);
+
+	bExitMaestro = TRUE;
+	WaitForThread(MaestroThreadId);
+	DeleteCriticalSection(&MaestroCS);
+	return EXIT_SUCCESS;
+}
+#pragma endregion
+
 #pragma region Hokuyo
 HARDWAREX_API HOKUYO* CreateHokuyox(void)
 {
@@ -317,9 +523,9 @@ HARDWAREX_API int DisconnectHokuyox(HOKUYO* pHokuyo)
 
 THREAD_PROC_RETURN_VALUE HokuyoThread(void* pParam)
 {
+	HOKUYO* pHokuyo = (HOKUYO*)pParam;
 	double angles[MAX_SLITDIVISION_HOKUYO];
 	double distances[MAX_SLITDIVISION_HOKUYO];
-	HOKUYO* pHokuyo = (HOKUYO*)pParam;
 
 	for (;;)
 	{

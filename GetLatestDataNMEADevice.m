@@ -1,9 +1,9 @@
 function [result, nmeadata] = GetLatestDataNMEADevice(pNMEADevice)
 
-pNMEAData_p = calllib('hardwarex', 'CreateNMEADatax');
+pNMEAData = calllib('hardwarex', 'CreateNMEADatax');
 
-result = calllib('hardwarex', 'GetLatestDataNMEADevicex', pNMEADevice, pNMEAData_p);
+result = calllib('hardwarex', 'GetLatestDataNMEADevicex', pNMEADevice, pNMEAData);
 
-nmeadata = pNMEAData_p.value;
+nmeadata = pNMEAData.value;
 
-calllib('hardwarex', 'DestroyNMEADatax', pNMEAData_p);
+calllib('hardwarex', 'DestroyNMEADatax', pNMEAData);

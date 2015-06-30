@@ -1,9 +1,9 @@
 function [result, razorahrsdata] = GetLatestDataFromThreadRazorAHRS(pRazorAHRS)
 
-pRazorAHRSData_p = calllib('hardwarex', 'CreateRazorAHRSDatax');
+pRazorAHRSData = calllib('hardwarex', 'CreateRazorAHRSDatax');
 
-result = calllib('hardwarex', 'GetLatestDataFromThreadRazorAHRSx', pRazorAHRS, pRazorAHRSData_p);
+result = calllib('hardwarex', 'GetLatestDataFromThreadRazorAHRSx', pRazorAHRS, pRazorAHRSData);
 
-razorahrsdata = pRazorAHRSData_p.value;
+razorahrsdata = pRazorAHRSData.value;
 
-calllib('hardwarex', 'DestroyRazorAHRSDatax', pRazorAHRSData_p);
+calllib('hardwarex', 'DestroyRazorAHRSDatax', pRazorAHRSData);
