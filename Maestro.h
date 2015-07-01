@@ -82,7 +82,7 @@ struct MAESTRO
 };
 typedef struct MAESTRO MAESTRO;
 
-// If analog input, voltage = value*5.0/1024. If digital input, bit = (value == 1023)? 1: 0;.
+// If analog input, voltage = value*5.0/1024.0. If digital input, bit = (value == 1023)? 1: 0;.
 inline int GetValueMaestro(MAESTRO* pMaestro, int channel, int* pValue)
 {
 	unsigned char sendbuf[MAX_NB_BYTES_MAESTRO];
@@ -203,7 +203,7 @@ inline int SetAllPWMsMaestro(MAESTRO* pMaestro, int* selectedchannels, int* pws)
 
 	firstselectedchannel = NB_CHANNELS_PWM_MAESTRO;
 	nbselectedchannels = 0;
-	index = 3;
+	index = 5;
 
 	memcpy(pws_tmp, pws, sizeof(pws_tmp));
 
@@ -237,7 +237,7 @@ inline int SetAllPWMsMaestro(MAESTRO* pMaestro, int* selectedchannels, int* pws)
 		//pws_tmp[channel] = max(min(pws_tmp[channel], DEFAULT_ABSOLUTE_MAX_PW_MAESTRO), DEFAULT_ABSOLUTE_MIN_PW_MAESTRO);
 
 		// The requested PWM is only applied if it is slightly different from the current value.
-		//if (abs(pws_tmp[channel]-pMaestro->LastPWs[channel]) < pMaestro->ThresholdPWs[channel]) continue;
+		if (abs(pws_tmp[channel]-pMaestro->LastPWs[channel]) < pMaestro->ThresholdPWs[channel]) pws_tmp[channel] = pMaestro->LastPWs[channel];
 
 		//printf("%d %d %d %d %d\n", channel, pws_tmp[channel], pMaestro->LastPWs[channel], abs(pws_tmp[channel]-pMaestro->LastPWs[channel]), pMaestro->ThresholdPWs[channel]);
 
@@ -274,7 +274,7 @@ inline int SetAllPWMsMaestro(MAESTRO* pMaestro, int* selectedchannels, int* pws)
 		if (!selectedchannels[channel]) continue;
 
 		// The requested PWM should have been only applied if it was slightly different from the current value.
-		//if (abs(pws_tmp[channel]-pMaestro->LastPWs[channel]) < pMaestro->ThresholdPWs[channel]) continue;
+		if (abs(pws_tmp[channel]-pMaestro->LastPWs[channel]) < pMaestro->ThresholdPWs[channel]) continue;
 
 		// Update last known value.
 		pMaestro->LastPWs[channel] = pws_tmp[channel];
