@@ -525,6 +525,30 @@ inline int fcopy(char* szFromFilePath, char* szToFilePath, size_t* pBytesCopied)
 	return EXIT_SUCCESS;
 }
 
+inline void RemoveExtensionInFilePath(char* szFilePath)
+{
+	int idx = 0;
+
+	for (idx = (int)strlen(szFilePath)-1; idx >= 0; idx--) { if (szFilePath[idx] == '.') break; }
+	if ((idx > 0)&&(idx < (int)strlen(szFilePath))) memset(szFilePath+idx, 0, strlen(szFilePath)-idx);
+}
+
+inline void RemovePathInFilePath(char* szFilePath)
+{
+	int idx = 0;
+	BOOL bFound = FALSE;
+
+	for (idx = (int)strlen(szFilePath)-2; idx >= 0; idx--)
+	{ 
+		if ((szFilePath[idx] == '/')||(szFilePath[idx] == '\\'))
+		{
+			bFound = TRUE;
+			break; 
+		}
+	}
+	if ((bFound)&&(idx >= 0)&&(idx < (int)strlen(szFilePath)-1)) memmove(szFilePath, szFilePath+idx+1, strlen(szFilePath)-idx);
+}
+
 inline double sensor_err(double bias_err, double max_rand_err)
 {
 	return bias_err+max_rand_err*(2.0*rand()/(double)RAND_MAX-1.0);

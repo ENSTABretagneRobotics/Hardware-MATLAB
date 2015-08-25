@@ -245,12 +245,12 @@ inline int OpenComputerRS232Port(HANDLE* phDev, char* szDevice)
 
 	hDev = CreateFile( 
 		tstr,
-		GENERIC_READ | GENERIC_WRITE,
-		0,    // Must be opened with exclusive-access.
+		GENERIC_READ|GENERIC_WRITE,
+		0, // Must be opened with exclusive-access.
 		NULL, // No security attributes.
 		OPEN_EXISTING, // Must use OPEN_EXISTING.
-		0,    // Not overlapped I/O.
-		NULL  // hTemplate must be NULL for comm devices.
+		0, // Not overlapped I/O. Should use FILE_FLAG_WRITE_THROUGH and maybe also FILE_FLAG_NO_BUFFERING?
+		NULL // hTemplate must be NULL for comm devices.
 		);
 
 	if (hDev == INVALID_HANDLE_VALUE)
@@ -274,7 +274,8 @@ inline int OpenComputerRS232Port(HANDLE* phDev, char* szDevice)
 	// DCD signal line is in - whether the other end of the port is up and running. If
 	// you do not specify this flag, your process will be put to sleep until the DCD
 	// signal line is the space voltage.
-	int fd = open(szDevice, O_RDWR | O_NOCTTY| O_NDELAY);
+	// Should use O_SYNC and maybe also O_DIRECT?
+	int fd = open(szDevice, O_RDWR|O_NOCTTY|O_NDELAY);
 
 	if (fd == -1)
 	{

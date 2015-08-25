@@ -6,6 +6,6 @@ COM10
 % Timeout (in ms)
 100
 % bSaveRawData
-0
+1
 % DelayReadWriteEchoByte (in ms)
 20

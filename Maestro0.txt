@@ -2,7 +2,7 @@
 %127.0.0.1:4004
 COM6
 % BaudRate
-9600
+57600
 % Timeout (in ms)
 1000
 % bSaveRawData
@@ -85,7 +85,15 @@ COM6
 4
 % leftfluxchan
 3
+% analoginputchan (disabled if -1)
+11
 % MinAngle (in rad)
 -0.6
 % MaxAngle (in rad)
 0.6
+% analoginputvalueoffset
+0.0
+% analoginputvaluecoef
+1.0
+% bEnableSetMultipleTargets
+0
