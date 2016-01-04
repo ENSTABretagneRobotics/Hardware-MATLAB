@@ -303,6 +303,7 @@ inline DWORD GetTickCount(void)
 #ifndef timegm
 #define timegm _mkgmtime
 #endif // timegm
+// timelocal() is a deprecated interface that is equivalent to calling mktime() with a negative value for tm_isdst...
 #ifndef timelocal
 #define timelocal mktime
 #endif // timelocal

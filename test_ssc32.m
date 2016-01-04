@@ -17,9 +17,9 @@ key = 0;
 while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
     clf; hold on;
     if (mod(a, 2) == 0)
-        [result] = SetAllPWMsFromThreadSSC32(pSSC32, [1 1 1 0 0],  [1000 2000 1000 1500 1500]);
+        [result] = SetAllPWMsFromThreadSSC32(pSSC32, [1 1 1 0 0], [1000 2000 1000 1500 1500]);
     else
-        [result] = SetAllPWMsFromThreadSSC32(pSSC32, [1 1 1 0 0],  [2000 1000 2000 1500 1500]);
+        [result] = SetAllPWMsFromThreadSSC32(pSSC32, [1 1 1 0 0], [2000 1000 2000 1500 1500]);
     end
     a = a+1;
     str = sprintf('%d\n', a);

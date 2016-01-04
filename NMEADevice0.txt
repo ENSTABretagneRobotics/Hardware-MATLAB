@@ -11,9 +11,17 @@ COM3
 1
 % bEnableGPRMC
 0
+% bEnableGPGLL
+0
 % bEnableGPVTG
 0
 % bEnableHCHDG
+0
+% bEnableIIMWV
+0
+% bEnableWIMWV
+0
+% bEnableWIMWD
 0
 % bEnableWIMDA
 0

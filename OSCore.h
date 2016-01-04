@@ -90,6 +90,9 @@ _ Windows CE : WINCE
 #	ifndef _CRT_SECURE_NO_WARNINGS
 #		define _CRT_SECURE_NO_WARNINGS
 #	endif // _CRT_SECURE_NO_WARNINGS
+#	ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
+#		define _WINSOCK_DEPRECATED_NO_WARNINGS
+#	endif // _WINSOCK_DEPRECATED_NO_WARNINGS
 //#	ifndef _CRT_NONSTDC_NO_WARNINGS
 //#		define _CRT_NONSTDC_NO_WARNINGS
 //#	endif // _CRT_NONSTDC_NO_WARNINGS
@@ -388,6 +391,13 @@ struct RGBCOLOR
 	UCHAR b; // Blue value.
 };
 typedef struct RGBCOLOR RGBCOLOR;
+
+inline RGBCOLOR rgbcolor(UCHAR r, UCHAR g, UCHAR b)
+{
+	RGBCOLOR color;
+	color.r = r; color.g = g; color.b = b; 
+	return color;
+}
 
 // If you use Visual Studio in debug configuration, call INIT_DEBUG at the
 // beginning of the program to enable memory leaks detection.
