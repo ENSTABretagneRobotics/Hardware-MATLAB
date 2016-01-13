@@ -59,7 +59,7 @@ OSMisc.o: OSMisc.c OSMisc.h OSTime.o
 OSNet.o: OSNet.c OSNet.h OSTime.o
 	$(CC) $(CFLAGS) -c $<
 
-OSThread.o: ../OSUtils/OSThread.c ../OSUtils/OSThread.h OSTime.o
+OSThread.o: OSThread.c OSThread.h OSTime.o
 	$(CC) $(CFLAGS) -c $<
 
 OSTime.o: OSTime.c OSTime.h OSCore.o
