@@ -1,5 +1,6 @@
 hardwarex_init;
 pMaestro = CreateMaestro();
+% Check and modify the configuration file if needed...
 [result] = ConnectMaestro(pMaestro, 'Maestro0.txt')
 %pMaestro.value
 

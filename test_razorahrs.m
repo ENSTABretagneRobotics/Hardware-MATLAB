@@ -1,5 +1,6 @@
 hardwarex_init;
 pRazorAHRS = CreateRazorAHRS();
+% Check and modify the configuration file if needed...
 [result] = ConnectRazorAHRS(pRazorAHRS, 'RazorAHRS0.txt')
 %pRazorAHRS.value
 

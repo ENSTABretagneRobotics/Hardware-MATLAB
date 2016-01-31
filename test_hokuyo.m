@@ -1,5 +1,6 @@
 hardwarex_init;
 pHokuyo = CreateHokuyo();
+% Check and modify the configuration file if needed...
 [result] = ConnectHokuyo(pHokuyo, 'Hokuyo0.txt')
 %pHokuyo.value
 

@@ -1,5 +1,6 @@
 hardwarex_init;
 pSSC32 = CreateSSC32();
+% Check and modify the configuration file if needed...
 [result] = ConnectSSC32(pSSC32, 'SSC320.txt')
 %pSSC32.value
 

@@ -1,5 +1,6 @@
 hardwarex_init;
 pNMEADevice = CreateNMEADevice();
+% Check and modify the configuration file if needed...
 [result] = ConnectNMEADevice(pNMEADevice, 'NMEADevice0.txt')
 %pNMEADevice.value
 

@@ -1,5 +1,6 @@
 hardwarex_init;
 pMT = CreateMT();
+% Check and modify the configuration file if needed...
 [result] = ConnectMT(pMT, 'MT0.txt')
 %pMT.value
 
