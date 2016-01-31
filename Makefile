@@ -37,6 +37,9 @@ CFLAGS += -Wall
 
 CFLAGS += -I. -I..
 
+# Depending on your OS (old Linux or Mac)...
+#CFLAGS += -DUSE_OLD_CHRONO
+
 LDFLAGS += -lrt -lm
 LDFLAGS += -lpthread -lrt -lm
 
