@@ -70,7 +70,7 @@ OSTime.o: OSTime.c OSTime.h OSCore.o
 
 ############################# PROGS #############################
 
-hardwarex.o: hardwarex.cpp hardwarex.h OSCore.h OSCriticalSection.h OSThread.o OSTime.h OSMisc.h OSNet.h OSComputerRS232Port.h RS232Port.h MT.h RazorAHRS.h NMEADevice.h SwarmonDevice.h P33x.h SSC32.h Maestro.h MiniSSC.h MDM.h Hokuyo.h Seanet.h 
+hardwarex.o: hardwarex.cpp hardwarex.h OSCore.h OSCriticalSection.h OSThread.o OSTime.h OSMisc.h OSNet.h OSComputerRS232Port.h RS232Port.h MT.h RazorAHRS.h NMEADevice.h SwarmonDevice.h P33x.h SSC32.h Maestro.h MAVLinkDevice.h MiniSSC.h MDM.h Hokuyo.h Seanet.h 
 	$(CC) $(CFLAGS) -c $<
 
 $(LIB): hardwarex.o OSNet.o OSComputerRS232Port.o OSMisc.o OSTime.o OSThread.o OSCriticalSection.o OSCore.o

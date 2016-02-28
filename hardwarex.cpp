@@ -34,6 +34,13 @@ double anglesHokuyo[MAX_SLITDIVISION_HOKUYO];
 double distancesHokuyo[MAX_SLITDIVISION_HOKUYO];
 BOOL bExitHokuyo = FALSE;
 
+#ifdef ENABLE_MAVLINK_SUPPORT
+THREAD_IDENTIFIER MAVLinkDeviceThreadId;
+CRITICAL_SECTION MAVLinkDeviceCS;
+MAVLINKDATA mavlinkdataMAVLinkDevice;
+BOOL bExitMAVLinkDevice = FALSE;
+#endif // ENABLE_MAVLINK_SUPPORT
+
 #pragma region MT
 HARDWAREX_API MT* CreateMTx(void)
 {
@@ -574,3 +581,91 @@ HARDWAREX_API int StopThreadHokuyox(HOKUYO* pHokuyo)
 	return EXIT_SUCCESS;
 }
 #pragma endregion
+
+#ifdef ENABLE_MAVLINK_SUPPORT
+#pragma region MAVLinkDevice
+HARDWAREX_API MAVLINKDEVICE* CreateMAVLinkDevicex(void)
+{
+	return (MAVLINKDEVICE*)calloc(1, sizeof(MAVLINKDEVICE));
+}
+
+HARDWAREX_API void DestroyMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice)
+{
+	return free(pMAVLinkDevice);
+}
+
+HARDWAREX_API MAVLINKDATA* CreateMAVLinkDatax(void)
+{
+	return (MAVLINKDATA*)calloc(1, sizeof(MAVLINKDATA));
+}
+
+HARDWAREX_API void DestroyMAVLinkDatax(MAVLINKDATA* pMAVLinkData)
+{
+	return free(pMAVLinkData);
+}
+
+HARDWAREX_API int GetLatestDataMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, MAVLINKDATA* pMAVLinkData)
+{
+	return GetLatestDataMAVLinkDevice(pMAVLinkDevice, pMAVLinkData);
+}
+
+HARDWAREX_API int ConnectMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, char* szCfgFilePath)
+{
+	return ConnectMAVLinkDevice(pMAVLinkDevice, szCfgFilePath);
+}
+
+HARDWAREX_API int DisconnectMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice)
+{
+	return DisconnectMAVLinkDevice(pMAVLinkDevice);
+}
+
+THREAD_PROC_RETURN_VALUE MAVLinkDeviceThread(void* pParam)
+{
+	MAVLINKDEVICE* pMAVLinkDevice = (MAVLINKDEVICE*)pParam;
+	MAVLINKDATA mavlinkdata;
+
+	for (;;)
+	{
+		mSleep(100);
+		memset(&mavlinkdata, 0, sizeof(MAVLINKDATA));
+		GetLatestDataMAVLinkDevice(pMAVLinkDevice, &mavlinkdata);
+		EnterCriticalSection(&MAVLinkDeviceCS);
+		mavlinkdataMAVLinkDevice = mavlinkdata;
+		LeaveCriticalSection(&MAVLinkDeviceCS);
+		if (bExitMAVLinkDevice) break;
+	}
+
+	return 0;
+}
+
+HARDWAREX_API int GetLatestDataFromThreadMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, MAVLINKDATA* pMAVLinkData)
+{
+	UNREFERENCED_PARAMETER(pMAVLinkDevice);
+
+	// id[pMAVLinkDevice->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&MAVLinkDeviceCS);
+	*pMAVLinkData = mavlinkdataMAVLinkDevice;
+	LeaveCriticalSection(&MAVLinkDeviceCS);
+
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int StartThreadMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice)
+{
+	bExitMAVLinkDevice = FALSE;
+	InitCriticalSection(&MAVLinkDeviceCS);
+	return CreateDefaultThread(MAVLinkDeviceThread, (void*)pMAVLinkDevice, &MAVLinkDeviceThreadId);
+}
+
+HARDWAREX_API int StopThreadMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice)
+{
+	UNREFERENCED_PARAMETER(pMAVLinkDevice);
+
+	bExitMAVLinkDevice = TRUE;
+	WaitForThread(MAVLinkDeviceThreadId);
+	DeleteCriticalSection(&MAVLinkDeviceCS);
+	return EXIT_SUCCESS;
+}
+#pragma endregion
+#endif // ENABLE_MAVLINK_SUPPORT

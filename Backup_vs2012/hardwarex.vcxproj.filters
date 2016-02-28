@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="MATLAB">
+      <UniqueIdentifier>{f5c0e067-6fad-4f0f-9fdb-6a6c68887f9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Python">
+      <UniqueIdentifier>{70bff764-fcd8-48ea-9a55-e1b971b68da4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="hardwarex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OSComputerRS232Port.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OSCore.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OSCriticalSection.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OSMisc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OSNet.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OSThread.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OSTime.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="hardwarex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hokuyo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Maestro.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MAVLinkDevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MDM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MiniSSC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NMEADevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OSComputerRS232Port.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OSCore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OSCriticalSection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OSMisc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OSNet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OSThread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OSTime.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="P33x.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RazorAHRS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RS232Port.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Seanet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SSC32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SwarmonDevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Makefile" />
+  </ItemGroup>
+</Project>

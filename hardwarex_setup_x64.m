@@ -10,7 +10,8 @@
 % compiler and therefore do not need Visual Studio...).
 switch (computer)
     case 'PCWIN64'
-        loadlibrary('hardwarex', 'hardwarex.h', 'notempdir')
+        %loadlibrary('hardwarex', 'hardwarex.h', 'notempdir')
+        loadlibrary('hardwarex', 'hardwarex.h', 'notempdir', 'includepath', 'C:\Program Files\MAVLinkSDK', 'includepath', 'C:\Program Files (x86)\MAVLinkSDK')
         %libfunctions hardwarex -full
     otherwise
         ;

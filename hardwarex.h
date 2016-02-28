@@ -11,6 +11,9 @@
 #define HARDWAREX_API 
 #endif // _WIN32
 
+// Uncomment the following line to enable MAVLink in MATLAB (requires corresponding headers and needs Visual Studio 2013 (to set in mex -setup and mex -setup C++)...).
+//#define ENABLE_MAVLINK_SUPPORT
+
 //#ifndef DISABLE_THREADS_OSNET
 //#define DISABLE_THREADS_OSNET
 //#endif // DISABLE_THREADS_OSNET
@@ -22,6 +25,9 @@
 #include "SSC32.h"
 #include "Maestro.h"
 #include "Hokuyo.h"
+#ifdef ENABLE_MAVLINK_SUPPORT
+#include "MAVLinkDevice.h"
+#endif // ENABLE_MAVLINK_SUPPORT
 
 #ifdef __cplusplus
 extern "C" {
@@ -92,6 +98,19 @@ extern "C" {
 	HARDWAREX_API int GetLatestDataFromThreadHokuyox(HOKUYO* pHokuyo, double* pDistances, double* pAngles);
 	HARDWAREX_API int StartThreadHokuyox(HOKUYO* pHokuyo);
 	HARDWAREX_API int StopThreadHokuyox(HOKUYO* pHokuyo);
+
+#ifdef ENABLE_MAVLINK_SUPPORT
+	HARDWAREX_API MAVLINKDEVICE* CreateMAVLinkDevicex(void);
+	HARDWAREX_API void DestroyMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice);
+	HARDWAREX_API MAVLINKDATA* CreateMAVLinkDatax(void);
+	HARDWAREX_API void DestroyMAVLinkDatax(MAVLINKDATA* pMAVLinkData);
+	HARDWAREX_API int GetLatestDataMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, MAVLINKDATA* pMAVLinkData);
+	HARDWAREX_API int ConnectMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, char* szCfgFilePath);
+	HARDWAREX_API int DisconnectMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice);
+	HARDWAREX_API int GetLatestDataFromThreadMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, MAVLINKDATA* pMAVLinkData);
+	HARDWAREX_API int StartThreadMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice);
+	HARDWAREX_API int StopThreadMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice);
+#endif // ENABLE_MAVLINK_SUPPORT
 
 #ifdef __cplusplus
 }
