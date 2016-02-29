@@ -41,8 +41,8 @@ while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
 		roll = mavlinkdata.attitude.roll*180.0/pi;
 	end
 	if (mavlinkdata.optical_flow.quality >= pMAVLinkDevice.value.quality_threshold)
-		if (abs(mavlinkdata.optical_flow.flow_comp_m_y) > mavlinkdevice.flow_comp_m_threshold) vrx = mavlinkdata.optical_flow.flow_comp_m_y; else vrx = 0; end
-		if (abs(mavlinkdata.optical_flow.flow_comp_m_x) > mavlinkdevice.flow_comp_m_threshold) vry = mavlinkdata.optical_flow.flow_comp_m_x; else vry = 0; end
+		if (abs(mavlinkdata.optical_flow.flow_comp_m_y) > pMAVLinkDevice.value.flow_comp_m_threshold) vrx = mavlinkdata.optical_flow.flow_comp_m_y; else vrx = 0; end
+		if (abs(mavlinkdata.optical_flow.flow_comp_m_x) > pMAVLinkDevice.value.flow_comp_m_threshold) vry = mavlinkdata.optical_flow.flow_comp_m_x; else vry = 0; end
 	end
 	str = sprintf('(LAT,LON) = (%f,%f), Yaw = %f, Pitch = %f, Roll = %f, (vrx,vry) = (%f,%f)\n', latitude, longitude, yaw, pitch, roll, vrx, vry);
     uicontrol('Style','text','String',str,'Units','normalized','Position',[0 0 1 1]);

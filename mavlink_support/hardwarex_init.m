@@ -6,13 +6,10 @@
 if not(libisloaded('hardwarex'))
     switch (computer)
         case 'PCWIN64'
-            %loadlibrary('hardwarex', @hardwarex_proto);
             loadlibrary('hardwarex', @hardwarex_proto, 'includepath', 'C:\Program Files\MAVLinkSDK', 'includepath', 'C:\Program Files (x86)\MAVLinkSDK', 'includepath', 'MAVLinkSDK');
         case 'PCWIN'
-            %loadlibrary('hardwarex');
-            loadlibrary('hardwarex', 'hardwarex.h', 'includepath', 'C:\Program Files\MAVLinkSDK', 'includepath', 'C:\Program Files (x86)\MAVLinkSDK', 'includepath', 'MAVLinkSDK');
+            loadlibrary('hardwarex', @hardwarex_proto, 'includepath', 'C:\Program Files\MAVLinkSDK', 'includepath', 'C:\Program Files (x86)\MAVLinkSDK', 'includepath', 'MAVLinkSDK');
         otherwise
-            %loadlibrary('hardwarex');
             loadlibrary('hardwarex', 'hardwarex.h', 'includepath', 'MAVLinkSDK');
     end
     %libfunctions hardwarex -full
