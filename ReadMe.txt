@@ -9,4 +9,4 @@ Linux/Mac :
 
 Sample : http://www.ensta-bretagne.fr/lebars/Share/buggy_real_gps.zip for the buggy based on an Android smartphone described on http://www.ensta-bretagne.fr/lebars/buggy_android_full.pdf .
 
-Tested on Windows 8 64 bit using MATLAB R2014a.
+Tested on Windows 8.1 64 bit using MATLAB R2014a.

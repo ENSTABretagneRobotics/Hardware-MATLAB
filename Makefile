@@ -35,7 +35,8 @@ CFLAGS += -g -fpermissive
 CFLAGS += -Wall
 #CFLAGS += -Wextra -Winline
 
-CFLAGS += -I. -I..
+CFLAGS += -I. -I.. -IMAVLinkSDK
+CFLAGS += -DDISABLE_AIS_SUPPORT
 
 # Depending on your OS (old Linux or Mac)...
 #CFLAGS += -DUSE_OLD_CHRONO

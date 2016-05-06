@@ -389,7 +389,7 @@ inline int ConnectHokuyo(HOKUYO* pHokuyo, char* szCfgFilePath)
 		pHokuyo->EndStep = 725;
 		pHokuyo->ClusterCount = 0;
 		pHokuyo->ScanInterval = 0;
-		pHokuyo->bContinuousNumberOfScans = 0;
+		pHokuyo->bContinuousNumberOfScans = 1;
 		pHokuyo->alpha_max_err = 0.01;
 		pHokuyo->d_max_err = 0.1;
 
@@ -454,14 +454,14 @@ inline int ConnectHokuyo(HOKUYO* pHokuyo, char* szCfgFilePath)
 
 	if (OpenRS232Port(&pHokuyo->RS232Port, pHokuyo->szDevPath) != EXIT_SUCCESS)
 	{
-		printf("Unable to connect to Hokuyo.\n");
+		printf("Unable to connect to a Hokuyo.\n");
 		return EXIT_FAILURE;
 	}
 
 	if (SetOptionsRS232Port(&pHokuyo->RS232Port, pHokuyo->BaudRate, NOPARITY, FALSE, 8, 
 		ONESTOPBIT, (UINT)pHokuyo->timeout) != EXIT_SUCCESS)
 	{
-		printf("Unable to connect to Hokuyo.\n");
+		printf("Unable to connect to a Hokuyo.\n");
 		CloseRS232Port(&pHokuyo->RS232Port);
 		return EXIT_FAILURE;
 	}
