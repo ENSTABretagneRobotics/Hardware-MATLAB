@@ -21,9 +21,9 @@ key = 0;
 while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
     clf; hold on;
     if (mod(a, 2) == 0)
-        [result] = SetAllPWMsFromThreadMaestro(pMaestro, [1 1 1 0 0],  [1000 2000 1000 1500 1500]);
+        [result] = SetAllPWMsFromThreadMaestro(pMaestro, [1 1 1 0 0],  [1000 2000 1250 1500 1500]);
     else
-        [result] = SetAllPWMsFromThreadMaestro(pMaestro, [1 1 1 0 0],  [2000 1000 2000 1500 1500]);
+        [result] = SetAllPWMsFromThreadMaestro(pMaestro, [1 1 1 0 0],  [2000 1000 1750 1500 1500]);
     end
     a = a+1;
     [result, value] = GetValueFromThreadMaestro(pMaestro, 11);

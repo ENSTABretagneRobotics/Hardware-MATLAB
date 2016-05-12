@@ -32,7 +32,7 @@ CC = g++
 CFLAGS += -fPIC
 CFLAGS += -g -fpermissive
 #CFLAGS += -O3 -fpermissive
-CFLAGS += -Wall
+CFLAGS += -Wall -Wno-unknown-pragmas
 #CFLAGS += -Wextra -Winline
 
 CFLAGS += -I. -I.. -IMAVLinkSDK
