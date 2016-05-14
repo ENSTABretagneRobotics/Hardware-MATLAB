@@ -4,6 +4,7 @@ pMAVLinkDevice = CreateMAVLinkDevice();
 [result] = ConnectMAVLinkDevice(pMAVLinkDevice, 'MAVLinkDevice0.txt')
 %pMAVLinkDevice.value
 
+[result] = SetAllPWMsMAVLinkDevice(pMAVLinkDevice, [1 1 1 0 0 0 0 0], [1000 2000 1000 1500 1500 1500 1500 1500]);
 [result, mavlinkdata] = GetLatestDataMAVLinkDevice(pMAVLinkDevice);
 latitude = mavlinkdata.gps_raw_int.lat/10000000.0;
 longitude = mavlinkdata.gps_raw_int.lon/10000000.0;
@@ -19,12 +20,19 @@ fig = figure('Position',[200 200 400 100],'NumberTitle','off');
 % Force the figure to have input focus (required to capture keys).
 set(fig,'WindowStyle','Modal'); axis('off');
 
-% If GetLatestDataMAVLinkDevice() takes too much time, use a thread to access data faster...
+% If GetLatestDataMAVLinkDevice(), SetAllPWMsMAVLinkDevice()...  takes too much time, use a thread to access data faster...
 [result] = StartThreadMAVLinkDevice(pMAVLinkDevice);
 
+a = 0;
 key = 0;
 while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
     clf; hold on;
+    if (mod(a, 20) <= 10)
+        [result] = SetAllPWMsFromThreadMAVLinkDevice(pMAVLinkDevice, [1 1 1 0 0 0 0 0],  [1000 2000 1250 1500 1500 1500 1500 1500]);
+    else
+        [result] = SetAllPWMsFromThreadMAVLinkDevice(pMAVLinkDevice, [1 1 1 0 0 0 0 0],  [2000 1000 1750 1500 1500 1500 1500 1500]);
+    end
+    a = a+1;
     [result, mavlinkdata] = GetLatestDataFromThreadMAVLinkDevice(pMAVLinkDevice);
 	% Since not all the data are valid at all times, update only valid values and keep previous otherwise...
 	if (mavlinkdata.gps_raw_int.fix_type >= 2)

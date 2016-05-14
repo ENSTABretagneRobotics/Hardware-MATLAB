@@ -10,3 +10,17 @@ Linux/Mac :
 Sample : http://www.ensta-bretagne.fr/lebars/Share/buggy_real_gps.zip for the buggy based on an Android smartphone described on http://www.ensta-bretagne.fr/lebars/buggy_android_full.pdf .
 
 Tested on Windows 8.1 64 bit using MATLAB R2014a.
+
+Hardware support : 
+- Hokuyo : Hokuyo URG-04LX-UG01 laser telemeter
+- Maestro : Pololu Mini Maestro 6, 18, 24
+- MAVLinkDevice (not enabled by default, see mavlink_support folder) : ArduPilot
+- MDM : Tritech Micron Data Modem
+- MT : Xsens MTi, MTi-G
+- NMEADevice : GPS
+- P33x : Keller pressure sensor PAA-33x
+- RazorAHRS : SparkFun 9DOF Razor IMU
+- Seanet : Tritech Micron Sonar, Tritech Miniking Sonar
+- SSC-32 : Lynxmotion SSC-32, SSC-32u
+
+See also https://github.com/ENSTABretagneRobotics/Android, https://github.com/ENSTABretagneRobotics/Hardware-CPP, https://github.com/ENSTABretagneRobotics/Hardware-Java.

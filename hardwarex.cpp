@@ -37,6 +37,8 @@ BOOL bExitHokuyo = FALSE;
 #ifdef ENABLE_MAVLINK_SUPPORT
 THREAD_IDENTIFIER MAVLinkDeviceThreadId;
 CRITICAL_SECTION MAVLinkDeviceCS;
+int selectedchannelsMAVLinkDevice[NB_CHANNELS_PWM_MAVLINKDEVICE];
+int pwsMAVLinkDevice[NB_CHANNELS_PWM_MAVLINKDEVICE];
 MAVLINKDATA mavlinkdataMAVLinkDevice;
 BOOL bExitMAVLinkDevice = FALSE;
 #endif // ENABLE_MAVLINK_SUPPORT
@@ -609,6 +611,11 @@ HARDWAREX_API int GetLatestDataMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, MAV
 	return GetLatestDataMAVLinkDevice(pMAVLinkDevice, pMAVLinkData);
 }
 
+HARDWAREX_API int SetAllPWMsMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, int* selectedchannels, int* pws)
+{
+	return SetAllPWMsMAVLinkDevice(pMAVLinkDevice, selectedchannels, pws);
+}
+
 HARDWAREX_API int ConnectMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, char* szCfgFilePath)
 {
 	return ConnectMAVLinkDevice(pMAVLinkDevice, szCfgFilePath);
@@ -622,11 +629,19 @@ HARDWAREX_API int DisconnectMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice)
 THREAD_PROC_RETURN_VALUE MAVLinkDeviceThread(void* pParam)
 {
 	MAVLINKDEVICE* pMAVLinkDevice = (MAVLINKDEVICE*)pParam;
+	int selectedchannels[NB_CHANNELS_PWM_MAVLINKDEVICE];
+	int pws[NB_CHANNELS_PWM_MAVLINKDEVICE];
 	MAVLINKDATA mavlinkdata;
 
 	for (;;)
 	{
-		mSleep(100);
+		mSleep(25);
+		EnterCriticalSection(&MAVLinkDeviceCS);
+		memcpy(selectedchannels, selectedchannelsMAVLinkDevice, NB_CHANNELS_PWM_MAVLINKDEVICE*sizeof(int));
+		memcpy(pws, pwsMAVLinkDevice, NB_CHANNELS_PWM_MAVLINKDEVICE*sizeof(int));
+		LeaveCriticalSection(&MAVLinkDeviceCS);
+		SetAllPWMsMAVLinkDevice(pMAVLinkDevice, selectedchannels, pws);
+		mSleep(25);
 		memset(&mavlinkdata, 0, sizeof(MAVLINKDATA));
 		GetLatestDataMAVLinkDevice(pMAVLinkDevice, &mavlinkdata);
 		EnterCriticalSection(&MAVLinkDeviceCS);
@@ -636,6 +651,20 @@ THREAD_PROC_RETURN_VALUE MAVLinkDeviceThread(void* pParam)
 	}
 
 	return 0;
+}
+
+HARDWAREX_API int SetAllPWMsFromThreadMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, int* selectedchannels, int* pws)
+{
+	UNREFERENCED_PARAMETER(pMAVLinkDevice);
+
+	// id[pMAVLinkDevice->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&MAVLinkDeviceCS);
+	memcpy(selectedchannelsMAVLinkDevice, selectedchannels, NB_CHANNELS_PWM_MAVLINKDEVICE*sizeof(int));
+	memcpy(pwsMAVLinkDevice, pws, NB_CHANNELS_PWM_MAVLINKDEVICE*sizeof(int));
+	LeaveCriticalSection(&MAVLinkDeviceCS);
+
+	return EXIT_SUCCESS;
 }
 
 HARDWAREX_API int GetLatestDataFromThreadMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, MAVLINKDATA* pMAVLinkData)
