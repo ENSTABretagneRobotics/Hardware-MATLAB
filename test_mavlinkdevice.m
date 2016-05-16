@@ -4,7 +4,7 @@ pMAVLinkDevice = CreateMAVLinkDevice();
 [result] = ConnectMAVLinkDevice(pMAVLinkDevice, 'MAVLinkDevice0.txt')
 %pMAVLinkDevice.value
 
-[result] = SetAllPWMsMAVLinkDevice(pMAVLinkDevice, [1 1 1 0 0 0 0 0], [1000 2000 1000 1500 1500 1500 1500 1500]);
+[result] = SetAllPWMsMAVLinkDevice(pMAVLinkDevice, [1 1 1 1 1 1 1 1], [1500 1500 1000 1500 1000 1000 1000 1000]);
 [result, mavlinkdata] = GetLatestDataMAVLinkDevice(pMAVLinkDevice);
 latitude = mavlinkdata.gps_raw_int.lat/10000000.0;
 longitude = mavlinkdata.gps_raw_int.lon/10000000.0;
@@ -28,9 +28,9 @@ key = 0;
 while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
     clf; hold on;
     if (mod(a, 20) <= 10)
-        [result] = SetAllPWMsFromThreadMAVLinkDevice(pMAVLinkDevice, [1 1 1 0 0 0 0 0],  [1000 2000 1250 1500 1500 1500 1500 1500]);
+        [result] = SetAllPWMsFromThreadMAVLinkDevice(pMAVLinkDevice, [1 1 1 0 0 0 0 0],  [1450 1550 1250 1500 1000 1000 1000 1000]);
     else
-        [result] = SetAllPWMsFromThreadMAVLinkDevice(pMAVLinkDevice, [1 1 1 0 0 0 0 0],  [2000 1000 1750 1500 1500 1500 1500 1500]);
+        [result] = SetAllPWMsFromThreadMAVLinkDevice(pMAVLinkDevice, [1 1 1 0 0 0 0 0],  [1550 1450 1750 1500 1000 1000 1000 1000]);
     end
     a = a+1;
     [result, mavlinkdata] = GetLatestDataFromThreadMAVLinkDevice(pMAVLinkDevice);
