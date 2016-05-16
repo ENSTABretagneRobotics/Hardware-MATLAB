@@ -6,7 +6,7 @@ COM5
 % Timeout (in ms)
 1000
 % bSaveRawData
-1
+0
 % bLegacyMode
 1
 % rollorientation

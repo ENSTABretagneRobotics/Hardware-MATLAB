@@ -6,7 +6,7 @@ COM9
 % Timeout (in ms)
 1000
 % bSaveRawData
-1
+0
 % bForceSCIP20
 0
 % bHS (activate high sensitivity if available)
