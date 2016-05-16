@@ -4,7 +4,10 @@ pMAVLinkDevice = CreateMAVLinkDevice();
 [result] = ConnectMAVLinkDevice(pMAVLinkDevice, 'MAVLinkDevice0.txt')
 %pMAVLinkDevice.value
 
-[result] = SetAllPWMsMAVLinkDevice(pMAVLinkDevice, [1 1 1 1 1 1 1 1], [1500 1500 1000 1500 1000 1000 1000 1000]);
+disp('Arming...')
+[result] = SetAllPWMsMAVLinkDevice(pMAVLinkDevice, [1 1 1 1 1 1 1 1], [1500 1500 1000 2000 1000 1000 1000 1000]);
+pause(8);
+disp('Check if red LED is solid')
 [result, mavlinkdata] = GetLatestDataMAVLinkDevice(pMAVLinkDevice);
 latitude = mavlinkdata.gps_raw_int.lat/10000000.0;
 longitude = mavlinkdata.gps_raw_int.lon/10000000.0;
