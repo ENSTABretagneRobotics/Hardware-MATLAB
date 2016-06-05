@@ -103,6 +103,18 @@ Debug macros specific to OSMisc.
 #define NORTH_WEST_UP_COORDINATE_SYSTEM 2
 
 /*
+Return an angle between 0 and 2*M_PI.
+
+double theta : (IN) Value.
+
+Return : The converted angle.
+*/
+inline double fmod_2PI_pos(double theta)
+{
+	return fmod(fmod(theta, 2*M_PI)+2*M_PI, 2*M_PI);
+}
+
+/*
 Return an angle between -M_PI and M_PI.
 
 double theta : (IN) Value.
@@ -114,9 +126,76 @@ inline double fmod_2PI(double theta)
 	return fmod(fmod(theta, 2*M_PI)+3*M_PI, 2*M_PI)-M_PI;
 }
 
+/*
+Return an angle between 0 and 360.
+
+double theta : (IN) Value.
+
+Return : The converted angle.
+*/
+inline double fmod_360_pos(double theta)
+{
+	return fmod(fmod(theta, 2*180.0)+2*180.0, 2*180.0);
+}
+
+/*
+Return an angle between -180 and 180.
+
+double theta : (IN) Value.
+
+Return : The converted angle.
+*/
 inline double fmod_360(double theta)
 {
 	return fmod(fmod(theta, 2*180.0)+3*180.0, 2*180.0)-180.0;
+}
+
+/*
+Convert any angle in rad to an angle between 0 and 360 deg.
+
+double theta : (IN) Value in rad.
+
+Return : The converted angle in deg.
+*/
+inline double fmod_360_pos_rad2deg(double theta)
+{
+	return fmod(fmod(theta*180.0/M_PI, 2*180.0)+2*180.0, 2*180.0);
+}
+
+/*
+Convert any angle in rad to an angle between -180 and 180 deg.
+
+double theta : (IN) Value in rad.
+
+Return : The converted angle in deg.
+*/
+inline double fmod_360_rad2deg(double theta)
+{
+	return fmod(fmod(theta*180.0/M_PI, 2*180.0)+3*180.0, 2*180.0)-180.0;
+}
+
+/*
+Convert any angle in deg to an angle between 0 and 2*M_PI rad.
+
+double theta : (IN) Value in deg.
+
+Return : The converted angle in rad.
+*/
+inline double fmod_2PI_pos_deg2rad(double theta)
+{
+	return fmod(fmod(theta*M_PI/180.0, 2*M_PI)+2*M_PI, 2*M_PI);
+}
+
+/*
+Convert any angle in deg to an angle between -M_PI and M_PI rad.
+
+double theta : (IN) Value in deg.
+
+Return : The converted angle in rad.
+*/
+inline double fmod_2PI_deg2rad(double theta)
+{
+	return fmod(fmod(theta*M_PI/180.0, 2*M_PI)+3*M_PI, 2*M_PI)-M_PI;
 }
 
 inline double quantification(double v, double step)
@@ -1117,6 +1196,7 @@ EXTERN_C char GetUserInput(void);
 
 /*
 Wait for the user to press any key.
+See also getch() or kbhit() functions (conio.h).
 
 Return : Nothing.
 */

@@ -304,7 +304,7 @@ inline int OpenComputerRS232Port(HANDLE* phDev, char* szDevice)
 		return EXIT_FAILURE;
 	}
 
-	*phDev = (HANDLE)fd;
+	*phDev = (HANDLE)(intptr_t)fd;
 #endif // _WIN32
 
 	return EXIT_SUCCESS;
@@ -329,7 +329,7 @@ inline int CloseComputerRS232Port(HANDLE hDev)
 		return EXIT_FAILURE;
 	}
 #else
-	if (close((int)hDev) != EXIT_SUCCESS)
+	if (close((intptr_t)hDev) != EXIT_SUCCESS)
 	{
 		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("CloseComputerRS232Port error (%s) : %s(hDev=%#x)\n", 
 			strtime_m(), 
@@ -357,7 +357,7 @@ MAX_COMPUTERRS232PORT_TIMEOUT).
 Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
 */
 inline int SetOptionsComputerRS232Port(HANDLE hDev, UINT BaudRate, BYTE ParityMode, BOOL bCheckParity, BYTE nbDataBits, 
-							   BYTE StopBitsMode, UINT timeout)
+									   BYTE StopBitsMode, UINT timeout)
 {
 
 	// Should we do something like PurgeComm(g_hCom,PURGE_TXABORT|PURGE_RXABORT|PURGE_TXCLEAR|PURGE_RXCLEAR) / tcflush
@@ -467,7 +467,7 @@ inline int SetOptionsComputerRS232Port(HANDLE hDev, UINT BaudRate, BYTE ParityMo
 
 	memset(&options, 0, sizeof(options));
 
-	if (tcgetattr((int)hDev, &options) != EXIT_SUCCESS)
+	if (tcgetattr((intptr_t)hDev, &options) != EXIT_SUCCESS)
 	{
 		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
 			"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
@@ -478,6 +478,15 @@ inline int SetOptionsComputerRS232Port(HANDLE hDev, UINT BaudRate, BYTE ParityMo
 		return EXIT_FAILURE;
 	}
 
+	// Basic raw/non-canonical setup.
+	// The terminal attributes are set as follows : 
+	// termios_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+	// termios_p->c_oflag &= ~OPOST;
+	// termios_p->c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+	// termios_p->c_cflag &= ~(CSIZE | PARENB);
+	// termios_p->c_cflag |= CS8;
+	cfmakeraw(&options);
+
 	// The c_cflag member contains two options that should always be enabled,
 	// CLOCAL and CREAD. These will ensure that your program does not become
 	// the 'owner' of the port subject to sporatic job control and hangup signals, and
@@ -485,10 +494,13 @@ inline int SetOptionsComputerRS232Port(HANDLE hDev, UINT BaudRate, BYTE ParityMo
 	options.c_cflag |= (CLOCAL | CREAD);
 
 	// Raw input, no echo, no signals.
-	options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+	options.c_lflag &= ~(ICANON | IEXTEN | ECHO | ECHOE | ECHOK | ECHONL | ISIG);
+
+	// Raw input.
+	options.c_iflag &= ~(IGNBRK | BRKINT | INLCR | IGNCR | ICRNL);
 
 	// Raw output.
-	options.c_oflag &= ~OPOST;
+	options.c_oflag &= ~(OPOST | ONLCR | ONOCR | ONLRET | OCRNL);
 
 	// Disable hardware flow control.
 	options.c_cflag &= ~CRTSCTS;
@@ -650,7 +662,7 @@ inline int SetOptionsComputerRS232Port(HANDLE hDev, UINT BaudRate, BYTE ParityMo
 	options.c_cc[VMIN] = 0; // Minimum number of characters to read. 
 	options.c_cc[VTIME] = timeout/100; // Time to wait for every character read in tenths of seconds.
 
-	if (tcsetattr((int)hDev, TCSADRAIN, &options) != EXIT_SUCCESS)
+	if (tcsetattr((intptr_t)hDev, TCSADRAIN, &options) != EXIT_SUCCESS)
 	{
 		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
 			"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
@@ -686,7 +698,7 @@ every character read/write in ms.
 Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
 */
 inline int GetOptionsComputerRS232Port(HANDLE hDev, UINT* pBaudRate, BYTE* pParityMode, BOOL* pbCheckParity, BYTE* pNbDataBits, 
-							   BYTE* pStopBitsMode, UINT* pTimeout)
+									   BYTE* pStopBitsMode, UINT* pTimeout)
 {
 #ifdef _WIN32
 	DCB dcb;
@@ -734,7 +746,7 @@ inline int GetOptionsComputerRS232Port(HANDLE hDev, UINT* pBaudRate, BYTE* pPari
 
 	memset(&options, 0, sizeof(options));
 
-	if (tcgetattr((int)hDev, &options) != EXIT_SUCCESS)
+	if (tcgetattr((intptr_t)hDev, &options) != EXIT_SUCCESS)
 	{
 		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("GetOptionsComputerRS232Port error (%s) : %s(hDev=%#x)\n", 
 			strtime_m(), 
@@ -829,7 +841,7 @@ inline int PurgeComputerRS232Port(HANDLE hDev)
 		return EXIT_FAILURE;
 	}
 #else 
-	if (tcflush((int)hDev, TCIOFLUSH) != EXIT_SUCCESS)
+	if (tcflush((intptr_t)hDev, TCIOFLUSH) != EXIT_SUCCESS)
 	{
 		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("PurgeComputerRS232Port error (%s) : %s(hDev=%#x)\n", 
 			strtime_m(), 
@@ -864,7 +876,7 @@ inline int DrainComputerRS232Port(HANDLE hDev)
 		return EXIT_FAILURE;
 	}
 #else 
-	if (tcdrain((int)hDev) != EXIT_SUCCESS)
+	if (tcdrain((intptr_t)hDev) != EXIT_SUCCESS)
 	{
 		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("DrainComputerRS232Port error (%s) : %s(hDev=%#x)\n", 
 			strtime_m(), 
@@ -899,7 +911,7 @@ inline int WriteComputerRS232Port(HANDLE hDev, uint8* writebuf, UINT writebuflen
 	if (WriteFile(hDev, writebuf, writebuflen, (LPDWORD)pWrittenBytes, NULL))
 	{
 #else 
-	*pWrittenBytes = write((int)hDev, writebuf, writebuflen);
+	*pWrittenBytes = write((intptr_t)hDev, writebuf, writebuflen);
 	if (*pWrittenBytes >= 0)
 	{
 #endif // _WIN32
@@ -958,7 +970,7 @@ inline int ReadComputerRS232Port(HANDLE hDev, uint8* readbuf, UINT readbuflen, i
 	if (ReadFile(hDev, readbuf, readbuflen, (LPDWORD)pReadBytes, NULL))
 	{
 #else 
-	*pReadBytes = read((int)hDev, readbuf, readbuflen);
+	*pReadBytes = read((intptr_t)hDev, readbuf, readbuflen);
 	if (*pReadBytes >= 0)
 	{
 #endif // _WIN32
@@ -1020,7 +1032,7 @@ inline int WriteAllComputerRS232Port(HANDLE hDev, uint8* writebuf, UINT writebuf
 		if (WriteFile(hDev, writebuf + BytesWritten, writebuflen - BytesWritten, (LPDWORD)&Bytes, NULL))
 		{
 #else 
-		Bytes = write((int)hDev, writebuf + BytesWritten, writebuflen - BytesWritten);
+		Bytes = write((intptr_t)hDev, writebuf + BytesWritten, writebuflen - BytesWritten);
 		if (Bytes >= 0)
 		{
 #endif // _WIN32
@@ -1103,7 +1115,7 @@ inline int ReadAllComputerRS232Port(HANDLE hDev, uint8* readbuf, UINT readbuflen
 		if (ReadFile(hDev, readbuf + BytesRead, readbuflen - BytesRead, (LPDWORD)&Bytes, NULL))
 		{
 #else 
-		Bytes = read((int)hDev, readbuf + BytesRead, readbuflen - BytesRead);
+		Bytes = read((intptr_t)hDev, readbuf + BytesRead, readbuflen - BytesRead);
 		if (Bytes >= 0)
 		{
 #endif // _WIN32

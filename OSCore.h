@@ -35,7 +35,7 @@ _ Borland C++ Builder : __BORLANDC__
 
 _ GCC : __GNUC__
 
-Predifined macros depending on the target operating system : 
+Predefined macros depending on the target operating system : 
 
 _ 32 bit Windows : _WIN32 & !_WIN64
 
@@ -486,6 +486,16 @@ EXTERN_C char* FormatLastErrorMsg(char* buf, int buflen);
 
 #endif // defined(_DEBUG_MESSAGES) || defined(_DEBUG_WARNINGS) || defined(_DEBUG_ERRORS) 
 
+#ifdef __GNUC__
+// Disable some GCC warnings.
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#if (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)) || (__GNUC__ > 4))
+#pragma GCC diagnostic push
+#else
+//#pragma GCC diagnostic ignored "-Wpragmas"
+#endif // (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)) || (__GNUC__ > 4))
+#endif // __GNUC__
+
 #ifdef _DEBUG_DISPLAY
 #	define PRINT_DEBUG_MESSAGE(params) {char szLastErrMsg[LAST_ERROR_MSG_SIZE];szLastErrMsg[LAST_ERROR_MSG_SIZE-1]=0;fprintf_stdout params;}
 #	define PRINT_DEBUG_WARNING(params) {char szLastErrMsg[LAST_ERROR_MSG_SIZE];szLastErrMsg[LAST_ERROR_MSG_SIZE-1]=0;fprintf_stdout params;}
@@ -501,6 +511,16 @@ EXTERN_C char* FormatLastErrorMsg(char* buf, int buflen);
 #		define PRINT_DEBUG_ERROR(params)
 #	endif // _DEBUG_FILE
 #endif // _DEBUG_DISPLAY
+
+#ifdef __GNUC__
+// Restore the GCC warnings previously disabled.
+#if (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)) || (__GNUC__ > 4))
+#pragma GCC diagnostic pop
+#else
+//#pragma GCC diagnostic warning "-Wpragmas"
+#pragma GCC diagnostic warning "-Wunused-but-set-variable"
+#endif // (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)) || (__GNUC__ > 4))
+#endif // __GNUC__
 
 #ifdef _DEBUG_DISPLAY
 EXTERN_C void fprintf_stdout(const char * _Format, ...);
