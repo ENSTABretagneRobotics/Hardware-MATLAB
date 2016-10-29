@@ -9,6 +9,8 @@ Linux/Mac :
 
 Sample : http://www.ensta-bretagne.fr/lebars/Share/buggy_real_gps.zip for the buggy based on an Android smartphone described on http://www.ensta-bretagne.fr/lebars/buggy_android_full.pdf .
 
+Change the device path and other parameters in the configuration files if necessary. Mind the line endings in the configuration files depending on the OS (use e.g. the command dos2unix *.txt to convert line endings for Linux)!
+
 Tested on Windows 8.1 64 bit using MATLAB R2014a.
 
 Hardware support : 

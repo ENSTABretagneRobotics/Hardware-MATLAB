@@ -28,10 +28,12 @@
 LIB = hardwarex.so
 #LIB = hardwarex.dylib
 
-CC = g++
+CC = gcc
+CXX = g++
+
 CFLAGS += -fPIC
-CFLAGS += -g -fpermissive
-#CFLAGS += -O3 -fpermissive
+CFLAGS += -g
+#CFLAGS += -O3
 CFLAGS += -Wall -Wno-unknown-pragmas
 #CFLAGS += -Wextra -Winline
 
@@ -40,6 +42,8 @@ CFLAGS += -DDISABLE_AIS_SUPPORT
 
 # Depending on your OS (old Linux or Mac)...
 #CFLAGS += -DUSE_OLD_CHRONO
+
+CXXFLAGS += $(CFLAGS) -fpermissive
 
 LDFLAGS += -lrt -lm
 LDFLAGS += -lpthread -lrt -lm
@@ -72,10 +76,10 @@ OSTime.o: OSTime.c OSTime.h OSCore.o
 ############################# PROGS #############################
 
 hardwarex.o: hardwarex.cpp hardwarex.h OSCore.h OSCriticalSection.h OSThread.o OSTime.h OSMisc.h OSNet.h OSComputerRS232Port.h RS232Port.h MT.h RazorAHRS.h NMEADevice.h SwarmonDevice.h P33x.h SSC32.h Maestro.h MAVLinkDevice.h MiniSSC.h MDM.h Hokuyo.h Seanet.h 
-	$(CC) $(CFLAGS) -c $<
+	$(CXX) $(CXXFLAGS) -c $<
 
 $(LIB): hardwarex.o OSNet.o OSComputerRS232Port.o OSMisc.o OSTime.o OSThread.o OSCriticalSection.o OSCore.o
-	$(CC) $(CFLAGS) -shared -o $@ $^ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -shared -o $@ $^ $(LDFLAGS)
 
 clean:
 	rm -f $(LIB) *.o *.obj core *.gch
