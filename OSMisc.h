@@ -5,12 +5,8 @@ OSMisc.h
 Miscellaneous things.
 
 Fabrice Le Bars
-mean() and var() from Guillaume Brosse and Antone Borissov
-fgets2() by Luc Jaulin
 
 Created : 2009-01-28
-
-Version status : Tested some parts
 
 ***************************************************************************************************************:)*/
 
@@ -87,6 +83,19 @@ Debug macros specific to OSMisc.
 //#define strnicmp _strnicmp
 //#endif // __GNUC__
 
+// Need to be undefined at the end of the file...
+// min and max might cause incompatibilities on Linux...
+#ifndef _WIN32
+#if !defined(NOMINMAX)
+#ifndef max
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#endif // max
+#ifndef min
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif // min
+#endif // !defined(NOMINMAX)
+#endif // _WIN32
+
 #define MAX_BUF_LEN 256
 
 #define MAX_TIMEOUT_PROMPTGETUSERINPUTTIMEOUT 25500
@@ -95,12 +104,93 @@ Debug macros specific to OSMisc.
 #define KELVIN2CELSIUS(temperature) ((temperature)-273.15)
 #define CELSIUS2KELVIN(temperature) ((temperature)+273.15)
 
+#define STANDARD_GRAVITY 9.80665
+
 // Earth radius in m.
 #define EARTH_RADIUS 6371000
 
 #define EAST_NORTH_UP_COORDINATE_SYSTEM 0
 #define NORTH_EAST_DOWN_COORDINATE_SYSTEM 1
 #define NORTH_WEST_UP_COORDINATE_SYSTEM 2
+
+#ifndef SQR_DEFINED
+#define SQR_DEFINED
+#ifndef sqr
+/*
+Compute the square of a value.
+
+double x : (IN) Value.
+
+Return : The square of x.
+*/
+inline double sqr(double x)
+{
+	return x*x;
+}
+#endif // sqr
+#endif // SQR_DEFINED
+
+#ifndef sq
+#define sq(x) ((x)*(x))
+#endif // sq
+
+#ifndef SIGN_DEFINED
+#define SIGN_DEFINED
+#ifndef sign
+/*
+Return x/epsilon if x is between -epsilon and epsilon or -1 if x is negative, 
++1 if x is positive.
+
+double x : (IN) Value.
+double epsilon : (IN) Threshold.
+
+Return : -1, +1 or x/epsilon.
+*/
+inline double sign(double x, double epsilon)
+{ 
+	if (x >= epsilon) 
+		return 1;
+	else if (x <= -epsilon) 
+		return -1;
+	else if (epsilon == 0) 
+		return 0;
+	else 
+		return x/epsilon;
+}
+#endif // sign
+#endif // SIGN_DEFINED
+
+#ifndef constrain
+#define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
+#endif // constrain
+
+// See https://www.arduino.cc/reference/en/language/functions/math/map/.
+inline double remap2range(double x, double in_min, double in_max, double out_min, double out_max)
+{
+	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+inline double quantification(double v, double step)
+{
+	//double q = 0;
+	//q = q >= 0? floor(v/step+0.5): ceil(v/step-0.5);
+	//q = q*step;
+	return floor(v/step+0.5)*step;
+}
+
+/*
+Get the depth from the pressure (pressure difference = density x g x height).
+
+double pressure : (IN) Pressure in bar.
+double pressureref : (IN) Pressure at the surface in bar, used as reference (e.g. 1).
+double density : (IN) Water density in kg/m3 (e.g. 1000).
+
+Return : The depth in m.
+*/
+inline double Pressure2Height(double pressure, double pressureref, double density)
+{
+	return -(pressure-pressureref)*1e5/(density*STANDARD_GRAVITY);
+}
 
 /*
 Return an angle between 0 and 2*M_PI.
@@ -198,53 +288,9 @@ inline double fmod_2PI_deg2rad(double theta)
 	return fmod(fmod(theta*M_PI/180.0, 2*M_PI)+3*M_PI, 2*M_PI)-M_PI;
 }
 
-inline double quantification(double v, double step)
-{
-	//double q = 0;
-	//q = q >= 0? floor(v/step+0.5): ceil(v/step-0.5);
-	//q = q*step;
-	return floor(v/step+0.5)*step;
-}
-
-#ifndef SQR_DEFINED
-#define SQR_DEFINED
-/*
-Compute the square of a value.
-
-double x : (IN) Value.
-
-Return : The square of x.
-*/
-inline double sqr(double x)
-{
-	return x*x;
-}
-#endif // SQR_DEFINED
-
-#ifndef SIGN_DEFINED
-#define SIGN_DEFINED
-/*
-Return x/epsilon if x is between -epsilon and epsilon or -1 if x is negative, 
-+1 if x is positive.
-
-double x : (IN) Value.
-double epsilon : (IN) Threshold.
-
-Return : -1, +1 or x/epsilon.
-*/
-inline double sign(double x, double epsilon)
-{ 
-	if (x >= epsilon) 
-		return 1;
-	else if (x <= -epsilon) 
-		return -1;
-	else 
-		return x/epsilon;
-}
-#endif // SIGN_DEFINED
-
 #ifndef MEAN_DEFINED
 #define MEAN_DEFINED
+#ifndef mean
 /*
 Compute the mean of a table.
 
@@ -266,10 +312,12 @@ inline double mean(double* tab, int tab_length)
 
 	return m;
 }
+#endif // mean
 #endif // MEAN_DEFINED
 
 #ifndef VAR_DEFINED
 #define VAR_DEFINED
+#ifndef var
 /*
 Compute the variance of a table.
 
@@ -297,6 +345,7 @@ inline double var(double* tab, int tab_length)
 
 	return v;
 }
+#endif // var
 #endif // VAR_DEFINED
 
 /*
@@ -355,6 +404,79 @@ inline double varn(double* tab_values, double* tab_numbers, int tab_length)
 	v = v/n;
 
 	return v;
+}
+
+// https://en.wikiversity.org/wiki/C_Source_Code/Find_the_median_and_mean
+// https://www.tutorialspoint.com/learn_c_by_examples/median_program_in_c.htm
+inline double median(double* tab_values, int tab_length)
+{
+	double temp = 0;
+	int i = 0, j = 0;
+	int n = tab_length;
+	double* x = tab_values;
+
+	// The following two loops sort the array x in ascending order.
+	for (i = 0; i < n-1; i++) {
+		for (j = i+1; j < n; j++) {
+			if (x[j] < x[i]) {
+				// Swap elements.
+				temp = x[i];
+				x[i] = x[j];
+				x[j] = temp;
+			}
+		}
+	}
+
+	return x[n/2];
+}
+
+// https://en.wikiversity.org/wiki/C_Source_Code/Find_the_median_and_mean
+// https://www.tutorialspoint.com/learn_c_by_examples/median_program_in_c.htm
+inline double median2(double* tab_values, int tab_length)
+{
+	double temp = 0;
+	int i = 0, j = 0;
+	int n = tab_length;
+	double* x = tab_values;
+
+	// The following two loops sort the array x in ascending order.
+	for (i = 0; i < n-1; i++) {
+		for (j = i+1; j < n; j++) {
+			if (x[j] < x[i]) {
+				// Swap elements.
+				temp = x[i];
+				x[i] = x[j];
+				x[j] = temp;
+			}
+		}
+	}
+
+	if (n%2 == 0)
+	{
+		// For an even number of elements, return the mean of the two elements in the middle.
+		return ((x[n/2]+x[n/2-1])/2.0);
+	}
+	else
+	{
+		// Return the element in the middle.
+		return x[n/2];
+	}
+}
+
+// https://fr.wikipedia.org/wiki/Moyenne_mobile
+// https://en.wikipedia.org/wiki/Moving_average
+// http://www.cafemath.fr/mathblog/article.php?page=MovingAverages.php
+inline double rect_mv_avg(double newvalue, double oldestvalue, double prevaverage, int n)
+{
+	return prevaverage+(newvalue-oldestvalue)/(double)n;
+}
+
+// https://fr.wikipedia.org/wiki/Moyenne_mobile
+// https://en.wikipedia.org/wiki/Moving_average
+// http://www.cafemath.fr/mathblog/article.php?page=MovingAverages.php
+inline double exp_mv_avg(double newvalue, double prevaverage, double alpha)
+{
+	return alpha*prevaverage+(1.0-alpha)*newvalue;
 }
 
 #ifndef FGETS2_DEFINED
@@ -426,6 +548,73 @@ inline char* fgets3(FILE* file, char* line, int nbChar)
 	}
 
 	return r;
+}
+
+/*
+Return : The current line number or -1 if an error occurs.
+*/
+inline int ftellline(FILE* file)
+{ 
+	int cur = 0, i = 0;
+	char* r = NULL;
+	char line[1024];
+
+	cur = ftell(file);
+	rewind(file);
+
+	do
+	{
+		do
+		{
+			r = fgets(line, sizeof(line), file);
+			if (r == NULL) 
+			{
+				// Go back to initial position.
+				fseek(file, cur, SEEK_SET);
+				return -1;
+			}
+		} while ((strlen(r) == sizeof(line)-1)&&(r[sizeof(line)-2] != '\n'));
+		i++;
+	} while (ftell(file) <= cur);
+
+	// Go back to initial position.
+	if (fseek(file, cur, SEEK_SET) != EXIT_SUCCESS) return -1;
+
+	return i;
+}
+
+/*
+Return : EXIT_SUCCESS or EXIT_FAILURE if linenumber does not exist and in this case 
+the file tries to stay at its original position unless a file error occurs.
+*/
+inline int fsetline(FILE* file, int linenumber)
+{ 
+	int cur = 0, i = 0;
+	char* r = NULL;
+	char line[1024];
+
+	if (linenumber <= 0) return EXIT_FAILURE;
+
+	cur = ftell(file);
+	rewind(file);
+
+	while (i < linenumber-1)
+	{
+		do
+		{
+			r = fgets(line, sizeof(line), file);
+			if (r == NULL) 
+			{
+				// If fgets() fails, try to go back to initial position.
+				clearerr(file);
+				fseek(file, cur, SEEK_SET);
+				return EXIT_FAILURE;
+			}
+		} while ((strlen(r) == sizeof(line)-1)&&(r[sizeof(line)-2] != '\n'));
+		i++;
+	} 
+
+	return EXIT_SUCCESS;
 }
 
 inline int fload(char* szFilePath, unsigned char* buf, size_t elementsize, size_t count, size_t* pBytesLoaded)
@@ -628,9 +817,106 @@ inline void RemovePathInFilePath(char* szFilePath)
 	if ((bFound)&&(idx >= 0)&&(idx < (int)strlen(szFilePath)-1)) memmove(szFilePath, szFilePath+idx+1, strlen(szFilePath)-idx);
 }
 
+inline void GetFileNameAndFilePathAndChangeExtension(char* szFileInPath, char* szNewExtension, char* szFileOutPath, char* szFileOutName)
+{
+	strcpy(szFileOutPath, szFileInPath);
+	RemoveExtensionInFilePath(szFileOutPath);
+	strcpy(szFileOutName, szFileOutPath);
+	strcat(szFileOutPath, szNewExtension);
+	RemovePathInFilePath(szFileOutName);
+}
+
 inline double sensor_err(double bias_err, double max_rand_err)
 {
 	return bias_err+max_rand_err*(2.0*rand()/(double)RAND_MAX-1.0);
+}
+
+// Remember to reset *pipsi to 0 whenever this control is re-enabled.
+// direction_coef : depending on the type of robot, we need to invert depending on the direction of the movement, 
+// set to -1 if needed or 1 otherwise.
+inline double PID_angle_control(double psi_bar, double psi_bar_prev, double psi, double omega, double* pipsi, double direction_coef, double dt,
+	double Kp, double Kd, double Ki, double up_max, double ud_max, double ui_max,
+	double u_min, double u_max, double error_min, double error_max, double omega_max)
+{
+	double u = 0;
+	double error = fmod_2PI(psi_bar-psi);
+	double derivative = -omega;
+	double integral = *pipsi;
+	if (psi_bar != psi_bar_prev) integral = 0;
+	if (error > error_max)
+	{
+		u = sign(direction_coef, 0)*u_max;
+		integral = 0;
+	}
+	else if (error < error_min)
+	{
+		u = sign(direction_coef, 0)*u_min;
+		integral = 0;
+	}
+	else
+	{
+		if (fabs(Kp*error/M_PI) > up_max) u += sign(direction_coef, 0)*sign(Kp*error/M_PI, 0)*up_max;
+		else u += sign(direction_coef, 0)*Kp*error/M_PI; // /M_PI to try to normalize...
+		if (fabs(Kd*derivative/omega_max) > ud_max) u += sign(direction_coef, 0)*sign(Kd*derivative/omega_max, 0)*ud_max;
+		else u += sign(direction_coef, 0)*Kd*derivative/omega_max; // /omegaz_max to try to normalize...
+		if (fabs(Ki*integral/M_PI) > ui_max) u += sign(direction_coef, 0)*sign(Ki*integral/M_PI, 0)*ui_max;
+		else u += sign(direction_coef, 0)*Ki*integral/M_PI; // /M_PI to try to normalize...
+		integral = integral+error*dt;
+	}
+	u = (u < u_min)? u_min: ((u > u_max)? u_max: u);
+	*pipsi = integral;
+	return u;
+}
+
+// Remember to reset *piz to 0 whenever this control is re-enabled.
+// direction_coef : depending on the type of robot, we need to invert depending on the direction of the movement, 
+// set to -1 if needed or 1 otherwise.
+inline double PID_control(double z_bar, double z_bar_prev, double z, double dz, double* piz, double direction_coef, double dt,
+	double Kp, double Kd, double Ki, double up_max, double ud_max, double ui_max,
+	double u_min, double u_max, double error_min, double error_max, double dz_max)
+{
+	double u = 0;
+	double error = z_bar-z;
+	double derivative = -dz;
+	double integral = *piz;
+	if (z_bar != z_bar_prev) integral = 0;
+	if (error > error_max)
+	{
+		u = sign(direction_coef, 0)*u_max;
+		integral = 0;
+	}
+	else if (error < error_min)
+	{
+		u = sign(direction_coef, 0)*u_min;
+		integral = 0;
+	}
+	else
+	{
+		if (fabs(Kp*error) > up_max) u += sign(direction_coef, 0)*sign(Kp*error, 0)*up_max;
+		else u += sign(direction_coef, 0)*Kp*error;
+		if (fabs(Kd*derivative/dz_max) > ud_max) u += sign(direction_coef, 0)*sign(Kd*derivative/dz_max, 0)*ud_max;
+		else u += sign(direction_coef, 0)*Kd*derivative/dz_max; // /dz_max to try to normalize...
+		if (fabs(Ki*integral) > ui_max) u += sign(direction_coef, 0)*sign(Ki*integral, 0)*ui_max;
+		else u += sign(direction_coef, 0)*Ki*integral;
+		integral = integral+error*dt;
+	}
+	u = (u < u_min)? u_min: ((u > u_max)? u_max: u);
+	*piz = integral;
+	return u;
+}
+
+// Return theta_star (see http://www.ensta-bretagne.fr/jaulin/paper_jaulin_irsc12.pdf).
+// Remember to reset *pie to 0 if this control has been disabled during some time...
+inline double LineFollowing_integral(double phi, double phi_prev, double e, double* pie, double gamma_infinite, double r, double Ki, double integral_max, double dt)
+{
+	double psi_star = 0;
+	double integral = *pie;
+	if (phi != phi_prev) integral = 0;
+	if (fabs(Ki*integral) > integral_max) psi_star = phi-(2.0*gamma_infinite/M_PI)*atan2((e+sign(Ki*integral, 0)*integral_max),r);
+	else psi_star = phi-(2.0*gamma_infinite/M_PI)*atan2((e+Ki*integral),r); 
+	integral = integral+e*dt;
+	*pie = integral;
+	return psi_star;
 }
 
 // Return theta_star (see http://www.ensta-bretagne.fr/jaulin/paper_jaulin_irsc12.pdf).
@@ -1262,5 +1548,15 @@ inline void useless_function(int useless_param)
 	UNREFERENCED_PARAMETER(useless_param);
 	printf("This function is not so useless!\n");
 }
+
+// min and max might cause incompatibilities on Linux...
+#ifndef _WIN32
+#ifdef max
+#undef max
+#endif // max
+#ifdef min
+#undef min
+#endif // min
+#endif // _WIN32
 
 #endif // OSMISC_H

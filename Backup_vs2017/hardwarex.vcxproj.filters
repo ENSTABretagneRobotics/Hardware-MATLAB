@@ -59,12 +59,6 @@
     <ClInclude Include="MAVLinkDevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MDM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MiniSSC.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -92,22 +86,28 @@
     <ClInclude Include="OSTime.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="P33x.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="RazorAHRS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RS232Port.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Seanet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SSC32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SwarmonDevice.h">
+    <ClInclude Include="MAVLinkProtocol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NMEAProtocol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RPLIDAR.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ublox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UBXProtocol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

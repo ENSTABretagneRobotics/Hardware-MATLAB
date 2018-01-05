@@ -1,4 +1,4 @@
-% IP address and TCP port or local RS232 port
+% Server TCP port (e.g. :4001), client IP address and TCP port (e.g. 127.0.0.1:4001) or local RS232 port
 %127.0.0.1:4007
 COM5
 % BaudRate
@@ -7,19 +7,21 @@ COM5
 2000
 % bSaveRawData
 0
-% rollorientation
+% bROSMode
+0
+% rollorientation (in rad)
 0.0
 % rollp1
 0.0
 % rollp2
 0.0
-% pitchorientation
+% pitchorientation (in rad)
 0.0
 % pitchp1
 0.0
 % pitchp2
 0.0
-% yaworientation
+% yaworientation (in rad)
 0.0
 % yawp1
 0.0

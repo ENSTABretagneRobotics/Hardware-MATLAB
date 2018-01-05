@@ -219,19 +219,19 @@ union uShort_MT
 };
 typedef union uShort_MT uShort_MT;
 
-union usLong_MT
+union usInt_MT
 {
-	long v;
+	int v;
 	unsigned char c[4];
 };
-typedef union usLong_MT usLong_MT;
+typedef union usInt_MT usInt_MT;
 
-union uLong_MT
+union uInt_MT
 {
-	unsigned long v;
+	unsigned int v;
 	unsigned char c[4];
 };
-typedef union uLong_MT uLong_MT;
+typedef union uInt_MT uInt_MT;
 
 union uFloat_MT
 {
@@ -249,7 +249,7 @@ typedef union uDouble_MT uDouble_MT;
 
 struct UTC_Time_MT
 {
-	unsigned long Nanoseconds;
+	unsigned int Nanoseconds;
 	unsigned short Year; 
 	unsigned char Month;
 	unsigned char Day;
@@ -275,9 +275,7 @@ struct MTDATA
 	unsigned char Status;
 	unsigned short TS; 
 	struct UTC_Time_MT UTCTime;
-	double Roll; // In rad.
-	double Pitch; // In rad.
-	double Yaw; // In rad.
+	double Roll, Pitch, Yaw; // In rad.
 };
 typedef struct MTDATA MTDATA;
 
@@ -309,9 +307,9 @@ typedef struct MT MT;
 
 inline int ConvertToDoubleMT(int OutputSettings, unsigned char* buf, int offset, double* pValue)
 {
-	usLong_MT usl;
+	usInt_MT usl;
 	usShort_MT uss;
-	uLong_MT ul;
+	uInt_MT ul;
 	LARGE_INTEGER li;
 	uDouble_MT ud;
 	uFloat_MT uf;
@@ -336,7 +334,7 @@ inline int ConvertToDoubleMT(int OutputSettings, unsigned char* buf, int offset,
 		ul.c[1] = buf[2+offset];
 		ul.c[2] = buf[1+offset];
 		ul.c[3] = buf[0+offset];
-		li.HighPart = (long)uss.v;
+		li.HighPart = (int)uss.v;
 		li.LowPart = ul.v;
 		*pValue = (double)li.QuadPart/4294967296.0;
 		return offset+6;
@@ -362,7 +360,7 @@ inline int ConvertToDoubleMT(int OutputSettings, unsigned char* buf, int offset,
 inline void SetMTChecksum(unsigned char* msg, int msglen)
 {
 	int i = 0;
-	uLong_MT checksum;
+	uInt_MT checksum;
 
 	// If all message bytes excluding the preamble are summed and the lower byte value 
 	// of the result equals zero, the message is valid and it may be processed. The 
@@ -379,7 +377,7 @@ inline void SetMTChecksum(unsigned char* msg, int msglen)
 inline int CheckMTChecksum(unsigned char* msg, int msglen)
 {
 	int i = 0;
-	uLong_MT checksum;
+	uInt_MT checksum;
 
 	// If all message bytes excluding the preamble are summed and the lower byte value 
 	// of the result equals zero, the message is valid and it may be processed. The 
@@ -668,7 +666,7 @@ inline int GetLatestData2MT(MT* pMT, MTDATA* pMTData)
 	int size = 0;
 	int precisionoutputsettings = 0;
 	uShort_MT us;
-	uLong_MT ul;
+	uInt_MT ul;
 	double roll = 0, pitch = 0, yaw = 0;
 
 	memset(databuf, 0, sizeof(databuf));
@@ -746,9 +744,15 @@ inline int GetLatestData2MT(MT* pMT, MTDATA* pMTData)
 			offset = ConvertToDoubleMT(precisionoutputsettings, databuf, offset, &pMTData->q2);
 			offset = ConvertToDoubleMT(precisionoutputsettings, databuf, offset, &pMTData->q3);
 			roll = atan2(2*pMTData->q2*pMTData->q3+2*pMTData->q0*pMTData->q1,2*sqr(pMTData->q0)+2*sqr(pMTData->q3)-1);
-			pitch = -asin(2*pMTData->q1*pMTData->q3-2*pMTData->q0*pMTData->q2);
+			pitch = -asin(constrain(2*pMTData->q1*pMTData->q3-2*pMTData->q0*pMTData->q2, -1, 1)); // Attempt to avoid potential NAN...
 			yaw = atan2(2*pMTData->q1*pMTData->q2+2*pMTData->q0*pMTData->q3,2*sqr(pMTData->q0)+2*sqr(pMTData->q1)-1);
 			//yaw = fmod_2PI(yaw-M_PI/2.0); // Coordinate system different from legacy mode...
+			
+			// If raw Euler angles were not sent, ensure that they would still be in the log file.
+			pMTData->roll = roll*180.0/M_PI;
+			pMTData->pitch = pitch*180.0/M_PI;
+			pMTData->yaw = yaw*180.0/M_PI;
+
 			// Apply corrections (magnetic, orientation of the sensor w.r.t. coordinate system...).
 			pMTData->Roll = fmod_2PI(roll+pMT->rollorientation+pMT->rollp1*cos(roll+pMT->rollp2));
 			pMTData->Pitch = fmod_2PI(pitch+pMT->pitchorientation+pMT->pitchp1*cos(pitch+pMT->pitchp2));
@@ -762,6 +766,7 @@ inline int GetLatestData2MT(MT* pMT, MTDATA* pMTData)
 			pitch = pMTData->pitch*M_PI/180.0;
 			yaw = pMTData->yaw*M_PI/180.0;
 			//yaw = fmod_2PI(yaw-M_PI/2.0); // Coordinate system different from legacy mode...
+	
 			// Apply corrections (magnetic, orientation of the sensor w.r.t. coordinate system...).
 			pMTData->Roll = fmod_2PI(roll+pMT->rollorientation+pMT->rollp1*cos(roll+pMT->rollp2));
 			pMTData->Pitch = fmod_2PI(pitch+pMT->pitchorientation+pMT->pitchp1*cos(pitch+pMT->pitchp2));
@@ -778,9 +783,15 @@ inline int GetLatestData2MT(MT* pMT, MTDATA* pMTData)
 			offset = ConvertToDoubleMT(precisionoutputsettings, databuf, offset, &pMTData->h);
 			offset = ConvertToDoubleMT(precisionoutputsettings, databuf, offset, &pMTData->i);
 			roll = atan2(pMTData->f,pMTData->i);
-			pitch = -asin(pMTData->c);
+			pitch = -asin(constrain(pMTData->c, -1, 1)); // Attempt to avoid potential NAN...
 			yaw = atan2(pMTData->b,pMTData->a);
 			//yaw = fmod_2PI(yaw-M_PI/2.0); // Coordinate system different from legacy mode...
+		
+			// If raw Euler angles were not sent, ensure that they would still be in the log file.
+			pMTData->roll = roll*180.0/M_PI;
+			pMTData->pitch = pitch*180.0/M_PI;
+			pMTData->yaw = yaw*180.0/M_PI;
+
 			// Apply corrections (magnetic, orientation of the sensor w.r.t. coordinate system...).
 			pMTData->Roll = fmod_2PI(roll+pMT->rollorientation+pMT->rollp1*cos(roll+pMT->rollp2));
 			pMTData->Pitch = fmod_2PI(pitch+pMT->pitchorientation+pMT->pitchp1*cos(pitch+pMT->pitchp2));
@@ -848,7 +859,7 @@ inline int GetLatestDataMT(MT* pMT, MTDATA* pMTData)
 	int nbdatabytes = 0;
 	int offset = 0;
 	uShort_MT us;
-	uLong_MT ul;
+	uInt_MT ul;
 	double roll = 0, pitch = 0, yaw = 0;
 
 	// Warning : coordinate system might not be the same between legacy and normal modes!
@@ -917,6 +928,9 @@ inline int GetLatestDataMT(MT* pMT, MTDATA* pMTData)
 			offset = ConvertToDoubleMT(pMT->OutputSettings, databuf, offset, &pMTData->roll);
 			offset = ConvertToDoubleMT(pMT->OutputSettings, databuf, offset, &pMTData->pitch);
 			offset = ConvertToDoubleMT(pMT->OutputSettings, databuf, offset, &pMTData->yaw);
+			roll = pMTData->roll*M_PI/180.0;
+			pitch = pMTData->pitch*M_PI/180.0;
+			yaw = pMTData->yaw*M_PI/180.0;
 			break;
 		case MATRIX:
 			// Orientation data output mode - Matrix.
@@ -929,6 +943,14 @@ inline int GetLatestDataMT(MT* pMT, MTDATA* pMTData)
 			offset = ConvertToDoubleMT(pMT->OutputSettings, databuf, offset, &pMTData->g);
 			offset = ConvertToDoubleMT(pMT->OutputSettings, databuf, offset, &pMTData->h);
 			offset = ConvertToDoubleMT(pMT->OutputSettings, databuf, offset, &pMTData->i);
+			roll = atan2(pMTData->f,pMTData->i);
+			pitch = -asin(constrain(pMTData->c, -1, 1)); // Attempt to avoid potential NAN...
+			yaw = atan2(pMTData->b,pMTData->a);
+			
+			// If raw Euler angles were not sent, ensure that they would still be in the log file.
+			pMTData->roll = roll*180.0/M_PI;
+			pMTData->pitch = pitch*180.0/M_PI;
+			pMTData->yaw = yaw*180.0/M_PI;
 			break;
 		default:
 			// Orientation data output mode - Quaternion.
@@ -936,8 +958,21 @@ inline int GetLatestDataMT(MT* pMT, MTDATA* pMTData)
 			offset = ConvertToDoubleMT(pMT->OutputSettings, databuf, offset, &pMTData->q1);
 			offset = ConvertToDoubleMT(pMT->OutputSettings, databuf, offset, &pMTData->q2);
 			offset = ConvertToDoubleMT(pMT->OutputSettings, databuf, offset, &pMTData->q3);
+			roll = atan2(2*pMTData->q2*pMTData->q3+2*pMTData->q0*pMTData->q1,2*sqr(pMTData->q0)+2*sqr(pMTData->q3)-1);
+			pitch = -asin(constrain(2*pMTData->q1*pMTData->q3-2*pMTData->q0*pMTData->q2, -1, 1)); // Attempt to avoid potential NAN...
+			yaw = atan2(2*pMTData->q1*pMTData->q2+2*pMTData->q0*pMTData->q3,2*sqr(pMTData->q0)+2*sqr(pMTData->q1)-1);
+			
+			// If raw Euler angles were not sent, ensure that they would still be in the log file.
+			pMTData->roll = roll*180.0/M_PI;
+			pMTData->pitch = pitch*180.0/M_PI;
+			pMTData->yaw = yaw*180.0/M_PI;
 			break;
 		}
+
+		// Apply corrections (magnetic, orientation of the sensor w.r.t. coordinate system...).
+		pMTData->Roll = fmod_2PI(roll+pMT->rollorientation+pMT->rollp1*cos(roll+pMT->rollp2));
+		pMTData->Pitch = fmod_2PI(pitch+pMT->pitchorientation+pMT->pitchp1*cos(pitch+pMT->pitchp2));
+		pMTData->Yaw = fmod_2PI(yaw+pMT->yaworientation+pMT->yawp1*cos(yaw+pMT->yawp2));
 	}
 
 	if (pMT->OutputMode & AUXILIARY_BIT)
@@ -1018,37 +1053,6 @@ inline int GetLatestDataMT(MT* pMT, MTDATA* pMTData)
 		offset += 1;
 	}
 
-	// Convert orientation information in angles in rad with corrections.
-	if (pMT->OutputMode & ORIENTATION_BIT)
-	{
-		switch (pMT->OutputSettings & ORIENTATION_MODE_MASK)
-		{
-		case EULER_ANGLES:
-			// Orientation data output mode - Euler angles.
-			roll = pMTData->roll*M_PI/180.0;
-			pitch = pMTData->pitch*M_PI/180.0;
-			yaw = pMTData->yaw*M_PI/180.0;
-			break;
-		case MATRIX:
-			// Orientation data output mode - Matrix.
-			roll = atan2(pMTData->f,pMTData->i);
-			pitch = -asin(pMTData->c);
-			yaw = atan2(pMTData->b,pMTData->a);
-			break;
-		default:
-			// Orientation data output mode - Quaternion.
-			roll = atan2(2*pMTData->q2*pMTData->q3+2*pMTData->q0*pMTData->q1,2*sqr(pMTData->q0)+2*sqr(pMTData->q3)-1);
-			pitch = -asin(2*pMTData->q1*pMTData->q3-2*pMTData->q0*pMTData->q2);
-			yaw = atan2(2*pMTData->q1*pMTData->q2+2*pMTData->q0*pMTData->q3,2*sqr(pMTData->q0)+2*sqr(pMTData->q1)-1);
-			break;
-		}
-
-		// Apply corrections (magnetic, orientation of the sensor w.r.t. coordinate system...).
-		pMTData->Roll = fmod_2PI(roll+pMT->rollorientation+pMT->rollp1*cos(roll+pMT->rollp2));
-		pMTData->Pitch = fmod_2PI(pitch+pMT->pitchorientation+pMT->pitchp1*cos(pitch+pMT->pitchp2));
-		pMTData->Yaw = fmod_2PI(yaw+pMT->yaworientation+pMT->yawp1*cos(yaw+pMT->yawp2));
-	}
-
 	pMT->LastMTData = *pMTData;
 
 	return EXIT_SUCCESS;
@@ -1065,7 +1069,7 @@ inline int ConnectMT(MT* pMT, char* szCfgFilePath)
 	unsigned char databuf[MAX_NB_BYTES_MT];
 	int nbdatabytes = 0;
 	uShort_MT OutputMode;
-	uLong_MT OutputSettings;
+	uInt_MT OutputSettings;
 
 	memset(pMT->szCfgFilePath, 0, sizeof(pMT->szCfgFilePath));
 	sprintf(pMT->szCfgFilePath, "%.255s", szCfgFilePath);
@@ -1156,7 +1160,7 @@ inline int ConnectMT(MT* pMT, char* szCfgFilePath)
 	SetMTChecksum(gotoconfigbuf, sizeof(gotoconfigbuf));
 	if (WriteAllRS232Port(&pMT->RS232Port, gotoconfigbuf, sizeof(gotoconfigbuf)) != EXIT_SUCCESS)
 	{
-		printf("Unable to connect to a MT.\n");
+		printf("Unable to connect to a MT : Initialization failure.\n");
 		CloseRS232Port(&pMT->RS232Port);
 		return EXIT_FAILURE;
 	}
@@ -1166,7 +1170,7 @@ inline int ConnectMT(MT* pMT, char* szCfgFilePath)
 	if (GetLatestMTMessageMT(pMT, ADDR_MT, GO_TO_CONFIG_ACK_MID, databuf, sizeof(databuf), &nbdatabytes)
 		!= EXIT_SUCCESS)
 	{ 
-		printf("Unable to connect to a MT.\n");
+		printf("Unable to connect to a MT : Initialization failure.\n");
 		CloseRS232Port(&pMT->RS232Port);
 		return EXIT_FAILURE;	
 	}
@@ -1175,7 +1179,7 @@ inline int ConnectMT(MT* pMT, char* szCfgFilePath)
 	SetMTChecksum(reqconfigurationbuf, sizeof(reqconfigurationbuf));
 	if (WriteAllRS232Port(&pMT->RS232Port, reqconfigurationbuf, sizeof(reqconfigurationbuf)) != EXIT_SUCCESS)
 	{
-		printf("Unable to connect to a MT.\n");
+		printf("Unable to connect to a MT : Initialization failure.\n");
 		CloseRS232Port(&pMT->RS232Port);
 		return EXIT_FAILURE;
 	}
@@ -1185,7 +1189,7 @@ inline int ConnectMT(MT* pMT, char* szCfgFilePath)
 	if (GetLatestMTMessageMT(pMT, ADDR_MT, CONFIGURATION_MID, databuf, sizeof(databuf), &nbdatabytes)
 		!= EXIT_SUCCESS)
 	{ 
-		printf("Unable to connect to a MT.\n");
+		printf("Unable to connect to a MT : Initialization failure.\n");
 		CloseRS232Port(&pMT->RS232Port);
 		return EXIT_FAILURE;	
 	}
@@ -1205,7 +1209,7 @@ inline int ConnectMT(MT* pMT, char* szCfgFilePath)
 	SetMTChecksum(gotomeasurementbuf, sizeof(gotomeasurementbuf));
 	if (WriteAllRS232Port(&pMT->RS232Port, gotomeasurementbuf, sizeof(gotomeasurementbuf)) != EXIT_SUCCESS)
 	{
-		printf("Unable to connect to a MT.\n");
+		printf("Unable to connect to a MT : Initialization failure.\n");
 		CloseRS232Port(&pMT->RS232Port);
 		return EXIT_FAILURE;
 	}
@@ -1215,7 +1219,7 @@ inline int ConnectMT(MT* pMT, char* szCfgFilePath)
 	if (GetLatestMTMessageMT(pMT, ADDR_MT, GO_TO_MEASUREMENT_ACK_MID, databuf, sizeof(databuf), &nbdatabytes)
 		!= EXIT_SUCCESS)
 	{ 
-		printf("Unable to connect to a MT.\n");
+		printf("Unable to connect to a MT : Initialization failure.\n");
 		CloseRS232Port(&pMT->RS232Port);
 		return EXIT_FAILURE;	
 	}

@@ -17,6 +17,19 @@
 #include "OSThread.h"
 #endif // DISABLE_SSC32THREAD
 
+// Need to be undefined at the end of the file...
+// min and max might cause incompatibilities on Linux...
+#ifndef _WIN32
+#if !defined(NOMINMAX)
+#ifndef max
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#endif // max
+#ifndef min
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif // min
+#endif // !defined(NOMINMAX)
+#endif // _WIN32
+
 //#define TIMEOUT_MESSAGE_SSC32 4.0 // In s.
 // Should be at least 2 * number of bytes to be sure to contain entirely the biggest desired message (or group of messages) + 1.
 #define MAX_NB_BYTES_SSC32 512
@@ -432,6 +445,29 @@ inline int SetFluxSSC32(SSC32* pSSC32, double urf, double ulf)
 	return SetAllPWMsSSC32(pSSC32, selectedchannels, pws);
 }
 
+inline int SetRudderThrusterSSC32(SSC32* pSSC32, double angle, double urt)
+{
+	int selectedchannels[NB_CHANNELS_PWM_SSC32];
+	int pws[NB_CHANNELS_PWM_SSC32];
+
+	memset(selectedchannels, 0, sizeof(selectedchannels));
+	memset(pws, 0, sizeof(pws));
+
+	// Convert angle (in rad) into SSC32 pulse width (in us).
+	pws[pSSC32->rudderchan] = DEFAULT_MID_PW_SSC32+(int)(angle*(DEFAULT_MAX_PW_SSC32-DEFAULT_MIN_PW_SSC32)
+		/(pSSC32->MaxAngle-pSSC32->MinAngle));
+	// Convert u (in [-1;1]) into SSC32 pulse width (in us).
+	pws[pSSC32->rightthrusterchan] = DEFAULT_MID_PW_SSC32+(int)(urt*(DEFAULT_MAX_PW_SSC32-DEFAULT_MIN_PW_SSC32)/2.0);
+
+	pws[pSSC32->rudderchan] = max(min(pws[pSSC32->rudderchan], DEFAULT_MAX_PW_SSC32), DEFAULT_MIN_PW_SSC32);
+	pws[pSSC32->rightthrusterchan] = max(min(pws[pSSC32->rightthrusterchan], DEFAULT_MAX_PW_SSC32), DEFAULT_MIN_PW_SSC32);
+
+	selectedchannels[pSSC32->rudderchan] = 1;
+	selectedchannels[pSSC32->rightthrusterchan] = 1;
+
+	return SetAllPWMsSSC32(pSSC32, selectedchannels, pws);
+}
+
 inline int SetRudderThrustersFluxSSC32(SSC32* pSSC32, double angle, double urt, double ult, double urf, double ulf)
 {
 	int selectedchannels[NB_CHANNELS_PWM_SSC32];
@@ -718,5 +754,15 @@ inline int DisconnectSSC32(SSC32* pSSC32)
 #ifndef DISABLE_SSC32THREAD
 THREAD_PROC_RETURN_VALUE SSC32Thread(void* pParam);
 #endif // DISABLE_SSC32THREAD
+
+// min and max might cause incompatibilities on Linux...
+#ifndef _WIN32
+#ifdef max
+#undef max
+#endif // max
+#ifdef min
+#undef min
+#endif // min
+#endif // _WIN32
 
 #endif // SSC32_H

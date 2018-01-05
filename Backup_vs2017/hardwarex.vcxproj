@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -22,28 +22,29 @@
     <ProjectGuid>{30A6807A-5214-4E51-9ECA-AAFA08F9F6D8}</ProjectGuid>
     <RootNamespace>hardwarex</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -89,7 +90,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>.;..;MAVLinkSDK;$(ProgramFiles)\MAVLinkSDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;DISABLE_AIS_SUPPORT;ENABLE_MAVLINK_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;ENABLE_MAVLINK_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -106,6 +107,7 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
+      <ImageHasSafeExceptionHandlers />
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -115,7 +117,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>.;..;MAVLinkSDK;$(ProgramFiles)\MAVLinkSDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;DISABLE_AIS_SUPPORT;ENABLE_MAVLINK_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;ENABLE_MAVLINK_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -136,7 +138,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;DISABLE_AIS_SUPPORT;ENABLE_MAVLINK_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;ENABLE_MAVLINK_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
@@ -161,7 +163,7 @@
     </Midl>
     <ClCompile>
       <AdditionalIncludeDirectories>.;..;MAVLinkSDK;$(ProgramFiles)\MAVLinkSDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;DISABLE_AIS_SUPPORT;ENABLE_MAVLINK_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;ENABLE_MAVLINK_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
@@ -194,10 +196,10 @@
     <ClInclude Include="Hokuyo.h" />
     <ClInclude Include="Maestro.h" />
     <ClInclude Include="MAVLinkDevice.h" />
-    <ClInclude Include="MDM.h" />
-    <ClInclude Include="MiniSSC.h" />
-    <ClInclude Include="MT.h" />
+    <ClInclude Include="MAVLinkProtocol.h" />
+     <ClInclude Include="MT.h" />
     <ClInclude Include="NMEADevice.h" />
+    <ClInclude Include="NMEAProtocol.h" />
     <ClInclude Include="OSComputerRS232Port.h" />
     <ClInclude Include="OSCore.h" />
     <ClInclude Include="OSCriticalSection.h" />
@@ -205,12 +207,12 @@
     <ClInclude Include="OSNet.h" />
     <ClInclude Include="OSThread.h" />
     <ClInclude Include="OSTime.h" />
-    <ClInclude Include="P33x.h" />
     <ClInclude Include="RazorAHRS.h" />
+    <ClInclude Include="RPLIDAR.h" />
     <ClInclude Include="RS232Port.h" />
-    <ClInclude Include="Seanet.h" />
     <ClInclude Include="SSC32.h" />
-    <ClInclude Include="SwarmonDevice.h" />
+    <ClInclude Include="ublox.h" />
+    <ClInclude Include="UBXProtocol.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile" />

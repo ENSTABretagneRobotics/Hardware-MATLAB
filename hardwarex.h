@@ -18,13 +18,44 @@
 //#define DISABLE_THREADS_OSNET
 //#endif // DISABLE_THREADS_OSNET
 
+// To prevent some warnings in MATLAB...
+#ifndef DISABLE_HOKUYOTHREAD
+#define DISABLE_HOKUYOTHREAD
+#endif // DISABLE_HOKUYOTHREAD
+#ifndef DISABLE_MAESTROTHREAD
+#define DISABLE_MAESTROTHREAD
+#endif // DISABLE_MAESTROTHREAD
+#ifndef DISABLE_MAVLINKDEVICETHREAD
+#define DISABLE_MAVLINKDEVICETHREAD
+#endif // DISABLE_MAVLINKDEVICETHREAD
+#ifndef DISABLE_MTTHREAD
+#define DISABLE_MTTHREAD
+#endif // DISABLE_MTTHREAD
+#ifndef DISABLE_NMEADEVICETHREAD
+#define DISABLE_NMEADEVICETHREAD
+#endif // DISABLE_NMEADEVICETHREAD
+#ifndef DISABLE_RAZORAHRSTHREAD
+#define DISABLE_RAZORAHRSTHREAD
+#endif // DISABLE_RAZORAHRSTHREAD
+#ifndef DISABLE_RPLIDARTHREAD
+#define DISABLE_RPLIDARTHREAD
+#endif // DISABLE_RPLIDARTHREAD
+#ifndef DISABLE_SSC32THREAD
+#define DISABLE_SSC32THREAD
+#endif // DISABLE_SSC32THREAD
+#ifndef DISABLE_UBLOXTHREAD
+#define DISABLE_UBLOXTHREAD
+#endif // DISABLE_UBLOXTHREAD
+
 #include "OSCriticalSection.h"
 #include "MT.h"
 #include "RazorAHRS.h"
 #include "NMEADevice.h"
+#include "ublox.h"
 #include "SSC32.h"
 #include "Maestro.h"
 #include "Hokuyo.h"
+#include "RPLIDAR.h"
 #ifdef ENABLE_MAVLINK_SUPPORT
 #include "MAVLinkDevice.h"
 #endif // ENABLE_MAVLINK_SUPPORT
@@ -66,6 +97,21 @@ extern "C" {
 	HARDWAREX_API int StartThreadNMEADevicex(NMEADEVICE* pNMEADevice);
 	HARDWAREX_API int StopThreadNMEADevicex(NMEADEVICE* pNMEADevice);
 
+	HARDWAREX_API UBLOX* Createubloxx(void);
+	HARDWAREX_API void Destroyubloxx(UBLOX* publox);
+	HARDWAREX_API UBXDATA* CreateUBXDatax(void);
+	HARDWAREX_API void DestroyUBXDatax(UBXDATA* pUBXData);
+	HARDWAREX_API int GetNMEASentenceubloxx(UBLOX* publox, NMEADATA* pNMEAData);
+	HARDWAREX_API int GetUBXPacketubloxx(UBLOX* publox, UBXDATA* pUBXData);
+	HARDWAREX_API int Connectubloxx(UBLOX* publox, char* szCfgFilePath);
+	HARDWAREX_API int Disconnectubloxx(UBLOX* publox);
+	HARDWAREX_API int GetNMEASentenceFromThreadubloxx(UBLOX* publox, NMEADATA* pNMEAData);
+	HARDWAREX_API int GetUBXPacketFromThreadubloxx(UBLOX* publox, UBXDATA* pUBXData);
+	HARDWAREX_API int StartNMEAThreadubloxx(UBLOX* publox);
+	HARDWAREX_API int StopNMEAThreadubloxx(UBLOX* publox);
+	HARDWAREX_API int StartUBXThreadubloxx(UBLOX* publox);
+	HARDWAREX_API int StopUBXThreadubloxx(UBLOX* publox);
+
 	HARDWAREX_API SSC32* CreateSSC32x(void);
 	HARDWAREX_API void DestroySSC32x(SSC32* pSSC32);
 	HARDWAREX_API int SetPWMSSC32x(SSC32* pSSC32, int channel, int pw);
@@ -98,6 +144,15 @@ extern "C" {
 	HARDWAREX_API int GetLatestDataFromThreadHokuyox(HOKUYO* pHokuyo, double* pDistances, double* pAngles);
 	HARDWAREX_API int StartThreadHokuyox(HOKUYO* pHokuyo);
 	HARDWAREX_API int StopThreadHokuyox(HOKUYO* pHokuyo);
+
+	HARDWAREX_API RPLIDAR* CreateRPLIDARx(void);
+	HARDWAREX_API void DestroyRPLIDARx(RPLIDAR* pRPLIDAR);
+	HARDWAREX_API int GetExpressScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan);
+	HARDWAREX_API int ConnectRPLIDARx(RPLIDAR* pRPLIDAR, char* szCfgFilePath);
+	HARDWAREX_API int DisconnectRPLIDARx(RPLIDAR* pRPLIDAR);
+	HARDWAREX_API int GetExpressScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan);
+	HARDWAREX_API int StartThreadRPLIDARx(RPLIDAR* pRPLIDAR);
+	HARDWAREX_API int StopThreadRPLIDARx(RPLIDAR* pRPLIDAR);
 
 #ifdef ENABLE_MAVLINK_SUPPORT
 	HARDWAREX_API MAVLINKDEVICE* CreateMAVLinkDevicex(void);

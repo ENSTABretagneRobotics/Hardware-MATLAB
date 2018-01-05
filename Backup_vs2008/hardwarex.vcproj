@@ -45,7 +45,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".;..;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;DISABLE_AIS_SUPPORT;"
+				PreprocessorDefinitions="WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -124,7 +124,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".;..;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;DISABLE_AIS_SUPPORT;"
+				PreprocessorDefinitions="WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -202,7 +202,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories=".;..;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;DISABLE_AIS_SUPPORT;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -280,7 +280,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories=".;..;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;DISABLE_AIS_SUPPORT;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -395,11 +395,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\MDM.h"
-				>
-			</File>
-			<File
-				RelativePath=".\MiniSSC.h"
+				RelativePath=".\MAVLinkProtocol.h"
 				>
 			</File>
 			<File
@@ -408,6 +404,10 @@
 			</File>
 			<File
 				RelativePath=".\NMEADevice.h"
+				>
+			</File>
+			<File
+				RelativePath=".\NMEAProtocol.h"
 				>
 			</File>
 			<File
@@ -439,11 +439,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\P33x.h"
+				RelativePath=".\RazorAHRS.h"
 				>
 			</File>
 			<File
-				RelativePath=".\RazorAHRS.h"
+				RelativePath=".\RPLIDAR.h"
 				>
 			</File>
 			<File
@@ -451,15 +451,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Seanet.h"
-				>
-			</File>
-			<File
 				RelativePath=".\SSC32.h"
 				>
 			</File>
 			<File
-				RelativePath=".\SwarmonDevice.h"
+				RelativePath=".\ublox.h"
+				>
+			</File>
+			<File
+				RelativePath=".\UBXProtocol.h"
 				>
 			</File>
 		</Filter>

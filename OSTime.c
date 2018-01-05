@@ -10,8 +10,6 @@ strtime_m() and strtime_fns() are based on a part of an example in the MSDN libr
 
 Created : 2009-01-28
 
-Version status : Tested some parts
-
 ***************************************************************************************************************:)*/
 
 // Prevent Visual Studio Intellisense from defining _WIN32 and _MSC_VER when we use 

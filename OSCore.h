@@ -9,8 +9,6 @@ Fabrice Le Bars
 
 Created : 2007
 
-Version status : Tested some parts
-
 ***************************************************************************************************************:)*/
 
 // Prevent Visual Studio Intellisense from defining _WIN32 and _MSC_VER when we use 
@@ -242,14 +240,15 @@ _ Windows CE : WINCE
 #endif // inline
 #endif // __cplusplus
 
-#if !defined(NOMINMAX) || defined(FORCE_MINMAX_DEFINITION)
-#ifndef max
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-#endif // max
-#ifndef min
-#define min(a,b) (((a) < (b)) ? (a) : (b))
-#endif // min
-#endif // !defined(NOMINMAX) || defined(FORCE_MINMAX_DEFINITION)
+// Too many incompatibilities on Linux...
+//#if !defined(NOMINMAX)
+//#ifndef max
+//#define max(a,b) (((a) > (b)) ? (a) : (b))
+//#endif // max
+//#ifndef min
+//#define min(a,b) (((a) < (b)) ? (a) : (b))
+//#endif // min
+//#endif // !defined(NOMINMAX)
 
 #ifndef _WIN32
 typedef char CHAR;
@@ -309,72 +308,51 @@ typedef int                 BOOL;
 #ifndef TRUE
 #define TRUE                1
 #endif // TRUE
-typedef unsigned int		u_int;
-typedef unsigned char       BYTE;
-typedef unsigned short      WORD;
-typedef unsigned long       DWORD;
-typedef BYTE                BOOLEAN;           
+typedef unsigned int u_int;
+typedef unsigned char BYTE;
+typedef unsigned short WORD;
+typedef unsigned int DWORD;
+typedef BYTE BOOLEAN;           
 #endif // _WIN32
 
+// Might depend on the platform...
 typedef unsigned char uint8;
 typedef unsigned short uint16;
-typedef unsigned int uint32; // Might be unsigned long...
+typedef unsigned int uint32;
 
 // Conflict with OpenCV...
 #ifdef ENABLE_INT64_TYPEDEF
 // Note that the long long type is not accepted by Borland C++ Builder 5.
-#ifdef __GNUC__
-typedef int64_t int64;
-typedef uint64_t uint64;
-#else
+#if defined(_MSC_VER) || defined(__BORLANDC__)
 typedef __int64 int64;
 typedef unsigned __int64 uint64;
-#endif // __GNUC__
+#else
+typedef int64_t int64;
+typedef uint64_t uint64;
+#endif // defined(_MSC_VER) || defined(__BORLANDC__)
 #endif // ENABLE_INT64_TYPEDEF
-
-// Might vary also and should be moved elsewhere...
-union uShort
-{
-	uint16 v;  
-	uint8 c[2];
-};
-typedef union uShort uShort;
-
-union uLong
-{
-	long v;  
-	uint8 c[4];
-};
-typedef union uLong uLong;
-
-union uFloat
-{
-	float v;  
-	uint8 c[4];
-};
-typedef union uFloat uFloat;
 
 #ifndef _WIN32
 typedef union _LARGE_INTEGER {
 	struct {
-		unsigned long LowPart;
-		long HighPart;
+		unsigned int LowPart;
+		int HighPart;
 	};
 	struct {
-		unsigned long LowPart;
-		long HighPart;
+		unsigned int LowPart;
+		int HighPart;
 	} u;
 	long long QuadPart;
 } LARGE_INTEGER;
 
 typedef union _ULARGE_INTEGER {
 	struct {
-		unsigned long LowPart;
-		unsigned long HighPart;
+		unsigned int LowPart;
+		unsigned int HighPart;
 	};
 	struct {
-		unsigned long LowPart;
-		unsigned long HighPart;
+		unsigned int LowPart;
+		unsigned int HighPart;
 	} u;
 	unsigned long long QuadPart;
 } ULARGE_INTEGER;
@@ -491,8 +469,6 @@ EXTERN_C char* FormatLastErrorMsg(char* buf, int buflen);
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #if (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)) || (__GNUC__ > 4))
 #pragma GCC diagnostic push
-#else
-//#pragma GCC diagnostic ignored "-Wpragmas"
 #endif // (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)) || (__GNUC__ > 4))
 #endif // __GNUC__
 
@@ -517,7 +493,6 @@ EXTERN_C char* FormatLastErrorMsg(char* buf, int buflen);
 #if (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)) || (__GNUC__ > 4))
 #pragma GCC diagnostic pop
 #else
-//#pragma GCC diagnostic warning "-Wpragmas"
 #pragma GCC diagnostic warning "-Wunused-but-set-variable"
 #endif // (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)) || (__GNUC__ > 4))
 #endif // __GNUC__

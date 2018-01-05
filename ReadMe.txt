@@ -11,7 +11,7 @@ Sample : http://www.ensta-bretagne.fr/lebars/Share/buggy_real_gps.zip for the bu
 
 Change the device path and other parameters in the configuration files if necessary. Mind the line endings in the configuration files depending on the OS (use e.g. the command dos2unix *.txt to convert line endings for Linux)!
 
-Tested on Windows 8.1 64 bit using MATLAB R2014a.
+Tested on Windows 10 64 bit using MATLAB R2016a.
 
 Hardware support : 
 - Hokuyo : Hokuyo URG-04LX-UG01 laser telemeter.
@@ -20,6 +20,8 @@ Hardware support :
 - MT : Xsens MTi, MTi-G AHRS.
 - NMEADevice : GPS, Furuno WS200 weather station, AIS Receiver dAISy.
 - RazorAHRS : SparkFun 9DOF Razor IMU.
+- RPLIDAR : RPLIDAR A2 laser telemeter.
 - SSC-32 : Lynxmotion SSC-32, SSC-32u servo controllers.
+- ublox : ublox GPS.
 
 See also https://github.com/ENSTABretagneRobotics/Android, https://github.com/ENSTABretagneRobotics/Hardware-CPP, https://github.com/ENSTABretagneRobotics/Hardware-Java.

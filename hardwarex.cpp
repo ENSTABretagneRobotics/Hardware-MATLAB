@@ -15,6 +15,14 @@ CRITICAL_SECTION NMEADeviceCS;
 NMEADATA nmeadataNMEADevice;
 BOOL bExitNMEADevice = FALSE;
 
+THREAD_IDENTIFIER ubloxNMEAThreadId;
+THREAD_IDENTIFIER ubloxUBXThreadId;
+CRITICAL_SECTION ubloxCS;
+NMEADATA nmeadataublox;
+UBXDATA ubxdataublox;
+BOOL bExitNMEAublox = FALSE;
+BOOL bExitUBXublox = FALSE;
+
 THREAD_IDENTIFIER SSC32ThreadId;
 CRITICAL_SECTION SSC32CS;
 int selectedchannelsSSC32[NB_CHANNELS_PWM_SSC32];
@@ -33,6 +41,13 @@ CRITICAL_SECTION HokuyoCS;
 double anglesHokuyo[MAX_SLITDIVISION_HOKUYO];
 double distancesHokuyo[MAX_SLITDIVISION_HOKUYO];
 BOOL bExitHokuyo = FALSE;
+
+THREAD_IDENTIFIER RPLIDARThreadId;
+CRITICAL_SECTION RPLIDARCS;
+double anglesRPLIDAR[NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR];
+double distancesRPLIDAR[NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR];
+BOOL bNewScanRPLIDAR = FALSE;
+BOOL bExitRPLIDAR = FALSE;
 
 #ifdef ENABLE_MAVLINK_SUPPORT
 THREAD_IDENTIFIER MAVLinkDeviceThreadId;
@@ -297,6 +312,146 @@ HARDWAREX_API int StopThreadNMEADevicex(NMEADEVICE* pNMEADevice)
 	bExitNMEADevice = TRUE;
 	WaitForThread(NMEADeviceThreadId);
 	DeleteCriticalSection(&NMEADeviceCS);
+	return EXIT_SUCCESS;
+}
+#pragma endregion
+
+#pragma region ublox
+HARDWAREX_API UBLOX* Createubloxx(void)
+{
+	return (UBLOX*)calloc(1, sizeof(UBLOX));
+}
+
+HARDWAREX_API void Destroyubloxx(UBLOX* publox)
+{
+	return free(publox);
+}
+
+HARDWAREX_API UBXDATA* CreateUBXDatax(void)
+{
+	return (UBXDATA*)calloc(1, sizeof(UBXDATA));
+}
+
+HARDWAREX_API void DestroyUBXDatax(UBXDATA* pUBXData)
+{
+	return free(pUBXData);
+}
+
+HARDWAREX_API int GetNMEASentenceubloxx(UBLOX* publox, NMEADATA* pNMEAData)
+{
+	return GetNMEASentenceublox(publox, pNMEAData);
+}
+
+HARDWAREX_API int GetUBXPacketubloxx(UBLOX* publox, UBXDATA* pUBXData)
+{
+	return GetUBXPacketublox(publox, pUBXData);
+}
+
+HARDWAREX_API int Connectubloxx(UBLOX* publox, char* szCfgFilePath)
+{
+	return Connectublox(publox, szCfgFilePath);
+}
+
+HARDWAREX_API int Disconnectubloxx(UBLOX* publox)
+{
+	return Disconnectublox(publox);
+}
+
+THREAD_PROC_RETURN_VALUE ubloxNMEAThread(void* pParam)
+{
+	UBLOX* publox = (UBLOX*)pParam;
+	NMEADATA nmeadata;
+
+	for (;;)
+	{
+		mSleep(100);
+		memset(&nmeadata, 0, sizeof(NMEADATA));
+		GetNMEASentenceublox(publox, &nmeadata);
+		EnterCriticalSection(&ubloxCS);
+		nmeadataublox = nmeadata;
+		LeaveCriticalSection(&ubloxCS);
+		if (bExitNMEAublox) break;
+	}
+
+	return 0;
+}
+
+THREAD_PROC_RETURN_VALUE ubloxUBXThread(void* pParam)
+{
+	UBLOX* publox = (UBLOX*)pParam;
+	UBXDATA ubxdata;
+
+	for (;;)
+	{
+		mSleep(100);
+		memset(&ubxdata, 0, sizeof(UBXDATA));
+		GetUBXPacketublox(publox, &ubxdata);
+		EnterCriticalSection(&ubloxCS);
+		ubxdataublox = ubxdata;
+		LeaveCriticalSection(&ubloxCS);
+		if (bExitUBXublox) break;
+	}
+
+	return 0;
+}
+
+HARDWAREX_API int GetNMEASentenceFromThreadubloxx(UBLOX* publox, NMEADATA* pNMEAData)
+{
+	UNREFERENCED_PARAMETER(publox);
+
+	// id[publox->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&ubloxCS);
+	*pNMEAData = nmeadataublox;
+	LeaveCriticalSection(&ubloxCS);
+
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int GetUBXPacketFromThreadubloxx(UBLOX* publox, UBXDATA* pUBXData)
+{
+	UNREFERENCED_PARAMETER(publox);
+
+	// id[publox->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&ubloxCS);
+	*pUBXData = ubxdataublox;
+	LeaveCriticalSection(&ubloxCS);
+
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int StartNMEAThreadubloxx(UBLOX* publox)
+{
+	bExitNMEAublox = FALSE;
+	InitCriticalSection(&ubloxCS);
+	return CreateDefaultThread(ubloxNMEAThread, (void*)publox, &ubloxNMEAThreadId);
+}
+
+HARDWAREX_API int StopNMEAThreadubloxx(UBLOX* publox)
+{
+	UNREFERENCED_PARAMETER(publox);
+
+	bExitNMEAublox = TRUE;
+	WaitForThread(ubloxNMEAThreadId);
+	DeleteCriticalSection(&ubloxCS);
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int StartUBXThreadubloxx(UBLOX* publox)
+{
+	bExitUBXublox = FALSE;
+	InitCriticalSection(&ubloxCS);
+	return CreateDefaultThread(ubloxUBXThread, (void*)publox, &ubloxUBXThreadId);
+}
+
+HARDWAREX_API int StopUBXThreadubloxx(UBLOX* publox)
+{
+	UNREFERENCED_PARAMETER(publox);
+
+	bExitUBXublox = TRUE;
+	WaitForThread(ubloxUBXThreadId);
+	DeleteCriticalSection(&ubloxCS);
 	return EXIT_SUCCESS;
 }
 #pragma endregion
@@ -580,6 +735,89 @@ HARDWAREX_API int StopThreadHokuyox(HOKUYO* pHokuyo)
 	bExitHokuyo = TRUE;
 	WaitForThread(HokuyoThreadId);
 	DeleteCriticalSection(&HokuyoCS);
+	return EXIT_SUCCESS;
+}
+#pragma endregion
+
+#pragma region RPLIDAR
+HARDWAREX_API RPLIDAR* CreateRPLIDARx(void)
+{
+	return (RPLIDAR*)calloc(1, sizeof(RPLIDAR));
+}
+
+HARDWAREX_API void DestroyRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	return free(pRPLIDAR);
+}
+
+HARDWAREX_API int GetExpressScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan)
+{
+	return GetExpressScanDataResponseRPLIDAR(pRPLIDAR, pDistances, pAngles, pbNewScan);
+}
+
+HARDWAREX_API int ConnectRPLIDARx(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
+{
+	return ConnectRPLIDAR(pRPLIDAR, szCfgFilePath);
+}
+
+HARDWAREX_API int DisconnectRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	return DisconnectRPLIDAR(pRPLIDAR);
+}
+
+THREAD_PROC_RETURN_VALUE RPLIDARThread(void* pParam)
+{
+	RPLIDAR* pRPLIDAR = (RPLIDAR*)pParam;
+	double angles[NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR];
+	double distances[NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR];
+	BOOL bNewScan = FALSE;
+
+	for (;;)
+	{
+		mSleep(50);
+		memset(distances, 0, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+		memset(angles, 0, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+		GetExpressScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan);
+		EnterCriticalSection(&RPLIDARCS);
+		memcpy(distancesRPLIDAR, distances, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+		memcpy(anglesRPLIDAR, angles, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+		bNewScanRPLIDAR = bNewScan;
+		LeaveCriticalSection(&RPLIDARCS);
+		if (bExitRPLIDAR) break;
+	}
+
+	return 0;
+}
+
+HARDWAREX_API int GetExpressScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan)
+{
+	UNREFERENCED_PARAMETER(pRPLIDAR);
+
+	// id[pRPLIDAR->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&RPLIDARCS);
+	memcpy(pDistances, distancesRPLIDAR, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+	memcpy(pAngles, anglesRPLIDAR, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+	*pbNewScan = bNewScanRPLIDAR;
+	LeaveCriticalSection(&RPLIDARCS);
+
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int StartThreadRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	bExitRPLIDAR = FALSE;
+	InitCriticalSection(&RPLIDARCS);
+	return CreateDefaultThread(RPLIDARThread, (void*)pRPLIDAR, &RPLIDARThreadId);
+}
+
+HARDWAREX_API int StopThreadRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	UNREFERENCED_PARAMETER(pRPLIDAR);
+
+	bExitRPLIDAR = TRUE;
+	WaitForThread(RPLIDARThreadId);
+	DeleteCriticalSection(&RPLIDARCS);
 	return EXIT_SUCCESS;
 }
 #pragma endregion

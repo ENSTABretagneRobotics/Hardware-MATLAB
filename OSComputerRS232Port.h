@@ -8,8 +8,6 @@ Fabrice Le Bars
 
 Created : 2009-03-28
 
-Version status : Tested quickly
-
 ***************************************************************************************************************:)*/
 
 // Prevent Visual Studio Intellisense from defining _WIN32 and _MSC_VER when we use 
@@ -62,7 +60,9 @@ Debug macros specific to OSComputerRS232Port.
 #ifdef _WIN32
 #else 
 #include <termios.h>
-//#include <sys/ioctl.h>
+#if !defined(DISABLE_FORCE_CLEAR_DTR) || defined(ENABLE_DTR_FUNCTIONS)
+#include <sys/ioctl.h>
+#endif // !defined(DISABLE_FORCE_CLEAR_DTR) || defined(ENABLE_DTR_FUNCTIONS)
 #endif // _WIN32
 
 #ifndef _WIN32
@@ -231,7 +231,7 @@ inline int OpenComputerRS232Port(HANDLE* phDev, char* szDevice)
 	// in C because the '\' is a special character).
 	memset(szDeviceTemp, 0, sizeof(szDeviceTemp));
 #ifdef WINCE
-	sprintf(szDeviceTemp, "%s", szDevice);
+	strcpy(szDeviceTemp, szDevice);
 #else
 	sprintf(szDeviceTemp, "\\\\.\\%s", szDevice);
 #endif // WINCE
@@ -263,6 +263,17 @@ inline int OpenComputerRS232Port(HANDLE* phDev, char* szDevice)
 		return EXIT_FAILURE;
 	}
 
+#ifndef DISABLE_FORCE_CLEAR_DTR
+	if (!EscapeCommFunction(hDev, CLRDTR))
+	{
+		PRINT_DEBUG_WARNING_OSCOMPUTERRS232PORT(("OpenComputerRS232Port warning (%s) : %s"
+			"(szDevice=%s)\n", 
+			strtime_m(), 
+			GetLastErrorMsg(), 
+			szDevice));
+	}
+#endif // DISABLE_FORCE_CLEAR_DTR
+
 	*phDev = hDev;
 #else 
 	// The O_NOCTTY flag tells UNIX that this program does not want to be the
@@ -276,6 +287,9 @@ inline int OpenComputerRS232Port(HANDLE* phDev, char* szDevice)
 	// signal line is the space voltage.
 	// Should use O_SYNC and maybe also O_DIRECT?
 	int fd = open(szDevice, O_RDWR|O_NOCTTY|O_NDELAY);
+#ifndef DISABLE_FORCE_CLEAR_DTR
+	int dtr_bit = TIOCM_DTR;
+#endif // DISABLE_FORCE_CLEAR_DTR
 
 	if (fd == -1)
 	{
@@ -303,6 +317,17 @@ inline int OpenComputerRS232Port(HANDLE* phDev, char* szDevice)
 		close(fd);
 		return EXIT_FAILURE;
 	}
+
+#ifndef DISABLE_FORCE_CLEAR_DTR
+	if (ioctl(fd, TIOCMBIC, &dtr_bit) != EXIT_SUCCESS)
+	{
+		PRINT_DEBUG_WARNING_OSCOMPUTERRS232PORT(("OpenComputerRS232Port warning (%s) : %s"
+			"(szDevice=%s)\n", 
+			strtime_m(), 
+			GetLastErrorMsg(), 
+			szDevice));
+	}
+#endif // DISABLE_FORCE_CLEAR_DTR
 
 	*phDev = (HANDLE)(intptr_t)fd;
 #endif // _WIN32
@@ -503,7 +528,12 @@ inline int SetOptionsComputerRS232Port(HANDLE hDev, UINT BaudRate, BYTE ParityMo
 	options.c_oflag &= ~(OPOST | ONLCR | ONOCR | ONLRET | OCRNL);
 
 	// Disable hardware flow control.
+#ifdef CRTSCTS
 	options.c_cflag &= ~CRTSCTS;
+#endif // CRTSCTS
+#ifdef CNEW_RTSCTS
+	options.c_cflag &= ~CNEW_RTSCTS;
+#endif // CNEW_RTSCTS
 
 	// Disable software flow control.
 	options.c_iflag &= ~(IXON | IXOFF | IXANY);
@@ -889,6 +919,146 @@ inline int DrainComputerRS232Port(HANDLE hDev)
 	return EXIT_SUCCESS;
 }
 #endif // ENABLE_DRAINRS232PORT
+
+#ifdef ENABLE_DTR_FUNCTIONS
+inline int SetDTRState(HANDLE hDev, BOOL bClear)
+{
+#ifdef _WIN32
+	DWORD dwFunc = bClear? CLRDTR: SETDTR;
+	if (!EscapeCommFunction(hDev, dwFunc))
+	{
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetDTRState error (%s) : %s(hDev=%#x)\n", 
+			strtime_m(), 
+			GetLastErrorMsg(), 
+			hDev));
+		return EXIT_FAILURE;
+	}
+#else 
+	int dtr_bit = TIOCM_DTR;
+	int cmd = bClear? TIOCMBIC: TIOCMBIS;
+	if (ioctl((intptr_t)hDev, cmd, &dtr_bit) != EXIT_SUCCESS)
+	{
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetDTRState error (%s) : %s(hDev=%#x)\n", 
+			strtime_m(), 
+			GetLastErrorMsg(), 
+			hDev));
+		return EXIT_FAILURE;
+	}
+#endif // _WIN32
+
+	return EXIT_SUCCESS;
+}
+
+inline int GetDTRState(HANDLE hDev, BOOL* pbClear)
+{
+#ifdef _WIN32
+	PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("GetDTRState error (%s) : %s(hDev=%#x)\n", 
+		strtime_m(), 
+		szOSUtilsErrMsgs[EXIT_NOT_IMPLEMENTED], 
+		hDev));
+	return EXIT_NOT_IMPLEMENTED;
+#else 
+	int bits = 0;
+	if (ioctl((intptr_t)hDev, TIOCMGET, &bits) != EXIT_SUCCESS)
+	{
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("GetDTRState error (%s) : %s(hDev=%#x)\n", 
+			strtime_m(), 
+			GetLastErrorMsg(), 
+			hDev));
+		return EXIT_FAILURE;
+	}
+	if (bits & TIOCM_DTR)
+		*pbClear = FALSE;
+	else
+		*pbClear = TRUE;
+#endif // _WIN32
+
+	return EXIT_SUCCESS;
+}
+#endif // ENABLE_DTR_FUNCTIONS
+
+/*
+Check for any data available to read on a computer RS232 port.
+
+HANDLE hDev : (IN) Identifier of the computer RS232 port.
+
+Return : EXIT_SUCCESS if there is data to read, EXIT_TIMEOUT if there is currently no data
+ available or EXIT_FAILURE if there is an error.
+*/
+inline int CheckAvailableBytesComputerRS232Port(HANDLE hDev)
+{
+#ifdef _WIN32
+	COMSTAT stats;
+
+	memset(&stats, 0, sizeof(COMSTAT));
+	if (!ClearCommError(hDev, NULL, &stats))
+	{
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("CheckAvailableBytesComputerRS232Port error (%s) : %s(hDev=%#x)\n", 
+			strtime_m(), 
+			GetLastErrorMsg(), 
+			hDev));
+		return EXIT_FAILURE;
+	}
+	if (stats.cbInQue <= 0) return EXIT_TIMEOUT;
+#else
+	int bytes_avail = 0;
+
+	if (ioctl((intptr_t)hDev, FIONREAD, &bytes_avail) != EXIT_SUCCESS)
+	{
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("CheckAvailableBytesComputerRS232Port error (%s) : %s(hDev=%#x)\n", 
+			strtime_m(), 
+			GetLastErrorMsg(), 
+			hDev));
+		return EXIT_FAILURE;
+	}
+	if (bytes_avail <= 0) return EXIT_TIMEOUT;
+#endif // _WIN32
+
+	return EXIT_SUCCESS;
+}
+
+/*
+Send a hardware break (continuous stream of zero-valued bits) for a specific duration on a 
+computer RS232 port.
+
+HANDLE hDev : (IN) Identifier of the computer RS232 port.
+int duration : (IN) Duration of the break in ms.
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
+inline int SendBreakComputerRS232Port(HANDLE hDev, int duration)
+{
+#ifdef _WIN32
+	if (!SetCommBreak(hDev))
+	{
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SendBreakComputerRS232Port error (%s) : %s(hDev=%#x)\n", 
+			strtime_m(), 
+			GetLastErrorMsg(), 
+			hDev));
+		return EXIT_FAILURE;
+	}
+	mSleep(duration);
+	if (!ClearCommBreak(hDev))
+	{
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SendBreakComputerRS232Port error (%s) : %s(hDev=%#x)\n", 
+			strtime_m(), 
+			GetLastErrorMsg(), 
+			hDev));
+		return EXIT_FAILURE;
+	}
+#else 
+	if (tcsendbreak((intptr_t)hDev, duration) != EXIT_SUCCESS)
+	{
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SendBreakComputerRS232Port error (%s) : %s(hDev=%#x)\n", 
+			strtime_m(), 
+			GetLastErrorMsg(), 
+			hDev));
+		return EXIT_FAILURE;
+	}
+#endif // _WIN32
+
+	return EXIT_SUCCESS;
+}
 
 /*
 Write data to a computer RS232 port.

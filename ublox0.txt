@@ -1,0 +1,69 @@
+% Server TCP port (e.g. :4001), client IP address and TCP port (e.g. 127.0.0.1:4001) or local RS232 port
+%127.0.0.1:4001
+COM14
+% BaudRate
+9600
+% Timeout (in ms)
+1500
+% bSaveRawData
+0
+% bRevertToDefaultCfg
+0
+% SetCfg (0 : keep current, 1 : default for rover, 2 : default for base)
+0
+% SurveyMode (0 : Disabled, 1 : Survey In, 2 : Fixed Mode (fixedLat, fixedLon, fixedAlt, fixedPosAcc needed))
+0
+% svinMinDur (in s)
+30
+% svinAccLimit (in m)
+10
+% fixedLat (in deg)
+0
+% fixedLon (in deg)
+0
+% fixedAlt (in m)
+0
+% fixedPosAcc (in m)
+10
+% bEnable_NMEA_GGA
+0
+% bEnable_NMEA_RMC
+1
+% bEnable_NMEA_GLL
+0
+% bEnable_NMEA_VTG
+0
+% bEnable_NMEA_HDG
+0
+% bEnable_NMEA_MWV
+0
+% bEnable_NMEA_MWD
+0
+% bEnable_NMEA_MDA
+0
+% bEnable_NMEA_VDM
+0
+% bEnable_NMEA_PD6_SA
+0
+% bEnable_NMEA_PD6_TS
+0
+% bEnable_NMEA_PD6_BI
+0
+% bEnable_NMEA_PD6_BS
+0
+% bEnable_NMEA_PD6_BE
+0
+% bEnable_NMEA_PD6_BD
+0
+% bEnable_UBX_NAV_POSLLH
+0
+% bEnable_UBX_NAV_PVT
+0
+% bEnable_UBX_NAV_SOL
+0
+% bEnable_UBX_NAV_STATUS
+0
+% bEnable_UBX_NAV_SVIN
+0
+% bEnable_UBX_NAV_VELNED
+0

@@ -21,14 +21,12 @@
 // Should be at least 2 * number of bytes to be sure to contain entirely the biggest desired message (or group of messages) + 1.
 #define MAX_NB_BYTES_RAZORAHRS 256
 
-#define PREAMBLE_RAZORAHRS "#YPR="
-
 struct RAZORAHRSDATA
 {
-	double yaw, pitch, roll;
-	double Yaw; // In rad.
-	double Pitch; // In rad.
-	double Roll; // In rad.
+	double yaw, pitch, roll; // In deg in NED coordinate system.
+	double accx, accy, accz; // In units of 1.0 = 1/256 G (9.8/256 m/s^2) in NED coordinate system.
+	double gyrx, gyry, gyrz; // In rad/s in NED coordinate system.
+	double Roll, Pitch, Yaw; // In rad in ENU coordinate system.
 };
 typedef struct RAZORAHRSDATA RAZORAHRSDATA;
 
@@ -43,6 +41,7 @@ struct RAZORAHRS
 	int BaudRate;
 	int timeout;
 	BOOL bSaveRawData;
+	BOOL bROSMode;
 	double rollorientation;
 	double rollp1;
 	double rollp2;
@@ -121,6 +120,7 @@ inline int GetLatestDataRazorAHRS(RAZORAHRS* pRazorAHRS, RAZORAHRSDATA* pRazorAH
 	char savebuf[MAX_NB_BYTES_RAZORAHRS];
 	int BytesReceived = 0, Bytes = 0, recvbuflen = 0;
 	char* ptr_YPR = NULL;
+	char* ptr_YPRAG = NULL;
 	double roll = 0, pitch = 0, yaw = 0;
 	CHRONO chrono;
 
@@ -186,8 +186,9 @@ inline int GetLatestDataRazorAHRS(RAZORAHRS* pRazorAHRS, RAZORAHRSDATA* pRazorAH
 	// for the desired message...
 
 	ptr_YPR = FindLatestRazorAHRSSentence("#YPR=", recvbuf);
+	ptr_YPRAG = FindLatestRazorAHRSSentence("#YPRAG=", recvbuf);
 
-	while (!ptr_YPR)
+	while ((!ptr_YPR)&&(!ptr_YPRAG))
 	{
 		if (GetTimeElapsedChronoQuick(&chrono) > TIMEOUT_MESSAGE_RAZORAHRS)
 		{
@@ -212,17 +213,32 @@ inline int GetLatestDataRazorAHRS(RAZORAHRS* pRazorAHRS, RAZORAHRSDATA* pRazorAH
 		}
 		BytesReceived += Bytes;
 		ptr_YPR = FindLatestRazorAHRSSentence("#YPR=", recvbuf);
+		ptr_YPRAG = FindLatestRazorAHRSSentence("#YPRAG=", recvbuf);
 	}
 
 	// Analyze data.
 
 	memset(pRazorAHRSData, 0, sizeof(RAZORAHRSDATA));
 
-	if (sscanf(ptr_YPR, "#YPR=%lf,%lf,%lf", 
-		&pRazorAHRSData->yaw, &pRazorAHRSData->pitch, &pRazorAHRSData->roll) != 3)
+	if (ptr_YPRAG)
 	{
-		printf("Error reading data from a RazorAHRS : Invalid data. \n");
-		return EXIT_FAILURE;
+		if (sscanf(ptr_YPRAG, "#YPRAG=%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
+			&pRazorAHRSData->yaw, &pRazorAHRSData->pitch, &pRazorAHRSData->roll, 
+			&pRazorAHRSData->accx, &pRazorAHRSData->accy, &pRazorAHRSData->accz, 
+			&pRazorAHRSData->gyrx, &pRazorAHRSData->gyry, &pRazorAHRSData->gyrz) != 9)
+		{
+			printf("Error reading data from a RazorAHRS : Invalid data. \n");
+			return EXIT_FAILURE;
+		}
+	}
+	else
+	{
+		if (sscanf(ptr_YPR, "#YPR=%lf,%lf,%lf",
+			&pRazorAHRSData->yaw, &pRazorAHRSData->pitch, &pRazorAHRSData->roll) != 3)
+		{
+			printf("Error reading data from a RazorAHRS : Invalid data. \n");
+			return EXIT_FAILURE;
+		}
 	}
 
 	// Convert orientation information in angles in rad with corrections.
@@ -246,6 +262,8 @@ inline int ConnectRazorAHRS(RAZORAHRS* pRazorAHRS, char* szCfgFilePath)
 {
 	FILE* file = NULL;
 	char line[256];
+	char* outputmodebuf = "#ox";
+	char* streammodebuf = "#o1";
 
 	memset(pRazorAHRS->szCfgFilePath, 0, sizeof(pRazorAHRS->szCfgFilePath));
 	sprintf(pRazorAHRS->szCfgFilePath, "%.255s", szCfgFilePath);
@@ -262,6 +280,7 @@ inline int ConnectRazorAHRS(RAZORAHRS* pRazorAHRS, char* szCfgFilePath)
 		pRazorAHRS->BaudRate = 57600;
 		pRazorAHRS->timeout = 2000;
 		pRazorAHRS->bSaveRawData = 1;
+		pRazorAHRS->bROSMode = 1;
 		pRazorAHRS->rollorientation = 0;
 		pRazorAHRS->rollp1 = 0;
 		pRazorAHRS->rollp2 = 0;
@@ -284,6 +303,8 @@ inline int ConnectRazorAHRS(RAZORAHRS* pRazorAHRS, char* szCfgFilePath)
 			if (sscanf(line, "%d", &pRazorAHRS->timeout) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pRazorAHRS->bSaveRawData) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pRazorAHRS->bROSMode) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%lf", &pRazorAHRS->rollorientation) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
@@ -327,6 +348,32 @@ inline int ConnectRazorAHRS(RAZORAHRS* pRazorAHRS, char* szCfgFilePath)
 		printf("Unable to connect to a RazorAHRS.\n");
 		CloseRS232Port(&pRazorAHRS->RS232Port);
 		return EXIT_FAILURE;
+	}
+
+	if (pRazorAHRS->bROSMode)
+	{
+		if (WriteAllRS232Port(&pRazorAHRS->RS232Port, (uint8*)outputmodebuf, (int)strlen(outputmodebuf)) != EXIT_SUCCESS)
+		{
+			printf("Unable to connect to a RazorAHRS : Initialization failure.\n");
+			CloseRS232Port(&pRazorAHRS->RS232Port);
+			return EXIT_FAILURE;
+		}
+		if ((pRazorAHRS->bSaveRawData)&&(pRazorAHRS->pfSaveFile)) 
+		{
+			fwrite(outputmodebuf, strlen(outputmodebuf), 1, pRazorAHRS->pfSaveFile);
+			fflush(pRazorAHRS->pfSaveFile);
+		}
+		if (WriteAllRS232Port(&pRazorAHRS->RS232Port, (uint8*)streammodebuf, (int)strlen(streammodebuf)) != EXIT_SUCCESS)
+		{
+			printf("Unable to connect to a RazorAHRS : Initialization failure.\n");
+			CloseRS232Port(&pRazorAHRS->RS232Port);
+			return EXIT_FAILURE;
+		}
+		if ((pRazorAHRS->bSaveRawData)&&(pRazorAHRS->pfSaveFile)) 
+		{
+			fwrite(streammodebuf, strlen(streammodebuf), 1, pRazorAHRS->pfSaveFile);
+			fflush(pRazorAHRS->pfSaveFile);
+		}
 	}
 
 	printf("RazorAHRS connected.\n");

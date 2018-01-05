@@ -5,12 +5,8 @@ OSMisc.c
 Miscellaneous things.
 
 Fabrice Le Bars
-mean() and var() from Guillaume Brosse and Antone Borissov
-fgets2() by Luc Jaulin
 
 Created : 2009-01-28
-
-Version status : Tested some parts
 
 ***************************************************************************************************************:)*/
 
