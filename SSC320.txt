@@ -1,6 +1,6 @@
 % Server TCP port (e.g. :4001), client IP address and TCP port (e.g. 127.0.0.1:4001) or local RS232 port
-127.0.0.1:4004
-%COM6
+%127.0.0.1:4004
+COM6
 % BaudRate
 9600
 % Timeout (in ms)
@@ -84,15 +84,15 @@
 1
 % For motorboat or sailboat...
 % rudderchan
-0
+2
 % rightthrusterchan
 1
 % leftthrusterchan
-2
+0
 % rightfluxchan
-3
-% leftfluxchan
 4
+% leftfluxchan
+3
 % MinAngle (in rad)
 -0.6
 % MidAngle (in rad)

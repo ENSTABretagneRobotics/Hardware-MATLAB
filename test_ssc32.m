@@ -23,7 +23,7 @@ while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
         [result] = SetAllPWMsFromThreadSSC32(pSSC32, [1 1 1 0 0], [2000 1000 1750 1500 1500]);
     end
     a = a+1;
-    str = sprintf('%d\n', a);
+    str = sprintf('a = %d\n', a);
     uicontrol('Style','text','String',str,'Units','normalized','Position',[0 0 1 1]);
     pause(2); key = get(gcf,'CurrentCharacter');
 end

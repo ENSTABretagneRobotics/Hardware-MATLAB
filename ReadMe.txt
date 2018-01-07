@@ -18,10 +18,10 @@ Hardware support :
 - Maestro : Pololu Mini Maestro 6, 18, 24 servo controllers.
 - MAVLinkDevice (not enabled by default, see mavlink_support folder) : ArduPilot/ArduFlyer/HKPilot Mega (APM 2.5), PX4FLOW.
 - MT : Xsens MTi, MTi-G AHRS.
-- NMEADevice : GPS, Furuno WS200 weather station, AIS Receiver dAISy.
+- NMEADevice : GPS, Furuno WS200 weather station.
 - RazorAHRS : SparkFun 9DOF Razor IMU.
 - RPLIDAR : RPLIDAR A2 laser telemeter.
 - SSC-32 : Lynxmotion SSC-32, SSC-32u servo controllers.
 - ublox : ublox GPS.
 
-See also https://github.com/ENSTABretagneRobotics/Android, https://github.com/ENSTABretagneRobotics/Hardware-CPP, https://github.com/ENSTABretagneRobotics/Hardware-Java.
+See also https://github.com/ENSTABretagneRobotics/Android, https://github.com/ENSTABretagneRobotics/Hardware-CPP, https://github.com/ENSTABretagneRobotics/Hardware-Python, https://github.com/ENSTABretagneRobotics/Hardware-Java.
