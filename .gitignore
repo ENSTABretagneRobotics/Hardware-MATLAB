@@ -263,6 +263,7 @@ $RECYCLE.BIN/
 # Other
 # =========================
 
+*.asv
 TODO/
 !*ReadMe.txt
 UpgradeOSUtils.bat

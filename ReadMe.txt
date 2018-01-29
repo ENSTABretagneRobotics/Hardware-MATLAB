@@ -2,7 +2,7 @@ Hardware-MATLAB
 ===============
 Windows : 
 - In MATLAB, go to File\Set Path...\Add Folder... and add this folder as well as x86 folder if you use MATLAB 32 bit or x64 folder if you use MATLAB 64 bit.
-- Check test_XXX.m files for usage information.
+- Check e.g. test_razorahrs.m file for usage information.
 
 Linux/Mac : 
 - Follow the instructions in the Makefile.
