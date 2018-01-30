@@ -22,6 +22,6 @@ Hardware support :
 - RazorAHRS : SparkFun 9DOF Razor IMU.
 - RPLIDAR : RPLIDAR A2 laser telemeter.
 - SSC-32 : Lynxmotion SSC-32, SSC-32u servo controllers.
-- ublox : ublox GPS.
+- ublox : ublox GPS (only with NMEA protocol).
 
 See also https://github.com/ENSTABretagneRobotics/Android, https://github.com/ENSTABretagneRobotics/Hardware-CPP, https://github.com/ENSTABretagneRobotics/Hardware-Python, https://github.com/ENSTABretagneRobotics/Hardware-Java.

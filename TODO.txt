@@ -1,5 +1,4 @@
-Problème parsing MAVLink et UBXProtocol.h : éditer manuellement hardwarex_proto.m?
-Revenir à une version précédente de MAVLinkSDK?
+Problème parsing UBXProtocol.h (bitfields?) : éditer manuellement hardwarex_proto.m?
 http://fr.mathworks.com/help/matlab/matlab_external/limitations-to-shared-library-support.html
 
 RPLIDAR : add support of SCAN in addition to EXPRESS_SCAN...
