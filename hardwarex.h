@@ -47,6 +47,13 @@
 #define DISABLE_UBLOXTHREAD
 #endif // DISABLE_UBLOXTHREAD
 
+// Not sure why sometimes MATLAB gives errors without that...
+#ifdef ENABLE_MAVLINK_SUPPORT
+#ifdef __GNUC__
+#include <stdint.h>
+#endif // __GNUC__
+#endif // ENABLE_MAVLINK_SUPPORT
+
 #include "OSCriticalSection.h"
 #include "MT.h"
 #include "RazorAHRS.h"

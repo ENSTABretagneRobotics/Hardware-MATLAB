@@ -11,5 +11,5 @@ Windows :
 
 Linux/Mac : 
 - In hardwarex.h, uncomment #define ENABLE_MAVLINK_SUPPORT.
-- Copy the headers from https://github.com/mavlink/c_library in /usr/local/include/mavlink (or ../MAVLinkSDK/mavlink).
+- Copy the headers from https://github.com/mavlink/c_library_v1/archive/0fc203298923f1d7c225cc6f43918d6663809e38.zip in /usr/local/include/mavlink (or ../mavlink).
 - Follow ../ReadMe.txt

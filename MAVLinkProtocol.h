@@ -12,6 +12,13 @@
 
 #include "OSMisc.h"
 
+#ifndef __cplusplus
+#ifdef inline
+#ifdef __GNUC__
+#undef inline
+#endif // __GNUC__
+#endif // inline
+#endif // __cplusplus
 #ifdef _MSC_VER
 // Disable some Visual Studio warnings.
 #pragma warning(disable : 4201) 
@@ -29,6 +36,14 @@
 #pragma warning(default : 4244) 
 #pragma warning(default : 4201) 
 #endif // _MSC_VER
+#ifndef __cplusplus
+#ifndef inline
+#ifdef __GNUC__
+// extern __inline__ in ws2tcpip.h for GNU?
+#define inline static __inline__
+#endif // __GNUC__
+#endif // inline
+#endif // __cplusplus
 
 #define MAX_PACKET_LEN_MAVLINK 263
 #define MIN_PACKET_LEN_MAVLINK 8
