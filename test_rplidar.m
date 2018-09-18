@@ -5,7 +5,7 @@ pRPLIDAR = CreateRPLIDAR();
 %pRPLIDAR.value
 
 [result, distances, angles, bNewScan] = GetExpressScanDataResponseRPLIDAR(pRPLIDAR);
-str = sprintf('Distance at %f deg = %f m\n', angles(0)*180.0/pi, distances(0));
+str = sprintf('Distance at %f deg = %f m\n', angles(1)*180.0/pi, distances(1));
 disp(str);
 
 fig = figure('Position',[200 200 400 400],'NumberTitle','off');
