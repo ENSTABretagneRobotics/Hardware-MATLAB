@@ -15,7 +15,7 @@
 
 #ifndef DISABLE_MTTHREAD
 #include "OSThread.h"
-#endif // DISABLE_MTTHREAD
+#endif // !DISABLE_MTTHREAD
 
 #define TIMEOUT_MESSAGE_MT 4.0 // In s.
 // Should be at least 2 * number of bytes to be sure to contain entirely the biggest desired message (or group of messages) + 1.
@@ -304,6 +304,11 @@ struct MT
 	double yawp2;
 };
 typedef struct MT MT;
+
+#ifdef _MSC_VER
+// Disable some Visual Studio warnings.
+#pragma warning(disable : 4459) 
+#endif // _MSC_VER
 
 inline int ConvertToDoubleMT(int OutputSettings, unsigned char* buf, int offset, double* pValue)
 {
@@ -1242,8 +1247,13 @@ inline int DisconnectMT(MT* pMT)
 	return EXIT_SUCCESS;
 }
 
+#ifdef _MSC_VER
+// Restore the Visual Studio warnings previously disabled.
+#pragma warning(default : 4459) 
+#endif // _MSC_VER
+
 #ifndef DISABLE_MTTHREAD
 THREAD_PROC_RETURN_VALUE MTThread(void* pParam);
-#endif // DISABLE_MTTHREAD
+#endif // !DISABLE_MTTHREAD
 
-#endif // MT_H
+#endif // !MT_H

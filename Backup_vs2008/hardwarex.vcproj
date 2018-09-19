@@ -387,10 +387,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Maestro.h"
-				>
-			</File>
-			<File
 				RelativePath=".\MAVLinkDevice.h"
 				>
 			</File>
@@ -436,6 +432,10 @@
 			</File>
 			<File
 				RelativePath=".\OSTime.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Pololu.h"
 				>
 			</File>
 			<File

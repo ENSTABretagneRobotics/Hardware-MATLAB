@@ -15,29 +15,27 @@
 
 #ifndef DISABLE_MAVLINKDEVICETHREAD
 #include "OSThread.h"
-#endif // DISABLE_MAVLINKDEVICETHREAD
+#endif // !DISABLE_MAVLINKDEVICETHREAD
 
 #include "MAVLinkProtocol.h"
 
 // Need to be undefined at the end of the file...
-// min and max might cause incompatibilities on Linux...
-#ifndef _WIN32
-#if !defined(NOMINMAX)
+// min and max might cause incompatibilities with GCC...
+#ifndef _MSC_VER
 #ifndef max
 #define max(a,b) (((a) > (b)) ? (a) : (b))
-#endif // max
+#endif // !max
 #ifndef min
 #define min(a,b) (((a) < (b)) ? (a) : (b))
-#endif // min
-#endif // !defined(NOMINMAX)
-#endif // _WIN32
+#endif // !min
+#endif // !_MSC_VER
 
 #define TIMEOUT_MESSAGE_MAVLINKDEVICE 4.0 // In s.
 // Should be at least 2 * number of bytes to be sure to contain entirely the biggest desired message (or group of messages) + 1.
 #define MAX_NB_BYTES_MAVLINKDEVICE 2048
 
-// Only the 8 first channels are used for the moment...
-#define NB_CHANNELS_PWM_MAVLINKDEVICE 8
+// Only the 16 first channels are used for the moment...
+#define NB_CHANNELS_PWM_MAVLINKDEVICE 16
 
 // In us.
 #define DEFAULT_ABSOLUTE_MIN_PW_MAVLINKDEVICE 500
@@ -87,15 +85,20 @@ struct MAVLINKDEVICE
 	int quality_threshold;
 	double flow_comp_m_threshold;
 	BOOL bDefaultVrToZero;
+	BOOL bDisableSendHeartbeat;
+	double chrono_heartbeat_period;
 	BOOL bResetToDefault;
 	BOOL bDisableArmingCheck;
 	BOOL bOverridePWMAtStartup;
 	BOOL bForceStabilizeModeAtStartup;
 	BOOL bArmAtStartup;
+	int mavlink_comm;
 	int system_id;
 	int component_id;
 	int target_system;
 	int target_component;
+	BOOL bForceDefaultMAVLink1;
+	int ManualControlMode;
 	int overridechan;
 	int MinPWs[NB_CHANNELS_PWM_MAVLINKDEVICE];
 	int MidPWs[NB_CHANNELS_PWM_MAVLINKDEVICE];
@@ -219,8 +222,25 @@ inline int GetLatestDataMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, MAVLINKDATA
 
 	for (i = 0; i < BytesReceived; ++i)
 	{
-		if (mavlink_parse_char(MAVLINK_COMM_0, recvbuf[i], &msg, &status))
+		if (mavlink_parse_char((uint8_t)pMAVLinkDevice->mavlink_comm, recvbuf[i], &msg, &status))
 		{
+
+			// MAVLINK_STATUS_FLAG_IN_MAVLINK1 should not be defined if using MAVLink v1 headers...
+#ifdef MAVLINK_STATUS_FLAG_IN_MAVLINK1
+			if (pMAVLinkDevice->bForceDefaultMAVLink1)
+			{
+				// https://mavlink.io/en/mavlink_2.html
+				// It is advisable to switch to MAVLink v2 when the communication partner sends MAVLink v2.
+				// Check if we received version 2 and request a switch.
+				if (!(status.flags & MAVLINK_STATUS_FLAG_IN_MAVLINK1))
+				{
+					mavlink_status_t* chan_state = mavlink_get_channel_status((uint8_t)pMAVLinkDevice->mavlink_comm);
+					// This will only switch to proto version 2.
+					chan_state->flags &= ~(MAVLINK_STATUS_FLAG_OUT_MAVLINK1);
+				}
+			}
+#endif // MAVLINK_STATUS_FLAG_IN_MAVLINK1
+
 			// Packet received
 			//printf("\nReceived packet: SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", msg.sysid, msg.compid, msg.len, msg.msgid);
 			switch (msg.msgid)
@@ -284,57 +304,60 @@ inline int ArmMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, BOOL bArm)
 	mavlink_command_long_t arm_command;
 	mavlink_set_mode_t set_mode;
 
-	if (pMAVLinkDevice->bDisableArmingCheck)
+	if (bArm)
 	{
-		// Disable all arm checks...
-		memset(&param_set, 0, sizeof(param_set));
-		sprintf(param_set.param_id, "ARMING_CHECK"); // http://ardupilot.org/plane/docs/parameters.html#arming-check-arm-checks-to-peform-bitmask
-		param_set.param_value = 0;
-		param_set.param_type = MAV_PARAM_TYPE_UINT32;
-		param_set.target_system = (uint8_t)pMAVLinkDevice->target_system;
-		param_set.target_component = (uint8_t)pMAVLinkDevice->target_component;
-		mavlink_msg_param_set_encode((uint8_t)pMAVLinkDevice->system_id, (uint8_t)pMAVLinkDevice->component_id, &msg, &param_set);
+		if (pMAVLinkDevice->bDisableArmingCheck)
+		{
+			// Disable all arm checks...
+			memset(&param_set, 0, sizeof(param_set));
+			sprintf(param_set.param_id, "ARMING_CHECK"); // http://ardupilot.org/plane/docs/parameters.html#arming-check-arm-checks-to-peform-bitmask
+			param_set.param_value = 0;
+			param_set.param_type = MAV_PARAM_TYPE_UINT32;
+			param_set.target_system = (uint8_t)pMAVLinkDevice->target_system;
+			param_set.target_component = (uint8_t)pMAVLinkDevice->target_component;
+			mavlink_msg_param_set_encode((uint8_t)pMAVLinkDevice->system_id, (uint8_t)pMAVLinkDevice->component_id, &msg, &param_set);
+
+			memset(sendbuf, 0, sizeof(sendbuf));
+			sendbuflen = mavlink_msg_to_send_buffer(sendbuf, &msg);
+			if (WriteAllRS232Port(&pMAVLinkDevice->RS232Port, sendbuf, sendbuflen) != EXIT_SUCCESS)
+			{
+				return EXIT_FAILURE;
+			}
+			mSleep(50);
+		}
+
+		// Try to force mode using deprecated command...
+		memset(&set_mode, 0, sizeof(set_mode));
+		set_mode.base_mode = MAV_MODE_FLAG_STABILIZE_ENABLED;
+		set_mode.custom_mode = 0; // See enum control_mode_t in https://github.com/ArduPilot/ardupilot/blob/master/ArduCopter/defines.h
+		set_mode.target_system = (uint8_t)pMAVLinkDevice->target_system;
+		mavlink_msg_set_mode_encode((uint8_t)pMAVLinkDevice->system_id, (uint8_t)pMAVLinkDevice->component_id, &msg, &set_mode);
 
 		memset(sendbuf, 0, sizeof(sendbuf));
-		sendbuflen = mavlink_msg_to_send_buffer(sendbuf, &msg);	
+		sendbuflen = mavlink_msg_to_send_buffer(sendbuf, &msg);
+		if (WriteAllRS232Port(&pMAVLinkDevice->RS232Port, sendbuf, sendbuflen) != EXIT_SUCCESS)
+		{
+			return EXIT_FAILURE;
+		}
+		mSleep(50);
+
+		// Try to force mode...
+		memset(&mode_command, 0, sizeof(mode_command));
+		mode_command.command = MAV_CMD_DO_SET_MODE;
+		mode_command.confirmation = 0;
+		mode_command.param1 = MAV_MODE_MANUAL_ARMED;//MAV_MODE_STABILIZE_ARMED;
+		mode_command.target_system = (uint8_t)pMAVLinkDevice->target_system;
+		mode_command.target_component = (uint8_t)pMAVLinkDevice->target_component;
+		mavlink_msg_command_long_encode((uint8_t)pMAVLinkDevice->system_id, (uint8_t)pMAVLinkDevice->component_id, &msg, &mode_command);
+
+		memset(sendbuf, 0, sizeof(sendbuf));
+		sendbuflen = mavlink_msg_to_send_buffer(sendbuf, &msg);
 		if (WriteAllRS232Port(&pMAVLinkDevice->RS232Port, sendbuf, sendbuflen) != EXIT_SUCCESS)
 		{
 			return EXIT_FAILURE;
 		}
 		mSleep(50);
 	}
-
-	// Try to force mode using deprecated command...
-	memset(&set_mode, 0, sizeof(set_mode));
-	set_mode.base_mode = MAV_MODE_FLAG_STABILIZE_ENABLED;
-	set_mode.custom_mode = 0; // See enum control_mode_t in https://github.com/ArduPilot/ardupilot/blob/master/ArduCopter/defines.h
-	set_mode.target_system = (uint8_t)pMAVLinkDevice->target_system;
-	mavlink_msg_set_mode_encode((uint8_t)pMAVLinkDevice->system_id, (uint8_t)pMAVLinkDevice->component_id, &msg, &set_mode);
-
-	memset(sendbuf, 0, sizeof(sendbuf));
-	sendbuflen = mavlink_msg_to_send_buffer(sendbuf, &msg);	
-	if (WriteAllRS232Port(&pMAVLinkDevice->RS232Port, sendbuf, sendbuflen) != EXIT_SUCCESS)
-	{
-		return EXIT_FAILURE;
-	}
-	mSleep(50);
-
-	// Try to force mode...
-	memset(&mode_command, 0, sizeof(mode_command));
-	mode_command.command = MAV_CMD_DO_SET_MODE;
-	mode_command.confirmation = 0;
-	mode_command.param1 = MAV_MODE_MANUAL_ARMED;//MAV_MODE_STABILIZE_ARMED;
-	mode_command.target_system = (uint8_t)pMAVLinkDevice->target_system;
-	mode_command.target_component = (uint8_t)pMAVLinkDevice->target_component;
-	mavlink_msg_command_long_encode((uint8_t)pMAVLinkDevice->system_id, (uint8_t)pMAVLinkDevice->component_id, &msg, &mode_command);
-
-	memset(sendbuf, 0, sizeof(sendbuf));
-	sendbuflen = mavlink_msg_to_send_buffer(sendbuf, &msg);	
-	if (WriteAllRS232Port(&pMAVLinkDevice->RS232Port, sendbuf, sendbuflen) != EXIT_SUCCESS)
-	{
-		return EXIT_FAILURE;
-	}
-	mSleep(50);
 
 	// Arm/disarm...
 	// Firmware ArduCopter 3.1.5 does not seem to support arm/disarm command, use the transmitter method 
@@ -355,6 +378,55 @@ inline int ArmMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, BOOL bArm)
 		return EXIT_FAILURE;
 	}
 	mSleep(50);
+
+	return EXIT_SUCCESS;
+}
+
+inline int SendHeartbeatMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice)
+{
+	unsigned char sendbuf[256];
+	int sendbuflen = 0;
+	mavlink_message_t msg;
+	mavlink_heartbeat_t heartbeat;
+
+	memset(&heartbeat, 0, sizeof(heartbeat));
+	heartbeat.autopilot = MAV_AUTOPILOT_INVALID;
+	heartbeat.base_mode = MAV_MODE_FLAG_SAFETY_ARMED;
+	heartbeat.system_status = MAV_STATE_ACTIVE;
+	heartbeat.type = MAV_TYPE_GCS;
+	mavlink_msg_heartbeat_encode((uint8_t)pMAVLinkDevice->system_id, (uint8_t)pMAVLinkDevice->component_id, &msg, &heartbeat);
+
+	memset(sendbuf, 0, sizeof(sendbuf));
+	sendbuflen = mavlink_msg_to_send_buffer(sendbuf, &msg);
+	if (WriteAllRS232Port(&pMAVLinkDevice->RS232Port, sendbuf, sendbuflen) != EXIT_SUCCESS)
+	{
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
+}
+
+inline int ManualControlMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, int x, int y, int z, int r, unsigned int buttons)
+{
+	unsigned char sendbuf[256];
+	int sendbuflen = 0;
+	mavlink_message_t msg;
+	mavlink_manual_control_t manual_control;
+
+	manual_control.x = (int16_t)x;
+	manual_control.y = (int16_t)y;
+	manual_control.z = (int16_t)z;
+	manual_control.r = (int16_t)r;
+	manual_control.buttons = (uint16_t)buttons;
+	manual_control.target = (uint8_t)pMAVLinkDevice->target_system;
+	mavlink_msg_manual_control_encode((uint8_t)pMAVLinkDevice->system_id, (uint8_t)pMAVLinkDevice->component_id, &msg, &manual_control);
+
+	memset(sendbuf, 0, sizeof(sendbuf));
+	sendbuflen = mavlink_msg_to_send_buffer(sendbuf, &msg);	
+	if (WriteAllRS232Port(&pMAVLinkDevice->RS232Port, sendbuf, sendbuflen) != EXIT_SUCCESS)
+	{
+		return EXIT_FAILURE;
+	}
 
 	return EXIT_SUCCESS;
 }
@@ -438,6 +510,19 @@ inline int SetAllPWMsMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, int* selectedc
 	// Input 4 : Yaw/rudder.
 	// Input 8 : AUX 4 (mode switch).
 
+	// ArduSub : 
+	// Input 1 : Pitch.
+	// Input 2 : Roll.
+	// Input 3 : Throttle.
+	// Input 4 : Yaw.
+	// Input 5 : Forward.
+	// Input 6 : Lateral.
+	// Input 7 : Reserved.
+	// Input 8 : Camera Tilt.
+	// Input 9 : Lights 1 Level.
+	// Input 10 : Lights 2 Level.
+	// Input 11 : Video Switch.
+
 	// Override PWM inputs. If PWM is 0, no override...
 	memset(&rc_override, 0, sizeof(rc_override));
 	rc_override.chan1_raw = (uint16_t)pws_tmp[0];
@@ -448,6 +533,17 @@ inline int SetAllPWMsMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, int* selectedc
 	rc_override.chan6_raw = (uint16_t)pws_tmp[5];
 	rc_override.chan7_raw = (uint16_t)pws_tmp[6];
 	rc_override.chan8_raw = (uint16_t)pws_tmp[7];
+	// MAVLINK_STATUS_FLAG_IN_MAVLINK1 should not be defined if using MAVLink v1 headers...
+#ifdef MAVLINK_STATUS_FLAG_IN_MAVLINK1
+	rc_override.chan9_raw = (uint16_t)pws_tmp[8];
+	rc_override.chan10_raw = (uint16_t)pws_tmp[9];
+	rc_override.chan11_raw = (uint16_t)pws_tmp[10];
+	rc_override.chan12_raw = (uint16_t)pws_tmp[11];
+	rc_override.chan13_raw = (uint16_t)pws_tmp[12];
+	rc_override.chan14_raw = (uint16_t)pws_tmp[13];
+	rc_override.chan15_raw = (uint16_t)pws_tmp[14];
+	rc_override.chan16_raw = (uint16_t)pws_tmp[15];
+#endif // MAVLINK_STATUS_FLAG_IN_MAVLINK1
 	rc_override.target_system = (uint8_t)pMAVLinkDevice->target_system;
 	rc_override.target_component = (uint8_t)pMAVLinkDevice->target_component;
 	mavlink_msg_rc_channels_override_encode((uint8_t)pMAVLinkDevice->system_id, (uint8_t)pMAVLinkDevice->component_id, &msg, &rc_override);
@@ -518,16 +614,21 @@ inline int ConnectMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, char* szCfgFilePa
 		pMAVLinkDevice->quality_threshold = 1;
 		pMAVLinkDevice->flow_comp_m_threshold = 0.0;
 		pMAVLinkDevice->bDefaultVrToZero = 0;
+		pMAVLinkDevice->bDisableSendHeartbeat = 0;
+		pMAVLinkDevice->chrono_heartbeat_period = 1;
 		pMAVLinkDevice->bResetToDefault = 0;
 		pMAVLinkDevice->bDisableArmingCheck = 0;
 		pMAVLinkDevice->bOverridePWMAtStartup = 0;
 		pMAVLinkDevice->bForceStabilizeModeAtStartup = 0;
 		pMAVLinkDevice->bArmAtStartup = 0;
+		pMAVLinkDevice->mavlink_comm = 0;
 		pMAVLinkDevice->system_id = 255;
 		pMAVLinkDevice->component_id = 0;
 		pMAVLinkDevice->target_system = 1;
 		pMAVLinkDevice->target_component = 0;
-		pMAVLinkDevice->overridechan = 9;
+		pMAVLinkDevice->bForceDefaultMAVLink1 = 1;
+		pMAVLinkDevice->ManualControlMode = 0;
+		pMAVLinkDevice->overridechan = 17;
 		for (channel = 0; channel < NB_CHANNELS_PWM_MAVLINKDEVICE; channel++)
 		{
 			pMAVLinkDevice->MinPWs[channel] = 1000;
@@ -560,6 +661,10 @@ inline int ConnectMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, char* szCfgFilePa
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pMAVLinkDevice->bDefaultVrToZero) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pMAVLinkDevice->bDisableSendHeartbeat) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%lf", &pMAVLinkDevice->chrono_heartbeat_period) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pMAVLinkDevice->bResetToDefault) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pMAVLinkDevice->bDisableArmingCheck) != 1) printf("Invalid configuration file.\n");
@@ -570,6 +675,8 @@ inline int ConnectMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, char* szCfgFilePa
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pMAVLinkDevice->bArmAtStartup) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pMAVLinkDevice->mavlink_comm) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pMAVLinkDevice->system_id) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pMAVLinkDevice->component_id) != 1) printf("Invalid configuration file.\n");
@@ -577,6 +684,10 @@ inline int ConnectMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, char* szCfgFilePa
 			if (sscanf(line, "%d", &pMAVLinkDevice->target_system) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pMAVLinkDevice->target_component) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pMAVLinkDevice->bForceDefaultMAVLink1) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pMAVLinkDevice->ManualControlMode) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pMAVLinkDevice->overridechan) != 1) printf("Invalid configuration file.\n");
 
@@ -631,10 +742,10 @@ inline int ConnectMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, char* szCfgFilePa
 		printf("Invalid parameter : target_component.\n");
 		pMAVLinkDevice->target_component = 0;
 	}
-	if ((pMAVLinkDevice->overridechan < 1)||(pMAVLinkDevice->overridechan > 12))
+	if ((pMAVLinkDevice->overridechan < 1)||(pMAVLinkDevice->overridechan > 18))
 	{
 		printf("Invalid parameter : overridechan.\n");
-		pMAVLinkDevice->overridechan = 9;
+		pMAVLinkDevice->overridechan = 17;
 	}
 
 	for (channel = 0; channel < NB_CHANNELS_PWM_MAVLINKDEVICE; channel++)
@@ -689,6 +800,25 @@ inline int ConnectMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, char* szCfgFilePa
 
 	mSleep(50);
 
+#ifdef MAVLINK_STATUS_FLAG_IN_MAVLINK1
+	if (pMAVLinkDevice->bForceDefaultMAVLink1)
+	{
+		// https://mavlink.io/en/mavlink_2.html
+		// The v2 library will send packets in MAVLink v2 framing by default. In order to default to v1, run this code snippet on boot :
+		mavlink_status_t* chan_state = mavlink_get_channel_status((uint8_t)pMAVLinkDevice->mavlink_comm);
+		chan_state->flags |= MAVLINK_STATUS_FLAG_OUT_MAVLINK1;
+	}
+#endif // MAVLINK_STATUS_FLAG_IN_MAVLINK1
+	if (!pMAVLinkDevice->bDisableSendHeartbeat)
+	{
+		if (SendHeartbeatMAVLinkDevice(pMAVLinkDevice) != EXIT_SUCCESS)
+		{
+			printf("Unable to connect to a MAVLinkDevice : Heartbeat failure.\n");
+			CloseRS232Port(&pMAVLinkDevice->RS232Port);
+			return EXIT_FAILURE;
+		}
+		mSleep(50);
+	}
 	if (pMAVLinkDevice->bResetToDefault)
 	{
 		memset(&param_set, 0, sizeof(param_set));
@@ -945,6 +1075,17 @@ inline int ConnectMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, char* szCfgFilePa
 		rc_override.chan6_raw = (uint16_t)pMAVLinkDevice->InitPWs[5];
 		rc_override.chan7_raw = (uint16_t)pMAVLinkDevice->InitPWs[6];
 		rc_override.chan8_raw = (uint16_t)pMAVLinkDevice->InitPWs[7];
+	// MAVLINK_STATUS_FLAG_IN_MAVLINK1 should not be defined if using MAVLink v1 headers...
+#ifdef MAVLINK_STATUS_FLAG_IN_MAVLINK1
+		rc_override.chan9_raw = (uint16_t)pMAVLinkDevice->InitPWs[8];
+		rc_override.chan10_raw = (uint16_t)pMAVLinkDevice->InitPWs[9];
+		rc_override.chan11_raw = (uint16_t)pMAVLinkDevice->InitPWs[10];
+		rc_override.chan12_raw = (uint16_t)pMAVLinkDevice->InitPWs[11];
+		rc_override.chan13_raw = (uint16_t)pMAVLinkDevice->InitPWs[12];
+		rc_override.chan14_raw = (uint16_t)pMAVLinkDevice->InitPWs[13];
+		rc_override.chan15_raw = (uint16_t)pMAVLinkDevice->InitPWs[14];
+		rc_override.chan16_raw = (uint16_t)pMAVLinkDevice->InitPWs[15];
+#endif // MAVLINK_STATUS_FLAG_IN_MAVLINK1
 		rc_override.target_system = (uint8_t)pMAVLinkDevice->target_system;
 		rc_override.target_component = (uint8_t)pMAVLinkDevice->target_component;
 		mavlink_msg_rc_channels_override_encode((uint8_t)pMAVLinkDevice->system_id, (uint8_t)pMAVLinkDevice->component_id, &msg, &rc_override);
@@ -1066,16 +1207,16 @@ inline int DisconnectMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice)
 
 #ifndef DISABLE_MAVLINKDEVICETHREAD
 THREAD_PROC_RETURN_VALUE MAVLinkDeviceThread(void* pParam);
-#endif // DISABLE_MAVLINKDEVICETHREAD
+#endif // !DISABLE_MAVLINKDEVICETHREAD
 
-// min and max might cause incompatibilities on Linux...
-#ifndef _WIN32
+// min and max might cause incompatibilities with GCC...
+#ifndef _MSC_VER
 #ifdef max
 #undef max
 #endif // max
 #ifdef min
 #undef min
 #endif // min
-#endif // _WIN32
+#endif // !_MSC_VER
 
-#endif // MAVLINKDEVICE_H
+#endif // !MAVLINKDEVICE_H

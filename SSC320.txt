@@ -82,17 +82,422 @@ COM6
 1
 % bProportionalPW (0 or 1)
 1
-% For motorboat or sailboat...
+% channel 5
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 6
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 7
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 8
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 9
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 10
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 11
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 12
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 13
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 14
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 15
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 16
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 17
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 18
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 19
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 20
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 21
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 22
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 23
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 24
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 25
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 26
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 27
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 28
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 29
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 30
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 31
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% Specific channels...
 % rudderchan
-2
+0
 % rightthrusterchan
 1
 % leftthrusterchan
-0
+2
 % rightfluxchan
-4
-% leftfluxchan
 3
+% leftfluxchan
+4
 % MinAngle (in rad)
 -0.6
 % MidAngle (in rad)

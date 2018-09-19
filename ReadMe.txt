@@ -15,13 +15,13 @@ Tested on Windows 10 64 bit using MATLAB R2016a.
 
 Hardware support : 
 - Hokuyo : Hokuyo URG-04LX-UG01 laser telemeter.
-- Maestro : Pololu Mini Maestro 6, 18, 24 servo controllers.
 - MAVLinkDevice (not enabled by default, see mavlink_support folder) : ArduPilot/ArduFlyer/HKPilot Mega (APM 2.5), PX4FLOW.
 - MT : Xsens MTi, MTi-G AHRS.
-- NMEADevice : GPS, Furuno WS200 weather station.
-- RazorAHRS : SparkFun 9DOF Razor IMU.
-- RPLIDAR : RPLIDAR A2 laser telemeter.
+- NMEADevice (superseded by ublox) : GPS, Furuno WS200 weather station.
+- Pololu : Pololu Mini Maestro 6, 18, 24 servo controllers, Pololu Jrk (preliminary support).
+- RazorAHRS : SparkFun 9DOF Razor IMU (flash firmware from https://github.com/lebarsfa/razor-9dof-ahrs if needed).
+- RPLIDAR : RPLIDAR A1 and A2 laser telemeters.
 - SSC-32 : Lynxmotion SSC-32, SSC-32u servo controllers.
-- ublox : ublox GPS (only with NMEA protocol).
+- ublox : ublox GPS (only with NMEA protocol), Furuno WS200 weather station, or other NMEA-compatible devices with supported NMEA sentences.
 
 See also https://github.com/ENSTABretagneRobotics/Android, https://github.com/ENSTABretagneRobotics/Hardware-CPP, https://github.com/ENSTABretagneRobotics/Hardware-Python, https://github.com/ENSTABretagneRobotics/Hardware-Java.

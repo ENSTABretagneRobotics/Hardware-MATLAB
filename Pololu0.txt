@@ -1,0 +1,474 @@
+% Server TCP port (e.g. :4001), client IP address and TCP port (e.g. 127.0.0.1:4001) or local RS232 port
+%127.0.0.1:4004
+COM6
+% BaudRate
+57600
+% Timeout (in ms)
+1000
+% bSaveRawData
+0
+% PololuType (0 : Maestro, 1 : Jrk)
+0
+% DeviceNumber (default is 12 for Maestro, 11 for Jrk)
+12
+% channel 0
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 1
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 2
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 3
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 4
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 5
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 6
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 7
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 8
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 9
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 10
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 11
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 12
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 13
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 14
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 15
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 16
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 17
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 18
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 19
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 20
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 21
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 22
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% channel 23
+% MinPW (in us)
+1000
+% MidPW (in us)
+1500
+% MaxPW (in us)
+2000
+% InitPW (in us, 0 to disable channel)
+1500
+% ThresholdPW (in us)
+10
+% CoefPW (-1 or 1)
+1
+% bProportionalPW (0 or 1)
+1
+% Specific channels...
+% rudderchan
+2
+% rightthrusterchan
+1
+% leftthrusterchan
+0
+% rightfluxchan
+4
+% leftfluxchan
+3
+% campanchan
+7
+% camtiltchan
+8
+% gripperclosechan
+9
+% gripperrotationchan
+10
+% armbaserotationchan
+11
+% armrotation1chan
+12
+% armrotation2chan
+13
+% armrotation3chan
+14
+% armrotation4chan
+15
+% extra1chan
+16
+% extra2chan
+17
+% extra3chan
+18
+% extra4chan
+19
+% winddiranaloginputchan (disabled if -1)
+-1
+% winddiranaloginputvalueoffset
+20.0
+% winddiranaloginputvaluethreshold
+0.0
+% winddiranaloginputvaluecoef
+0.333
+% windspeedanaloginputchan (disabled if -1)
+-1
+% windspeedanaloginputvalueoffset
+0.0
+% windspeedanaloginputvaluethreshold
+0.0
+% windspeedanaloginputvaluecoef
+1.0
+% vbat1analoginputchan (disabled if -1)
+-1
+% vbat1analoginputvalueoffset
+0.0
+% vbat1analoginputvaluethreshold
+0
+% vbat1analoginputvaluecoef
+10.10101
+% ibat1analoginputchan (disabled if -1)
+-1
+% ibat1analoginputvalueoffset
+0.0
+% ibat1analoginputvaluethreshold
+0
+% ibat1analoginputvaluecoef
+18.0
+% vbat2analoginputchan (disabled if -1)
+-1
+% vbat2analoginputvalueoffset
+0.0
+% vbat2analoginputvaluethreshold
+0
+% vbat2analoginputvaluecoef
+10.10101
+% ibat2analoginputchan (disabled if -1)
+-1
+% ibat2analoginputvalueoffset
+0.0
+% ibat2analoginputvaluethreshold
+0
+% ibat2analoginputvaluecoef
+18.0
+% switchanaloginputchan (disabled if -1)
+-1
+% switchanaloginputvalueoffset
+0.0
+% switchanaloginputvaluethreshold
+1.4
+% switchanaloginputvaluecoef
+1.0
+% MinAngle (in rad)
+-0.6
+% MidAngle (in rad)
+0
+% MaxAngle (in rad)
+0.6
+% bEnableSetMultipleTargets
+0

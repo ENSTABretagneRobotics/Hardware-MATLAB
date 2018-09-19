@@ -32,8 +32,8 @@ Created : 2009-01-28
 #ifndef DISABLE_USER_INPUT_FUNCTIONS
 #ifndef DISABLE_USER_INPUT_TIMEOUT_FUNCTIONS
 #include "OSTime.h"
-#endif // DISABLE_USER_INPUT_TIMEOUT_FUNCTIONS
-#endif // DISABLE_USER_INPUT_FUNCTIONS
+#endif // !DISABLE_USER_INPUT_TIMEOUT_FUNCTIONS
+#endif // !DISABLE_USER_INPUT_FUNCTIONS
 
 /*
 Debug macros specific to OSMisc.
@@ -73,7 +73,7 @@ Debug macros specific to OSMisc.
 #else 
 #include <termios.h>
 #endif // _WIN32
-#endif // DISABLE_USER_INPUT_FUNCTIONS
+#endif // !DISABLE_USER_INPUT_FUNCTIONS
 
 //// To check...
 //#ifdef __GNUC__
@@ -84,17 +84,15 @@ Debug macros specific to OSMisc.
 //#endif // __GNUC__
 
 // Need to be undefined at the end of the file...
-// min and max might cause incompatibilities on Linux...
-#ifndef _WIN32
-#if !defined(NOMINMAX)
+// min and max might cause incompatibilities with GCC...
+#ifndef _MSC_VER
 #ifndef max
 #define max(a,b) (((a) > (b)) ? (a) : (b))
-#endif // max
+#endif // !max
 #ifndef min
 #define min(a,b) (((a) < (b)) ? (a) : (b))
-#endif // min
-#endif // !defined(NOMINMAX)
-#endif // _WIN32
+#endif // !min
+#endif // !_MSC_VER
 
 #define MAX_BUF_LEN 256
 
@@ -127,12 +125,12 @@ inline double sqr(double x)
 {
 	return x*x;
 }
-#endif // sqr
-#endif // SQR_DEFINED
+#endif // !sqr
+#endif // !SQR_DEFINED
 
 #ifndef sq
 #define sq(x) ((x)*(x))
-#endif // sq
+#endif // !sq
 
 #ifndef SIGN_DEFINED
 #define SIGN_DEFINED
@@ -157,12 +155,12 @@ inline double sign(double x, double epsilon)
 	else 
 		return x/epsilon;
 }
-#endif // sign
-#endif // SIGN_DEFINED
+#endif // !sign
+#endif // !SIGN_DEFINED
 
 #ifndef constrain
 #define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
-#endif // constrain
+#endif // !constrain
 
 // See https://www.arduino.cc/reference/en/language/functions/math/map/.
 inline double remap2range(double x, double in_min, double in_max, double out_min, double out_max)
@@ -312,8 +310,8 @@ inline double mean(double* tab, int tab_length)
 
 	return m;
 }
-#endif // mean
-#endif // MEAN_DEFINED
+#endif // !mean
+#endif // !MEAN_DEFINED
 
 #ifndef VAR_DEFINED
 #define VAR_DEFINED
@@ -345,8 +343,8 @@ inline double var(double* tab, int tab_length)
 
 	return v;
 }
-#endif // var
-#endif // VAR_DEFINED
+#endif // !var
+#endif // !VAR_DEFINED
 
 /*
 Compute the mean of a table using a table of numbers of occurences for each value.
@@ -483,7 +481,7 @@ inline double exp_mv_avg(double newvalue, double prevaverage, double alpha)
 #define FGETS2_DEFINED
 /*
 Return a line of a file using fgets(), skipping lines that begin with a '%'. 
-Return NULL when a line begin with a '$' or when fgets() return NULL.
+Return NULL when a line begins with a '$' or when fgets() returns NULL.
 
 FILE* file : (IN) Pointer to a file.
 char* line : (IN) Storage location for data.
@@ -508,13 +506,13 @@ inline char* fgets2(FILE* file, char* line, int nbChar)
 
 	return r;
 }
-#endif // FGETS2_DEFINED
+#endif // !FGETS2_DEFINED
 
 /*
 Return a line of a file using fgets(), skipping lines that begin with a '%' 
 (Scilab-style comments), a '#' (Linux configuration files-style comments) or 
 "//" (C-style comments). 
-Return NULL when a line begin with a '$' or when fgets() return NULL, or if 
+Return NULL when a line begins with a '$' or when fgets() returns NULL, or if 
 the maximum number of characters to read is less than 2.
 
 FILE* file : (IN) Pointer to a file.
@@ -544,6 +542,56 @@ inline char* fgets3(FILE* file, char* line, int nbChar)
 
 	if (line[0] == '$')
 	{
+		r = NULL;
+	}
+
+	return r;
+}
+
+/*
+Return a line from an input file using fgets(), skipping lines that begin with a '%' 
+(Scilab-style comments), a '#' (Linux configuration files-style comments) or 
+"//" (C-style comments). 
+Return NULL when a line begins with a '$' or when fgets() returns NULL, or if 
+the maximum number of characters to read is less than 2.
+All the skipped lines are saved to the output file.
+
+FILE* filein : (IN) Pointer to an input file.
+FILE* fileout : (IN) Pointer to an output file.
+char* line : (IN) Storage location for data.
+int nbChar : (IN) Maximum number of characters to read.
+
+Return : The line or NULL.
+*/
+inline char* fgetscopy3(FILE* filein, FILE* fileout, char* line, int nbChar)
+{
+	char* r = NULL;
+
+	if (nbChar < 2)
+	{
+		return NULL;
+	}
+
+	for (;;)
+	{
+		r = fgets(line, nbChar, filein);
+		if ((
+			(line[0] == '%')||
+			(line[0] == '#')||
+			((line[0] == '/')&&(line[1] == '/'))
+			) && (r != NULL))
+		{
+			if (fprintf(fileout, "%s", line) < 0) return NULL;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	if (line[0] == '$')
+	{
+		if (r != NULL) fprintf(fileout, "%s", line);
 		r = NULL;
 	}
 
@@ -795,6 +843,9 @@ inline int fcopy(char* szFromFilePath, char* szToFilePath, size_t* pBytesCopied)
 
 inline void RemoveExtensionInFilePath(char* szFilePath)
 {
+	// WIN32_WINNT 0x0602 : PathCchRemoveExtension 
+	// WIN32 : PathRemoveExtension 
+
 	int idx = 0;
 
 	for (idx = (int)strlen(szFilePath)-1; idx >= 0; idx--) { if (szFilePath[idx] == '.') break; }
@@ -819,11 +870,112 @@ inline void RemovePathInFilePath(char* szFilePath)
 
 inline void GetFileNameAndFilePathAndChangeExtension(char* szFileInPath, char* szNewExtension, char* szFileOutPath, char* szFileOutName)
 {
+	// WIN32_WINNT 0x0602 : PathCchRenameExtension 
+	// WIN32 : PathRenameExtension 
+
 	strcpy(szFileOutPath, szFileInPath);
 	RemoveExtensionInFilePath(szFileOutPath);
 	strcpy(szFileOutName, szFileOutPath);
 	strcat(szFileOutPath, szNewExtension);
 	RemovePathInFilePath(szFileOutName);
+}
+
+#ifndef STRISTR_DEFINED
+#define STRISTR_DEFINED
+// From the Snippets collection SNIP9707.ZIP...
+inline char* stristr(char* String, char* Pattern)
+{
+	char* pptr = NULL;
+	char* sptr = NULL;
+	char* start = NULL;
+
+	for (start = (char*)String; *start != 0; start++)
+	{
+		// Find start of pattern in string.
+		for (; ((*start != 0) && (toupper(*start)!= toupper(*Pattern))); start++)
+			;
+		if (0 == *start)
+			return NULL;
+
+		pptr = (char*)Pattern;
+		sptr = (char*)start;
+
+		while (toupper(*sptr) == toupper(*pptr))
+		{
+			sptr++;
+			pptr++;
+
+			// If end of pattern then pattern was found.
+
+			if (0 == *pptr)
+				return (start);
+		}
+	}
+
+	return NULL;
+}
+#endif // !STRISTR_DEFINED
+
+inline char* strstrbeginend(char* str, char* beginpattern, char* endpattern, char** pOut, int* pOutstrlen)
+{
+	char* ptr = NULL;
+	char* ptr2 = NULL;
+
+	ptr = strstr(str, beginpattern);
+	if (ptr == NULL)
+	{
+		*pOut = NULL;
+		*pOutstrlen = 0;
+		return NULL;
+	}
+	ptr2 = strstr(ptr+strlen(beginpattern), endpattern);
+	if (ptr2 == NULL)
+	{
+		*pOut = NULL;
+		*pOutstrlen = 0;
+		return NULL;
+	}
+	*pOutstrlen = (int)(ptr2-(ptr+strlen(beginpattern)));
+	if (*pOutstrlen < 0)
+	{
+		*pOut = NULL;
+		*pOutstrlen = 0;
+		return NULL;
+	}
+	*pOut = ptr+strlen(beginpattern);
+
+	return *pOut;
+}
+
+inline char* stristrbeginend(char* str, char* beginpattern, char* endpattern, char** pOut, int* pOutstrlen)
+{
+	char* ptr = NULL;
+	char* ptr2 = NULL;
+
+	ptr = stristr(str, beginpattern);
+	if (ptr == NULL)
+	{
+		*pOut = NULL;
+		*pOutstrlen = 0;
+		return NULL;
+	}
+	ptr2 = stristr(ptr+strlen(beginpattern), endpattern);
+	if (ptr2 == NULL)
+	{
+		*pOut = NULL;
+		*pOutstrlen = 0;
+		return NULL;
+	}
+	*pOutstrlen = (int)(ptr2-(ptr+strlen(beginpattern)));
+	if (*pOutstrlen < 0)
+	{
+		*pOut = NULL;
+		*pOutstrlen = 0;
+		return NULL;
+	}
+	*pOut = ptr+strlen(beginpattern);
+
+	return *pOut;
 }
 
 inline double sensor_err(double bias_err, double max_rand_err)
@@ -1109,6 +1261,32 @@ inline void RefCoordSystem2GPS(double lat0, double long0, double alt0,
 		*pAltitude = z+alt0;
 		break;
 	}
+}
+
+inline double longitude180handling(double long0, double longa, double longb, double longitude)
+{
+	if ((((longa >= 90)&&(longa <= 180))&&((longb >= -180)&&(longb <= -90)))||
+		(((longb >= 90)&&(longb <= 180))&&((longa >= -180)&&(longa <= -90))))
+	{
+		if (long0 >= 0)
+		{
+			if (longitude < 0) return longitude+360;
+		}
+		else
+		{
+			if (longitude > 0) return longitude-360;
+		}
+	}
+	return longitude;
+}
+
+inline void LineGPS2RefCoordSystem(double lat0, double long0, double alt0, 
+							double lata, double longa, double alta, double latb, double longb, double altb, 
+							double* pax, double* pay, double* paz, double* pbx, double* pby, double* pbz, 
+							int cstype)
+{
+	GPS2RefCoordSystem(lat0, long0, alt0, lata, longitude180handling(long0, longa, longb, longa), alta, pax, pay, paz, cstype);
+	GPS2RefCoordSystem(lat0, long0, alt0, latb, longitude180handling(long0, longa, longb, longb), altb, pbx, pby, pbz, cstype);
 }
 
 // angle_env : Angle of the x axis of the environment coordinate system 
@@ -1487,7 +1665,7 @@ See also getch() or kbhit() functions (conio.h).
 Return : Nothing.
 */
 EXTERN_C void WaitForUserInput(void);
-#endif // WINCE
+#endif // !WINCE
 
 /*
 Allocate memory for an array of height*width and initialize it to 0.
@@ -1549,14 +1727,14 @@ inline void useless_function(int useless_param)
 	printf("This function is not so useless!\n");
 }
 
-// min and max might cause incompatibilities on Linux...
-#ifndef _WIN32
+// min and max might cause incompatibilities with GCC...
+#ifndef _MSC_VER
 #ifdef max
 #undef max
 #endif // max
 #ifdef min
 #undef min
 #endif // min
-#endif // _WIN32
+#endif // !_MSC_VER
 
-#endif // OSMISC_H
+#endif // !OSMISC_H

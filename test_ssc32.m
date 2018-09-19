@@ -4,7 +4,16 @@ pSSC32 = CreateSSC32();
 [result] = ConnectSSC32(pSSC32, 'SSC320.txt')
 %pSSC32.value
 
-[result] = SetAllPWMsSSC32(pSSC32, [1 1 1 0 0], [1000 2000 1000 1500 1500]);
+nbchannels = 32
+selectedchannels = zeros(nbchannels)
+selectedchannels(1) = 1
+selectedchannels(2) = 1
+selectedchannels(3) = 1
+pws = zeros(nbchannels)
+pws(1) = 1000
+pws(2) = 2000
+pws(3) = 1000
+[result] = SetAllPWMsSSC32(pSSC32, selectedchannels, pws);
 
 fig = figure('Position',[200 200 400 100],'NumberTitle','off');
 % Force the figure to have input focus (required to capture keys).
@@ -18,9 +27,15 @@ key = 0;
 while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
     clf; hold on;
     if (mod(a, 2) == 0)
-        [result] = SetAllPWMsFromThreadSSC32(pSSC32, [1 1 1 0 0], [1000 2000 1250 1500 1500]);
+		pws(1) = 1000
+		pws(2) = 2000
+		pws(3) = 1250
+        [result] = SetAllPWMsFromThreadSSC32(pSSC32, selectedchannels, pws);
     else
-        [result] = SetAllPWMsFromThreadSSC32(pSSC32, [1 1 1 0 0], [2000 1000 1750 1500 1500]);
+		pws(1) = 2000
+		pws(2) = 1000
+		pws(3) = 1750
+        [result] = SetAllPWMsFromThreadSSC32(pSSC32, selectedchannels, pws);
     end
     a = a+1;
     str = sprintf('a = %d\n', a);

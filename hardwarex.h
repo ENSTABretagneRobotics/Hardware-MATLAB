@@ -16,36 +16,36 @@
 
 //#ifndef DISABLE_THREADS_OSNET
 //#define DISABLE_THREADS_OSNET
-//#endif // DISABLE_THREADS_OSNET
+//#endif // !DISABLE_THREADS_OSNET
 
 // To prevent some warnings in MATLAB...
 #ifndef DISABLE_HOKUYOTHREAD
 #define DISABLE_HOKUYOTHREAD
-#endif // DISABLE_HOKUYOTHREAD
-#ifndef DISABLE_MAESTROTHREAD
-#define DISABLE_MAESTROTHREAD
-#endif // DISABLE_MAESTROTHREAD
+#endif // !DISABLE_HOKUYOTHREAD
 #ifndef DISABLE_MAVLINKDEVICETHREAD
 #define DISABLE_MAVLINKDEVICETHREAD
-#endif // DISABLE_MAVLINKDEVICETHREAD
+#endif // !DISABLE_MAVLINKDEVICETHREAD
 #ifndef DISABLE_MTTHREAD
 #define DISABLE_MTTHREAD
-#endif // DISABLE_MTTHREAD
+#endif // !DISABLE_MTTHREAD
 #ifndef DISABLE_NMEADEVICETHREAD
 #define DISABLE_NMEADEVICETHREAD
-#endif // DISABLE_NMEADEVICETHREAD
+#endif // !DISABLE_NMEADEVICETHREAD
+#ifndef DISABLE_POLOLUTHREAD
+#define DISABLE_POLOLUTHREAD
+#endif // !DISABLE_POLOLUTHREAD
 #ifndef DISABLE_RAZORAHRSTHREAD
 #define DISABLE_RAZORAHRSTHREAD
-#endif // DISABLE_RAZORAHRSTHREAD
+#endif // !DISABLE_RAZORAHRSTHREAD
 #ifndef DISABLE_RPLIDARTHREAD
 #define DISABLE_RPLIDARTHREAD
-#endif // DISABLE_RPLIDARTHREAD
+#endif // !DISABLE_RPLIDARTHREAD
 #ifndef DISABLE_SSC32THREAD
 #define DISABLE_SSC32THREAD
-#endif // DISABLE_SSC32THREAD
+#endif // !DISABLE_SSC32THREAD
 #ifndef DISABLE_UBLOXTHREAD
 #define DISABLE_UBLOXTHREAD
-#endif // DISABLE_UBLOXTHREAD
+#endif // !DISABLE_UBLOXTHREAD
 
 // Not sure why sometimes MATLAB gives errors without that...
 #ifdef ENABLE_MAVLINK_SUPPORT
@@ -60,7 +60,7 @@
 #include "NMEADevice.h"
 #include "ublox.h"
 #include "SSC32.h"
-#include "Maestro.h"
+#include "Pololu.h"
 #include "Hokuyo.h"
 #include "RPLIDAR.h"
 #ifdef ENABLE_MAVLINK_SUPPORT
@@ -129,17 +129,17 @@ extern "C" {
 	HARDWAREX_API int StartThreadSSC32x(SSC32* pSSC32);
 	HARDWAREX_API int StopThreadSSC32x(SSC32* pSSC32);
 
-	HARDWAREX_API MAESTRO* CreateMaestrox(void);
-	HARDWAREX_API void DestroyMaestrox(MAESTRO* pMaestro);
-	HARDWAREX_API int GetValueMaestrox(MAESTRO* pMaestro, int channel, int* pValue);
-	HARDWAREX_API int SetPWMMaestrox(MAESTRO* pMaestro, int channel, int pw);
-	HARDWAREX_API int SetAllPWMsMaestrox(MAESTRO* pMaestro, int* selectedchannels, int* pws);
-	HARDWAREX_API int ConnectMaestrox(MAESTRO* pMaestro, char* szCfgFilePath);
-	HARDWAREX_API int DisconnectMaestrox(MAESTRO* pMaestro);
-	HARDWAREX_API int SetAllPWMsFromThreadMaestrox(MAESTRO* pMaestro, int* selectedchannels, int* pws);
-	HARDWAREX_API int GetValueFromThreadMaestrox(MAESTRO* pMaestro, int channel, int* pValue);
-	HARDWAREX_API int StartThreadMaestrox(MAESTRO* pMaestro);
-	HARDWAREX_API int StopThreadMaestrox(MAESTRO* pMaestro);
+	HARDWAREX_API POLOLU* CreatePololux(void);
+	HARDWAREX_API void DestroyPololux(POLOLU* pPololu);
+	HARDWAREX_API int GetValuePololux(POLOLU* pPololu, int channel, int* pValue);
+	HARDWAREX_API int SetPWMPololux(POLOLU* pPololu, int channel, int pw);
+	HARDWAREX_API int SetAllPWMsPololux(POLOLU* pPololu, int* selectedchannels, int* pws);
+	HARDWAREX_API int ConnectPololux(POLOLU* pPololu, char* szCfgFilePath);
+	HARDWAREX_API int DisconnectPololux(POLOLU* pPololu);
+	HARDWAREX_API int SetAllPWMsFromThreadPololux(POLOLU* pPololu, int* selectedchannels, int* pws);
+	HARDWAREX_API int GetValueFromThreadPololux(POLOLU* pPololu, int channel, int* pValue);
+	HARDWAREX_API int StartThreadPololux(POLOLU* pPololu);
+	HARDWAREX_API int StopThreadPololux(POLOLU* pPololu);
 
 	HARDWAREX_API HOKUYO* CreateHokuyox(void);
 	HARDWAREX_API void DestroyHokuyox(HOKUYO* pHokuyo);
@@ -154,12 +154,16 @@ extern "C" {
 
 	HARDWAREX_API RPLIDAR* CreateRPLIDARx(void);
 	HARDWAREX_API void DestroyRPLIDARx(RPLIDAR* pRPLIDAR);
+	HARDWAREX_API int GetScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistance, double* pAngle, BOOL* pbNewScan, int* pQuality);
 	HARDWAREX_API int GetExpressScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan);
 	HARDWAREX_API int ConnectRPLIDARx(RPLIDAR* pRPLIDAR, char* szCfgFilePath);
 	HARDWAREX_API int DisconnectRPLIDARx(RPLIDAR* pRPLIDAR);
+	HARDWAREX_API int GetScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistance, double* pAngle, BOOL* pbNewScan, int* pQuality);
 	HARDWAREX_API int GetExpressScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan);
-	HARDWAREX_API int StartThreadRPLIDARx(RPLIDAR* pRPLIDAR);
-	HARDWAREX_API int StopThreadRPLIDARx(RPLIDAR* pRPLIDAR);
+	HARDWAREX_API int StartScanThreadRPLIDARx(RPLIDAR* pRPLIDAR);
+	HARDWAREX_API int StopScanThreadRPLIDARx(RPLIDAR* pRPLIDAR);
+	HARDWAREX_API int StartExpressScanThreadRPLIDARx(RPLIDAR* pRPLIDAR);
+	HARDWAREX_API int StopExpressScanThreadRPLIDARx(RPLIDAR* pRPLIDAR);
 
 #ifdef ENABLE_MAVLINK_SUPPORT
 	HARDWAREX_API MAVLINKDEVICE* CreateMAVLinkDevicex(void);
@@ -180,4 +184,4 @@ extern "C" {
 }
 #endif
 
-#endif // HARDWAREX_H
+#endif // !HARDWAREX_H

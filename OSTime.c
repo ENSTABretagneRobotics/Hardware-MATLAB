@@ -112,7 +112,7 @@ char* strtime_m(void)
 #endif // UNICODE
 	strftime_m_tmpbuf[sizeof(strftime_m_tmpbuf)-1] = 0;
 	free(tstr); tstr = NULL;
-#endif // WINCE
+#endif // !WINCE
 
 	return strftime_m_tmpbuf;
 }
@@ -203,7 +203,7 @@ char* strtime_fns(void)
 #endif // UNICODE
 	strftime_fns_tmpbuf[sizeof(strftime_fns_tmpbuf)-1] = 0;
 	free(tstr); tstr = NULL;
-#endif // WINCE
+#endif // !WINCE
 
 	return strftime_fns_tmpbuf;
 }

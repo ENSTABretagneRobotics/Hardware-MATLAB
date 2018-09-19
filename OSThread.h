@@ -62,12 +62,12 @@ Debug macros specific to OSThread.
 #ifndef USE_CREATE_THREAD
 #define USE_CREATE_THREAD
 #endif // USE_CREATE_THREAD
-#endif // WINCE
+#endif // !WINCE
 
 #ifdef _WIN32
 #ifndef USE_CREATE_THREAD
 #include <process.h>
-#endif // USE_CREATE_THREAD
+#endif // !USE_CREATE_THREAD
 #else 
 #include <pthread.h>
 //#include <sched.h>
@@ -245,7 +245,7 @@ inline int CreateDefaultThread(PTHREAD_PROC pThreadProc, void* pParam, THREAD_ID
 		pthread_attr_destroy(&attr);
 		return EXIT_FAILURE;
 	}
-#endif // __ANDROID__
+#endif // !__ANDROID__
 
 	// Only PTHREAD_SCOPE_SYSTEM is supported on Linux. This is the default on Linux. 
 	// That is a pity as PTHREAD_SCOPE_PROCESS seems to describe a behaviour similar 
@@ -333,7 +333,7 @@ inline int CreateDefaultThread(PTHREAD_PROC pThreadProc, void* pParam, THREAD_ID
 		pthread_detach(*pThreadId);
 #ifndef __ANDROID__
 		pthread_cancel(*pThreadId);
-#endif // __ANDROID__
+#endif // !__ANDROID__
 		return EXIT_FAILURE;
 	}
 #endif // _WIN32
@@ -450,7 +450,7 @@ inline int WaitForThread(THREAD_IDENTIFIER ThreadId)
 			GetLastErrorMsg(), 
 			ThreadId));
 	}
-#endif // WINCE
+#endif // !WINCE
 #else 
 	// Wait until the thread has terminated.
 	// Note : pthread_join() may fail if the thread identifier is bad. This can be because 
@@ -568,7 +568,7 @@ inline int WaitForThreadWithTimeout(THREAD_IDENTIFIER ThreadId, int timeout)
 			ThreadId, timeout));
 		break;
 	}
-#endif // WINCE
+#endif // !WINCE
 #else 
 	int iResult = EXIT_FAILURE;
 	struct timespec abstime;
@@ -726,7 +726,7 @@ inline int KillThread(THREAD_IDENTIFIER ThreadId)
 			GetLastErrorMsg(), 
 			ThreadId));
 	}
-#endif // WINCE
+#endif // !WINCE
 #else 
 	int iResult = pthread_detach(ThreadId);
 	switch (iResult)
@@ -870,7 +870,7 @@ inline int CancelThread(THREAD_IDENTIFIER ThreadId)
 			GetLastErrorMsg(), 
 			ThreadId));
 	}
-#endif // WINCE
+#endif // !WINCE
 #else 
 	int iResult = pthread_detach(ThreadId);
 	switch (iResult)
@@ -996,7 +996,7 @@ inline void ThreadYield(void)
 	SwitchToThread();
 #else
 	Sleep(0);
-#endif // WINCE
+#endif // !WINCE
 #else 
 	// Disabled by default because it is a GNU extension.
 #ifdef ENABLE_PTHREAD_YIELD
@@ -1072,7 +1072,7 @@ inline int SetThreadDefaultPriority(THREAD_IDENTIFIER ThreadId, int Priority)
 			ThreadId, Priority));
 		return EXIT_FAILURE;
 	}
-#endif // WINCE
+#endif // !WINCE
 #else 
 	struct sched_param param;
 	int policy = 0;
@@ -1178,7 +1178,7 @@ inline int GetThreadDefaultPriority(THREAD_IDENTIFIER ThreadId, int* pPriority)
 			ThreadId));
 		return EXIT_FAILURE;
 	}
-#endif // WINCE
+#endif // !WINCE
 #else 
 	struct sched_param param;
 	int policy = 0;
@@ -1263,7 +1263,7 @@ inline int SetThreadDefaultProcessor(THREAD_IDENTIFIER ThreadId, int ProcessorNu
 			ThreadId, ProcessorNumber));
 		return EXIT_FAILURE;
 	}
-#endif // WINCE
+#endif // !WINCE
 #else 
 	cpu_set_t cpuset;
 
@@ -1285,4 +1285,4 @@ inline int SetThreadDefaultProcessor(THREAD_IDENTIFIER ThreadId, int ProcessorNu
 }
 #endif // ENABLE_SET_THREAD_DEFAULT_PROCESSOR
 
-#endif // OSTHREAD_H
+#endif // !OSTHREAD_H

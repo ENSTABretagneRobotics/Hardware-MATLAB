@@ -46,4 +46,4 @@ THREAD_PROC_RETURN_VALUE handlecliThreadProc(void* pHandlecliThreadParam)
 
 	return 0;
 }
-#endif // DISABLE_THREADS_OSNET
+#endif // !DISABLE_THREADS_OSNET

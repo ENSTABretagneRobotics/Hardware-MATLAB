@@ -21,6 +21,17 @@ Created : 2009-01-28
 
 #include "OSMisc.h"
 
+// Need to be undefined at the end of the file...
+// min and max might cause incompatibilities with GCC...
+#ifndef _MSC_VER
+#ifndef max
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#endif // !max
+#ifndef min
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif // !min
+#endif // !_MSC_VER
+
 #ifndef DISABLE_USER_INPUT_FUNCTIONS
 #ifndef DISABLE_USER_INPUT_TIMEOUT_FUNCTIONS
 //// From olsrd...
@@ -302,7 +313,7 @@ char GetUserInputTimeout(UINT timeout)
 	return buf[0];
 #endif // _WIN32
 }
-#endif // DISABLE_USER_INPUT_TIMEOUT_FUNCTIONS
+#endif // !DISABLE_USER_INPUT_TIMEOUT_FUNCTIONS
 
 /*
 Prompt for the user to press any key.
@@ -575,7 +586,7 @@ void WaitForUserInput(void)
 #endif // _WIN32
 #endif //USE_PAUSE_CMD
 }
-#endif // DISABLE_USER_INPUT_FUNCTIONS
+#endif // !DISABLE_USER_INPUT_FUNCTIONS
 
 /*
 Allocate memory for an array of height*width and initialize it to 0.
@@ -731,3 +742,13 @@ void free_array3(void*** p, int height, int width)
 	}
 	free(p); p = NULL;
 } 
+
+// min and max might cause incompatibilities with GCC...
+#ifndef _MSC_VER
+#ifdef max
+#undef max
+#endif // max
+#ifdef min
+#undef min
+#endif // min
+#endif // !_MSC_VER

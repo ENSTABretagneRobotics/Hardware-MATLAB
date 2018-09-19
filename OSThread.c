@@ -31,7 +31,7 @@ Created : 2007
 //int THREAD_PRIORITY_BELOW_NORMAL = 40;
 //int THREAD_PRIORITY_LOWEST = 1;
 //int THREAD_PRIORITY_IDLE = 0;
-#endif // _WIN32
+#endif // !_WIN32
 
 #ifdef ENABLE_CANCEL_THREAD
 #ifdef _WIN32

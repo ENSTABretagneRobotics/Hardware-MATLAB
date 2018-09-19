@@ -81,7 +81,7 @@ inline int InitCriticalSection(CRITICAL_SECTION* pCriticalSection)
 	}
 #else
 	InitializeCriticalSection(pCriticalSection);
-#endif // WINCE
+#endif // !WINCE
 #else 
 	pthread_mutexattr_t attr;
 
@@ -148,7 +148,7 @@ inline void DeleteCriticalSection(CRITICAL_SECTION* pCriticalSection)
 			pCriticalSection));
 	}
 }
-#endif // _WIN32
+#endif // !_WIN32
 
 #ifndef _WIN32
 /*
@@ -170,7 +170,7 @@ inline void EnterCriticalSection(CRITICAL_SECTION* pCriticalSection)
 			pCriticalSection));
 	}
 }
-#endif // _WIN32
+#endif // !_WIN32
 
 #ifndef _WIN32
 /*
@@ -203,7 +203,7 @@ inline BOOL TryEnterCriticalSection(CRITICAL_SECTION* pCriticalSection)
 
 	return TRUE;
 }
-#endif // _WIN32
+#endif // !_WIN32
 
 #ifndef _WIN32
 /*
@@ -229,7 +229,7 @@ inline void LeaveCriticalSection(CRITICAL_SECTION* pCriticalSection)
 			pCriticalSection));
 	}
 }
-#endif // _WIN32
+#endif // !_WIN32
 
 /*
 Thread-safe version of memcpy. Wait for ownership of the specified critical section object 
@@ -256,4 +256,4 @@ inline void memcpy_ts(void* pDest, void* pSrc, size_t Size, CRITICAL_SECTION* pC
 	LeaveCriticalSection(pCriticalSection);
 }
 
-#endif // OSCRITICALSECTION_H
+#endif // !OSCRITICALSECTION_H

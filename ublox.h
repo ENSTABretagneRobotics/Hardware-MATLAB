@@ -15,24 +15,22 @@
 
 #ifndef DISABLE_UBLOXTHREAD
 #include "OSThread.h"
-#endif // DISABLE_UBLOXTHREAD
+#endif // !DISABLE_UBLOXTHREAD
 
 #include "UBXProtocol.h"
 #include "NMEAProtocol.h"
 //#include "RTCM3Protocol.h"
 
 // Need to be undefined at the end of the file...
-// min and max might cause incompatibilities on Linux...
-#ifndef _WIN32
-#if !defined(NOMINMAX)
+// min and max might cause incompatibilities with GCC...
+#ifndef _MSC_VER
 #ifndef max
 #define max(a,b) (((a) > (b)) ? (a) : (b))
-#endif // max
+#endif // !max
 #ifndef min
 #define min(a,b) (((a) < (b)) ? (a) : (b))
-#endif // min
-#endif // !defined(NOMINMAX)
-#endif // _WIN32
+#endif // !min
+#endif // !_MSC_VER
 
 //#pragma pack(show)
 
@@ -74,9 +72,12 @@ struct UBLOX
 	BOOL bEnable_NMEA_GLL;
 	BOOL bEnable_NMEA_VTG;
 	BOOL bEnable_NMEA_HDG;
+	BOOL bEnable_NMEA_HDT;
+	BOOL bEnable_NMEA_ROT;
 	BOOL bEnable_NMEA_MWV;
 	BOOL bEnable_NMEA_MWD;
 	BOOL bEnable_NMEA_MDA;
+	BOOL bEnable_NMEA_DID;
 	BOOL bEnable_NMEA_VDM;
 	BOOL bEnable_NMEA_PD6_SA;
 	BOOL bEnable_NMEA_PD6_TS;
@@ -976,9 +977,12 @@ inline int Connectublox(UBLOX* publox, char* szCfgFilePath)
 		publox->bEnable_NMEA_GLL = 0;
 		publox->bEnable_NMEA_VTG = 0;
 		publox->bEnable_NMEA_HDG = 0;
+		publox->bEnable_NMEA_HDT = 0;
+		publox->bEnable_NMEA_ROT = 0;
 		publox->bEnable_NMEA_MWV = 0;
 		publox->bEnable_NMEA_MWD = 0;
 		publox->bEnable_NMEA_MDA = 0;
+		publox->bEnable_NMEA_DID = 0;
 		publox->bEnable_NMEA_VDM = 0;
 		publox->bEnable_NMEA_PD6_SA = 0;
 		publox->bEnable_NMEA_PD6_TS = 0;
@@ -1034,11 +1038,17 @@ inline int Connectublox(UBLOX* publox, char* szCfgFilePath)
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &publox->bEnable_NMEA_HDG) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &publox->bEnable_NMEA_HDT) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &publox->bEnable_NMEA_ROT) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &publox->bEnable_NMEA_MWV) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &publox->bEnable_NMEA_MWD) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &publox->bEnable_NMEA_MDA) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &publox->bEnable_NMEA_DID) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &publox->bEnable_NMEA_VDM) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
@@ -1159,19 +1169,19 @@ inline int Disconnectublox(UBLOX* publox)
 
 #ifndef DISABLE_UBLOXTHREAD
 THREAD_PROC_RETURN_VALUE ubloxThread(void* pParam);
-#endif // DISABLE_UBLOXTHREAD
+#endif // !DISABLE_UBLOXTHREAD
 
 // Restore default alignment settings.
 #pragma pack(pop) 
 
-// min and max might cause incompatibilities on Linux...
-#ifndef _WIN32
+// min and max might cause incompatibilities with GCC...
+#ifndef _MSC_VER
 #ifdef max
 #undef max
 #endif // max
 #ifdef min
 #undef min
 #endif // min
-#endif // _WIN32
+#endif // !_MSC_VER
 
-#endif // UBLOX_H
+#endif // !UBLOX_H

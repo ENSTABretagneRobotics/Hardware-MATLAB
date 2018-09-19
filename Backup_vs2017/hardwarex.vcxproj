@@ -194,7 +194,6 @@
   <ItemGroup>
     <ClInclude Include="hardwarex.h" />
     <ClInclude Include="Hokuyo.h" />
-    <ClInclude Include="Maestro.h" />
     <ClInclude Include="MAVLinkDevice.h" />
     <ClInclude Include="MAVLinkProtocol.h" />
     <ClInclude Include="MT.h" />
@@ -207,6 +206,7 @@
     <ClInclude Include="OSNet.h" />
     <ClInclude Include="OSThread.h" />
     <ClInclude Include="OSTime.h" />
+    <ClInclude Include="Pololu.h" />
     <ClInclude Include="RazorAHRS.h" />
     <ClInclude Include="RPLIDAR.h" />
     <ClInclude Include="RS232Port.h" />

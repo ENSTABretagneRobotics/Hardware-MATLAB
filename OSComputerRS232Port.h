@@ -60,6 +60,9 @@ Debug macros specific to OSComputerRS232Port.
 #ifdef _WIN32
 #else 
 #include <termios.h>
+#ifndef DISABLE_SELECT_OSCOMPUTERRS232PORT
+#include <sys/select.h>
+#endif // !DISABLE_SELECT_OSCOMPUTERRS232PORT
 #if !defined(DISABLE_FORCE_CLEAR_DTR) || defined(ENABLE_DTR_FUNCTIONS)
 #include <sys/ioctl.h>
 #endif // !defined(DISABLE_FORCE_CLEAR_DTR) || defined(ENABLE_DTR_FUNCTIONS)
@@ -74,7 +77,7 @@ Debug macros specific to OSComputerRS232Port.
 
 #define ONESTOPBIT          0
 #define TWOSTOPBITS         2
-#endif // _WIN32
+#endif // !_WIN32
 
 #define MAX_COMPUTERRS232PORT_TIMEOUT 25500
 #define MAX_COMPUTERRS232PORT_NAME_LENGTH (128-8)
@@ -272,7 +275,7 @@ inline int OpenComputerRS232Port(HANDLE* phDev, char* szDevice)
 			GetLastErrorMsg(), 
 			szDevice));
 	}
-#endif // DISABLE_FORCE_CLEAR_DTR
+#endif // !DISABLE_FORCE_CLEAR_DTR
 
 	*phDev = hDev;
 #else 
@@ -289,7 +292,7 @@ inline int OpenComputerRS232Port(HANDLE* phDev, char* szDevice)
 	int fd = open(szDevice, O_RDWR|O_NOCTTY|O_NDELAY);
 #ifndef DISABLE_FORCE_CLEAR_DTR
 	int dtr_bit = TIOCM_DTR;
-#endif // DISABLE_FORCE_CLEAR_DTR
+#endif // !DISABLE_FORCE_CLEAR_DTR
 
 	if (fd == -1)
 	{
@@ -327,7 +330,19 @@ inline int OpenComputerRS232Port(HANDLE* phDev, char* szDevice)
 			GetLastErrorMsg(), 
 			szDevice));
 	}
-#endif // DISABLE_FORCE_CLEAR_DTR
+#endif // !DISABLE_FORCE_CLEAR_DTR
+
+#ifndef DISABLE_IGNORE_SIGPIPE
+	// See https://stackoverflow.com/questions/17332646/server-dies-on-send-if-client-was-closed-with-ctrlc...
+	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
+	{
+		PRINT_DEBUG_WARNING_OSCOMPUTERRS232PORT(("OpenComputerRS232Port warning (%s) : %s"
+			"(szDevice=%s)\n",
+			strtime_m(),
+			"signal failed ",
+			szDevice));
+	}
+#endif // DISABLE_IGNORE_SIGPIPE
 
 	*phDev = (HANDLE)(intptr_t)fd;
 #endif // _WIN32
@@ -1018,6 +1033,120 @@ inline int CheckAvailableBytesComputerRS232Port(HANDLE hDev)
 }
 
 /*
+Wait for data to read on a computer RS232 port.
+
+HANDLE hDev : (IN) Identifier of the computer RS232 port.
+int timeout : (IN) Max time to wait before returning in ms.
+int checkingperiod : (IN) Checking period in ms.
+
+Return : EXIT_SUCCESS if there is data to read, EXIT_TIMEOUT if there is currently no data
+ available or EXIT_FAILURE if there is an error.
+*/
+inline int WaitForComputerRS232Port(HANDLE hDev, int timeout, int checkingperiod)
+{
+#ifdef _WIN32
+	COMSTAT stats;
+	CHRONO chrono;
+
+	StartChrono(&chrono);
+	do
+	{
+		memset(&stats, 0, sizeof(COMSTAT));
+		if (ClearCommError(hDev, NULL, &stats))
+		{
+			if (stats.cbInQue <= 0) mSleep(checkingperiod);
+			else
+			{
+				StopChronoQuick(&chrono);
+				return EXIT_SUCCESS;
+			}
+		}
+		else
+		{
+			StopChronoQuick(&chrono);
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("WaitForComputerRS232Port error (%s) : %s"
+				"(hDev=%#x, timeout=%d, checkingperiod=%d)\n",
+				strtime_m(),
+				GetLastErrorMsg(),
+				hDev, timeout, checkingperiod));
+			return EXIT_FAILURE;
+		}
+	} while (GetTimeElapsedChronoQuick(&chrono) <= timeout);
+	StopChronoQuick(&chrono);
+	return EXIT_TIMEOUT;
+#else
+#ifdef DISABLE_SELECT_OSCOMPUTERRS232PORT
+	CHRONO chrono;
+
+	StartChrono(&chrono);
+	do
+	{
+		int bytes_avail = 0;
+
+		if (ioctl((intptr_t)hDev, FIONREAD, &bytes_avail) == EXIT_SUCCESS)
+		{
+			if (bytes_avail <= 0) mSleep(checkingperiod);
+			else
+			{
+				StopChronoQuick(&chrono);
+				return EXIT_SUCCESS;
+			}
+		}
+		else
+		{
+			StopChronoQuick(&chrono);
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("WaitForComputerRS232Port error (%s) : %s"
+				"(hDev=%#x, timeout=%d, checkingperiod=%d)\n",
+				strtime_m(),
+				GetLastErrorMsg(),
+				hDev, timeout, checkingperiod));
+			return EXIT_FAILURE;
+		}
+	} while (GetTimeElapsedChronoQuick(&chrono) <= timeout);
+	StopChronoQuick(&chrono);
+	return EXIT_TIMEOUT;
+#else
+	fd_set dev_set;
+	int iResult = -1;
+	struct timeval tv;
+
+	UNREFERENCED_PARAMETER(checkingperiod);
+
+	// Initialize a fd_set and add the socket to it.
+	FD_ZERO(&dev_set);
+	FD_SET((intptr_t)hDev, &dev_set);
+
+	tv.tv_sec = (long)(timeout/1000);
+	tv.tv_usec = (long)((timeout%1000)*1000);
+
+	// Wait for the readability of the device in the fd_set, with a timeout.
+	iResult = select((int)(intptr_t)hDev+1, &dev_set, NULL, NULL, &tv);
+
+	// Remove the device from the set.
+	FD_CLR((intptr_t)hDev, &dev_set);
+
+	if (iResult == -1)
+	{
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("WaitForComputerRS232Port error (%s) : %s"
+			"(hDev=%#x, timeout=%d, checkingperiod=%d)\n",
+			strtime_m(),
+			"select failed. ",
+			hDev, timeout, checkingperiod));
+		return EXIT_FAILURE;
+	}
+
+	if (iResult == 0)
+	{
+		// The timeout on select() occured.
+		return EXIT_TIMEOUT;
+	}
+
+	return EXIT_SUCCESS;
+#endif // DISABLE_SELECT_OSCOMPUTERRS232PORT
+#endif // _WIN32
+}
+
+/*
 Send a hardware break (continuous stream of zero-valued bits) for a specific duration on a 
 computer RS232 port.
 
@@ -1344,4 +1473,4 @@ inline int ReadAllComputerRS232Port(HANDLE hDev, uint8* readbuf, UINT readbuflen
 	return EXIT_SUCCESS;
 }
 
-#endif // OSCOMPUTERRS232PORT_H
+#endif // !OSCOMPUTERRS232PORT_H

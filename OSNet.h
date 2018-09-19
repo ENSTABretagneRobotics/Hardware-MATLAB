@@ -26,7 +26,7 @@ Created : 2007
 #include "OSTime.h"
 #ifndef DISABLE_THREADS_OSNET
 #include "OSThread.h"
-#endif // DISABLE_THREADS_OSNET
+#endif // !DISABLE_THREADS_OSNET
 
 /*
 Debug macros specific to OSNet.
@@ -94,6 +94,9 @@ Debug macros specific to OSNet.
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/select.h>
+#ifndef DISABLE_IOCTLSOCKET
+#include <sys/ioctl.h>
+#endif // !DISABLE_IOCTLSOCKET
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
@@ -102,7 +105,7 @@ Debug macros specific to OSNet.
 
 #ifndef DEFAULT_SOCK_TIMEOUT
 #define DEFAULT_SOCK_TIMEOUT 10000
-#endif // DEFAULT_SOCK_TIMEOUT
+#endif // !DEFAULT_SOCK_TIMEOUT
 
 #ifdef _WIN32
 /*
@@ -168,6 +171,9 @@ typedef int SOCKET;
 #define SD_SEND SHUT_WR
 #define SD_BOTH SHUT_RDWR
 
+#ifndef DISABLE_IOCTLSOCKET
+#define ioctlsocket ioctl
+#endif // !DISABLE_IOCTLSOCKET
 #define closesocket(sock) close((sock))
 #endif // _WIN32
 
@@ -237,7 +243,18 @@ inline int InitNet(void)
 			"WSAStartup failed. "));
 		return EXIT_FAILURE;
 	}
-#endif
+#else
+#ifndef DISABLE_IGNORE_SIGPIPE
+	// See https://stackoverflow.com/questions/17332646/server-dies-on-send-if-client-was-closed-with-ctrlc...
+	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
+	{
+		PRINT_DEBUG_WARNING_OSNET(("InitNet warning (%s) : %s"
+			"\n",
+			strtime_m(),
+			"signal failed. "));
+	}
+#endif // DISABLE_IGNORE_SIGPIPE
+#endif // _WIN32
 
 	return EXIT_SUCCESS;
 }
@@ -488,8 +505,10 @@ On return it will contain the actual length in bytes of the address returned. NU
 
 //int shutdown(SOCKET s);
 
+//int setsockopt(SOCKET s, int level, int optname, char *optval, int optlen);
+
 /*
-Set timeout options for a given socket.
+Set timeout options for a socket.
 
 SOCKET sock : (IN) Socket.
 int timeout : (IN) Timeout in ms for send and recv (0 to disable timeouts).
@@ -545,6 +564,33 @@ inline int setsockettimeouts(SOCKET sock, int timeout)
 		//return EXIT_FAILURE;
 	}
 #endif // _WIN32
+
+	return EXIT_SUCCESS;
+}
+
+/*
+Set SO_REUSEADDR option for a socket.
+
+SOCKET sock : (IN) Socket.
+BOOL reuseaddr : (IN) 1 to enable SO_REUSEADDR, 0 to disable.
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
+inline int setsocketreuseaddr(SOCKET sock, BOOL reuseaddr)
+{
+	int iOptVal = 0;
+	int iOptLen = 0;
+
+	iOptVal = (int)reuseaddr;
+	iOptLen = sizeof(int);
+	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*)&iOptVal, iOptLen) == SOCKET_ERROR) 
+	{
+		PRINT_DEBUG_WARNING_OSNET(("setsocketreuseaddr warning (%s) : %s(sock=%d, reuseaddr=%d)\n", 
+			strtime_m(), 
+			"setsockopt failed. ", 
+			(int)sock, (int)reuseaddr));
+		//return EXIT_FAILURE;
+	}
 
 	return EXIT_SUCCESS;
 }
@@ -611,8 +657,8 @@ inline int inittcpcli(SOCKET* pSock, char* address, char* port)
 	// The sockaddr_in structure specifies the address family,
 	// IP address, and port of the server to be connected to.
 	sa.sin_family = AF_INET;
-	sa.sin_addr.s_addr = inet_addr(address);
 	sa.sin_port = htons((unsigned short)atoi(port));
+	sa.sin_addr.s_addr = inet_addr(address);
 
 	// Connect to server.
 	if (connect(*pSock, (struct sockaddr*)&sa, sizeof(sa)) != EXIT_SUCCESS)
@@ -737,8 +783,8 @@ inline int initudpcli(SOCKET* pSock, char* address, char* port)
 	// The sockaddr_in structure specifies the address family,
 	// IP address, and port of the server to be connected to.
 	sa.sin_family = AF_INET;
-	sa.sin_addr.s_addr = inet_addr(address);
 	sa.sin_port = htons((unsigned short)atoi(port));
+	sa.sin_addr.s_addr = inet_addr(address);
 
 //	// Associate the client to the desired address and port.
 //	if (bind(*pSock, (struct sockaddr*)&sa, sizeof(sa)) != EXIT_SUCCESS)
@@ -876,13 +922,29 @@ inline int inittcpsrv(SOCKET* pSock, char* address, char* port, int maxnbcli, in
 		return EXIT_FAILURE;
 	}
 
+#ifndef DISABLE_TCPSERVER_SO_REUSEADDR
+	// Enable immediate reuse of the address and port.
+	if (setsocketreuseaddr(*pSock, TRUE) != EXIT_SUCCESS)
+	{
+		PRINT_DEBUG_ERROR_OSNET(("inittcpsrv error (%s) : %s(address=%s, port=%s, maxnbcli=%d, timeout=%d)\n",
+			strtime_m(),
+			"setsocketreuseaddr failed. ",
+			address, port, maxnbcli, timeout));
+		closesocket(*pSock);
+#ifdef _WIN32
+		WSACleanup();
+#endif // _WIN32
+		return EXIT_FAILURE;
+	}
+#endif // DISABLE_TCPSERVER_SO_REUSEADDR
+
 	memset(&sa, 0, sizeof(sa));
 
 	// The sockaddr_in structure specifies the address family,
 	// IP address, and port of the server.
 	sa.sin_family = AF_INET;
-	sa.sin_addr.s_addr = inet_addr(address);
 	sa.sin_port = htons((unsigned short)atoi(port));
+	sa.sin_addr.s_addr = inet_addr(address);
 
 	// Associate the server to the desired address and port.
 	if (bind(*pSock, (struct sockaddr*)&sa, sizeof(sa)) != EXIT_SUCCESS)
@@ -1018,13 +1080,29 @@ inline int initudpsrv(SOCKET* pSock, char* address, char* port, int timeout)
 		return EXIT_FAILURE;
 	}
 
+#ifndef DISABLE_UDPSERVER_SO_REUSEADDR
+	// Enable immediate reuse of the address and port.
+	if (setsocketreuseaddr(*pSock, TRUE) != EXIT_SUCCESS)
+	{
+		PRINT_DEBUG_ERROR_OSNET(("initudpsrv error (%s) : %s(address=%s, port=%s, timeout=%d)\n", 
+			strtime_m(), 
+			"setsocketreuseaddr failed. ", 
+			address, port, timeout));
+		closesocket(*pSock);
+#ifdef _WIN32
+		WSACleanup();
+#endif // _WIN32
+		return EXIT_FAILURE;
+	}
+#endif // DISABLE_UDPSERVER_SO_REUSEADDR
+
 	memset(&sa, 0, sizeof(sa));
 
 	// The sockaddr_in structure specifies the address family,
 	// IP address, and port of the server.
 	sa.sin_family = AF_INET;
-	sa.sin_addr.s_addr = inet_addr(address);
 	sa.sin_port = htons((unsigned short)atoi(port));
+	sa.sin_addr.s_addr = inet_addr(address);
 
 	// Associate the server to the desired address and port.
 	if (bind(*pSock, (struct sockaddr*)&sa, sizeof(sa)) != EXIT_SUCCESS)
@@ -1039,6 +1117,20 @@ inline int initudpsrv(SOCKET* pSock, char* address, char* port, int timeout)
 #endif // _WIN32
 		return EXIT_FAILURE;
 	}
+
+//	// Set defaults for recv()... and send()...
+//	if (connect(*pSock, (struct sockaddr*)&sa, sizeof(sa)) != EXIT_SUCCESS)
+//	{
+//		PRINT_DEBUG_ERROR_OSNET(("initudpsrv error (%s) : %s(address=%s, port=%s, timeout=%d)\n", 
+//			strtime_m(), 
+//			WSAGetLastErrorMsg(), 
+//			address, port, timeout));
+//		closesocket(*pSock);
+//#ifdef _WIN32
+//		WSACleanup();
+//#endif // _WIN32
+//		return EXIT_FAILURE;
+//	}
 
 	return EXIT_SUCCESS;
 }
@@ -1153,6 +1245,8 @@ inline int waitforclifortcpsrv(SOCKET socksrv, SOCKET* pSockCli, int timeout)
 		return EXIT_TIMEOUT;
 	}
 
+	memset(&addr, 0, sizeof(addr));
+	addrlen = sizeof(addr);
 	*pSockCli = accept(socksrv, (struct sockaddr*)&addr, &addrlen);
 	if (*pSockCli == INVALID_SOCKET)
 	{
@@ -1171,6 +1265,7 @@ inline int waitforclifortcpsrv(SOCKET socksrv, SOCKET* pSockCli, int timeout)
 			strtime_m(), 
 			"getnameinfo failed. ", 
 			(int)socksrv, timeout));
+		closesocket(*pSockCli);
 		return EXIT_FAILURE;
 	}
 
@@ -1189,16 +1284,17 @@ int timeout : (IN) Max time to wait in ms (0 to disable timeout).
 Return : EXIT_SUCCESS if there is a client, EXIT_TIMEOUT if there is no client 
 after the timeout elapses or EXIT_FAILURE if there is an error.
 */
+//inline int waitforcliforudpsrv(SOCKET socksrv, SOCKET* pSockCli, int timeout, char* firstdgram, int firstdgramlen)
 inline int waitforcliforudpsrv(SOCKET socksrv, SOCKET* pSockCli, int timeout)
 {
 	fd_set sock_set;
 	int iResult = SOCKET_ERROR;
 	struct timeval tv;
-	//	struct sockaddr_storage addr;
-	//	socklen_t addrlen = sizeof(struct sockaddr_storage);
-	//	char hostname[NI_MAXHOST];
-	//	char service[NI_MAXSERV];
-	//	char buf[1];
+	struct sockaddr_storage addr;
+	socklen_t addrlen = sizeof(struct sockaddr_storage);
+	char hostname[NI_MAXHOST];
+	char service[NI_MAXSERV];
+	char buf[65535];
 
 	tv.tv_sec = (long)(timeout/1000);
 	tv.tv_usec = (long)((timeout%1000)*1000);
@@ -1242,32 +1338,67 @@ inline int waitforcliforudpsrv(SOCKET socksrv, SOCKET* pSockCli, int timeout)
 		return EXIT_TIMEOUT;
 	}
 
-	//recvfrom(socksrv, buf, 0, 0, (struct sockaddr*)&addr, (socklen_t*)&addrlen);
+	// First datagram will be lost...
+	memset(&addr, 0, sizeof(addr));
+	addrlen = sizeof(addr);
+	if (recvfrom(socksrv, buf, sizeof(buf), 0, (struct sockaddr*)&addr, (socklen_t*)&addrlen) < 0)
+	{
+		PRINT_DEBUG_ERROR_OSNET(("waitforcliforudpsrv error (%s) : %s(socksrv=%d, timeout=%d)\n", 
+			strtime_m(), 
+			WSAGetLastErrorMsg(), 
+			(int)socksrv, timeout));
+		return EXIT_FAILURE;
+	}
 
-	//// Connect to client.
-	//if (connect(socksrv, (struct sockaddr*)&addr, addrlen) != EXIT_SUCCESS)
+	// Should create a new socket connected to that client...?
+
+	//// Create a UDP IPv4 socket.
+	//*pSockCli = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	//if (*pSockCli == INVALID_SOCKET)
 	//{
 	//	PRINT_DEBUG_ERROR_OSNET(("waitforcliforudpsrv error (%s) : %s(socksrv=%d, timeout=%d)\n", 
 	//		strtime_m(), 
-	//		"connect failed. ", 
+	//		WSAGetLastErrorMsg(), 
 	//		(int)socksrv, timeout));
 	//	return EXIT_FAILURE;
 	//}
 
-	//// Display hostname and service.
-	//if (getnameinfo((struct sockaddr*)&addr, addrlen, hostname, NI_MAXHOST, service,
-	//	NI_MAXSERV, NI_NUMERICHOST|NI_NUMERICSERV) != EXIT_SUCCESS)
+	//// Configure timeouts for send and recv.
+	//if (setsockettimeouts(*pSockCli, DEFAULT_SOCK_TIMEOUT) != EXIT_SUCCESS)
 	//{
 	//	PRINT_DEBUG_ERROR_OSNET(("waitforcliforudpsrv error (%s) : %s(socksrv=%d, timeout=%d)\n", 
 	//		strtime_m(), 
-	//		"getnameinfo failed. ", 
+	//		WSAGetLastErrorMsg(), 
 	//		(int)socksrv, timeout));
+	//	closesocket(*pSockCli);
 	//	return EXIT_FAILURE;
 	//}
+	
+	// Set defaults for recv()... and send()...
+	//if (connect(*pSockCli, (struct sockaddr*)&addr, addrlen) != EXIT_SUCCESS)
+	if (connect(socksrv, (struct sockaddr*)&addr, addrlen) != EXIT_SUCCESS)
+	{
+		PRINT_DEBUG_ERROR_OSNET(("waitforcliforudpsrv error (%s) : %s(socksrv=%d, timeout=%d)\n", 
+			strtime_m(), 
+			WSAGetLastErrorMsg(), 
+			(int)socksrv, timeout));
+		//closesocket(*pSockCli);
+		return EXIT_FAILURE;
+	}
 
-	//PRINT_DEBUG_MESSAGE_OSNET(("Accepted connection from host %s and port %s\n", hostname, service));
+	// Display hostname and service.
+	if (getnameinfo((struct sockaddr*)&addr, addrlen, hostname, NI_MAXHOST, service,
+		NI_MAXSERV, NI_NUMERICHOST|NI_NUMERICSERV) != EXIT_SUCCESS)
+	{
+		PRINT_DEBUG_ERROR_OSNET(("waitforcliforudpsrv error (%s) : %s(socksrv=%d, timeout=%d)\n", 
+			strtime_m(), 
+			"getnameinfo failed. ", 
+			(int)socksrv, timeout));
+		//closesocket(*pSockCli);
+		return EXIT_FAILURE;
+	}
 
-	PRINT_DEBUG_MESSAGE_OSNET(("Accepted connection\n"));
+	PRINT_DEBUG_MESSAGE_OSNET(("Accepted connection from host %s and port %s\n", hostname, service));
 
 	*pSockCli = socksrv;
 
@@ -1319,25 +1450,30 @@ Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
 */
 inline int disconnectclifromudpsrv(SOCKET sock)
 {
-	// Shutdown the connection.
-	if (shutdown(sock, SD_BOTH) != EXIT_SUCCESS)
-	{
-		PRINT_DEBUG_WARNING_OSNET(("disconnectclifromudpsrv warning (%s) : %s(sock=%d)\n", 
-			strtime_m(), 
-			"shutdown failed. ", 
-			(int)sock));
-		//return EXIT_FAILURE;
-	}
 
-	// Destroy the socket created by socket().
-	if (closesocket(sock) != EXIT_SUCCESS)
-	{
-		PRINT_DEBUG_ERROR_OSNET(("disconnectclifromudpsrv error (%s) : %s(sock=%d)\n", 
-			strtime_m(), 
-			"closesocket failed. ", 
-			(int)sock));
-		return EXIT_FAILURE;
-	}
+	// Should create another socket correctly bound in waitforcliudpsrv()...?
+
+	UNREFERENCED_PARAMETER(sock);
+
+	//// Shutdown the connection.
+	//if (shutdown(sock, SD_BOTH) != EXIT_SUCCESS)
+	//{
+	//	PRINT_DEBUG_WARNING_OSNET(("disconnectclifromudpsrv warning (%s) : %s(sock=%d)\n",
+	//		strtime_m(),
+	//		"shutdown failed. ",
+	//		(int)sock));
+	//	//return EXIT_FAILURE;
+	//}
+
+	//// Destroy the socket created by socket().
+	//if (closesocket(sock) != EXIT_SUCCESS)
+	//{
+	//	PRINT_DEBUG_ERROR_OSNET(("disconnectclifromudpsrv error (%s) : %s(sock=%d)\n",
+	//		strtime_m(),
+	//		"closesocket failed. ",
+	//		(int)sock));
+	//	return EXIT_FAILURE;
+	//}
 
 	return EXIT_SUCCESS;
 }
@@ -1522,12 +1658,43 @@ inline int LaunchMultiCliTCPSrv(char* port, int (*handlecli)(SOCKET, void*), voi
 
 	return EXIT_SUCCESS;
 }
-#endif // DISABLE_THREADS_OSNET
+#endif // !DISABLE_THREADS_OSNET
 #ifdef _MSC_VER
 // Restore the Visual Studio warnings previously disabled.
 #pragma warning(default : 4702) 
 //#pragma warning(default : 4127) 
 #endif // _MSC_VER
+
+#ifndef DISABLE_IOCTLSOCKET
+/*
+Check for any data available to read on a socket.
+
+SOCKET sock : (IN) Socket.
+
+Return : EXIT_SUCCESS if there is data to read from the socket, EXIT_TIMEOUT if a timeout occurs or 
+EXIT_FAILURE if there is an error.
+*/
+inline int checkavailablebytessocket(SOCKET sock)
+{
+//#ifdef _WIN32
+	unsigned long bytes_avail = 0;
+//#else
+//	int bytes_avail = 0;
+//#endif // _WIN32
+
+	if (ioctlsocket(sock, FIONREAD, &bytes_avail) != EXIT_SUCCESS)
+	{
+		PRINT_DEBUG_ERROR_OSNET(("checkavailablebytessocket error (%s) : %s(sock=%d)\n", 
+			strtime_m(), 
+			WSAGetLastErrorMsg(), 
+			(int)sock));
+		return EXIT_FAILURE;
+	}
+	if (bytes_avail <= 0) return EXIT_TIMEOUT;
+
+	return EXIT_SUCCESS;
+}
+#endif // !DISABLE_IOCTLSOCKET
 
 // The 2 following functions should be used with caution...
 
@@ -1536,7 +1703,7 @@ inline int LaunchMultiCliTCPSrv(char* port, int (*handlecli)(SOCKET, void*), voi
 #pragma warning(disable : 4127) 
 #endif // _MSC_VER
 /*
-Wait for data to read on a given socket.
+Wait for data to read on a socket.
 
 SOCKET sock : (IN) Socket.
 timeval timeout : (IN) Max time to wait before returning.
@@ -1578,7 +1745,7 @@ inline int waitforsocket(SOCKET sock, struct timeval timeout)
 }
 
 /*
-Eliminate all the data coming from a given socket (if any).
+Eliminate all the data coming from a socket (if any).
 
 SOCKET sock : (IN) Socket.
 
@@ -1637,7 +1804,7 @@ inline int flushsocket(SOCKET sock)
 #endif // _MSC_VER
 
 /*
-Send data to a given socket. Retry automatically if all the bytes were not sent.
+Send data to a socket. Retry automatically if all the bytes were not sent.
 Fail when a timeout occurs if it is enabled on the socket.
 
 SOCKET sock : (IN) Socket.
@@ -1684,7 +1851,7 @@ inline int sendall(SOCKET sock, char* sendbuf, int sendbuflen)
 		{
 			PRINT_DEBUG_ERROR_OSNET(("sendall error (%s) : %s(sock=%d, sendbuf=%#x, sendbuflen=%d)\n", 
 				strtime_m(), 
-				"send failed. ", 
+				WSAGetLastErrorMsg(), 
 				(int)sock, sendbuf, sendbuflen));
 #ifdef _DEBUG_MESSAGES_OSNET
 			for (i = 0; i < BytesSent; i++)
@@ -1713,7 +1880,7 @@ inline int sendall(SOCKET sock, char* sendbuf, int sendbuflen)
 }
 
 /*
-Receive data at a given socket. Retry automatically if all the bytes were not received.
+Receive data at a socket. Retry automatically if all the bytes were not received.
 Fail when a timeout occurs if it is enabled on the socket.
 
 SOCKET sock : (IN) Socket.
@@ -1760,7 +1927,7 @@ inline int recvall(SOCKET sock, char* recvbuf, int recvbuflen)
 		{
 			PRINT_DEBUG_ERROR_OSNET(("recvall error (%s) : %s(sock=%d, recvbuf=%#x, recvbuflen=%d)\n", 
 				strtime_m(), 
-				"recv failed. ", 
+				WSAGetLastErrorMsg(), 
 				(int)sock, recvbuf, recvbuflen));
 #ifdef _DEBUG_MESSAGES_OSNET
 			for (i = 0; i < BytesReceived; i++)
@@ -1826,7 +1993,7 @@ inline int sendtoall(SOCKET sock, char* sendbuf, int sendbuflen, struct sockaddr
 		{
 			PRINT_DEBUG_ERROR_OSNET(("sendtoall error (%s) : %s(sock=%d, sendbuf=%#x, sendbuflen=%d, sa=%#x, salen=%d)\n", 
 				strtime_m(), 
-				"sendto failed. ", 
+				WSAGetLastErrorMsg(), 
 				(int)sock, sendbuf, sendbuflen, sa, salen));
 #ifdef _DEBUG_MESSAGES_OSNET
 			for (i = 0; i < BytesSent; i++)
@@ -1892,7 +2059,7 @@ inline int recvfromall(SOCKET sock, char* recvbuf, int recvbuflen, struct sockad
 		{
 			PRINT_DEBUG_ERROR_OSNET(("recvfromall error (%s) : %s(sock=%d, recvbuf=%#x, recvbuflen=%d)\n", 
 				strtime_m(), 
-				"recvfrom failed. ", 
+				WSAGetLastErrorMsg(), 
 				(int)sock, recvbuf, recvbuflen));
 #ifdef _DEBUG_MESSAGES_OSNET
 			for (i = 0; i < BytesReceived; i++)
@@ -1958,7 +2125,7 @@ inline int recvlatest(SOCKET sock, char* recvbuf, int recvbuflen)
 	{
 		PRINT_DEBUG_ERROR_OSNET(("recvlatest error (%s) : %s(sock=%d, recvbuf=%#x, recvbuflen=%d)\n", 
 			strtime_m(), 
-			"recv failed. ", 
+			WSAGetLastErrorMsg(), 
 			(int)sock, recvbuf, recvbuflen));
 		free(savebuf);
 		return EXIT_FAILURE;
@@ -1990,7 +2157,7 @@ inline int recvlatest(SOCKET sock, char* recvbuf, int recvbuflen)
 		{
 			PRINT_DEBUG_ERROR_OSNET(("recvlatest error (%s) : %s(sock=%d, recvbuf=%#x, recvbuflen=%d)\n", 
 				strtime_m(), 
-				"recv failed. ", 
+				WSAGetLastErrorMsg(), 
 				(int)sock, recvbuf, recvbuflen));
 			free(savebuf);
 			return EXIT_FAILURE;
@@ -2020,7 +2187,7 @@ inline int recvlatest(SOCKET sock, char* recvbuf, int recvbuflen)
 }
 
 /*
-Receive data at a given socket until a specific end string is received.
+Receive data at a socket until a specific end string is received.
 If this string is found (and the maximum number of bytes to receive has not 
 been reached), it is not necessarily the last received bytes in the buffer 
 (other bytes might have been received after).
@@ -2049,7 +2216,7 @@ inline int recvatleastuntilstr(SOCKET sock, char* recvbuf, char* endstr, int max
 				"recvbuf full. ", 
 				(int)sock, recvbuf, endstr, maxrecvbuflen));
 			PRINT_DEBUG_MESSAGE_OSNET(("Total bytes received : %d\n", BytesReceived));
-			return EXIT_FAILURE;
+			return EXIT_OUT_OF_MEMORY;
 		}
 
 		Bytes = recv(sock, recvbuf + BytesReceived, maxrecvbuflen - BytesReceived, 0);
@@ -2079,7 +2246,7 @@ inline int recvatleastuntilstr(SOCKET sock, char* recvbuf, char* endstr, int max
 		{
 			PRINT_DEBUG_ERROR_OSNET(("recvatleastuntil error (%s) : %s(sock=%d, recvbuf=%#x, endstr=%s, maxrecvbuflen=%d)\n", 
 				strtime_m(), 
-				"recv failed. ", 
+				WSAGetLastErrorMsg(), 
 				(int)sock, recvbuf, endstr, maxrecvbuflen));
 			PRINT_DEBUG_MESSAGE_OSNET(("Total bytes received : %d\n", BytesReceived));
 			return EXIT_FAILURE;
@@ -2094,7 +2261,7 @@ inline int recvatleastuntilstr(SOCKET sock, char* recvbuf, char* endstr, int max
 }
 
 /*
-Receive data at a given socket until a specific end character is received.
+Receive data at a socket until a specific end character is received.
 If this character is found (and the maximum number of bytes to receive has not 
 been reached), it is not necessarily the last received byte in the buffer 
 (other bytes might have been received after).
@@ -2122,7 +2289,7 @@ inline int recvatleastuntil(SOCKET sock, char* recvbuf, char endchar, int maxrec
 				"recvbuf full. ", 
 				(int)sock, recvbuf, (int)(unsigned char)endchar, maxrecvbuflen));
 			PRINT_DEBUG_MESSAGE_OSNET(("Total bytes received : %d\n", BytesReceived));
-			return EXIT_FAILURE;
+			return EXIT_OUT_OF_MEMORY;
 		}
 
 		Bytes = recv(sock, recvbuf + BytesReceived, maxrecvbuflen - BytesReceived, 0);
@@ -2163,7 +2330,7 @@ inline int recvatleastuntil(SOCKET sock, char* recvbuf, char endchar, int maxrec
 		{
 			PRINT_DEBUG_ERROR_OSNET(("recvatleastuntil error (%s) : %s(sock=%d, recvbuf=%#x, endchar=%.2x, maxrecvbuflen=%d)\n", 
 				strtime_m(), 
-				"recv failed. ", 
+				WSAGetLastErrorMsg(), 
 				(int)sock, recvbuf, (int)(unsigned char)endchar, maxrecvbuflen));
 			PRINT_DEBUG_MESSAGE_OSNET(("Total bytes received : %d\n", BytesReceived));
 			return EXIT_FAILURE;
@@ -2178,7 +2345,7 @@ inline int recvatleastuntil(SOCKET sock, char* recvbuf, char endchar, int maxrec
 }
 
 /*
-Receive data at a given socket until a specific end character is received.
+Receive data at a socket until a specific end character is received.
 If this character is found (and the maximum number of bytes to receive has not 
 been reached), it is the last received byte in the buffer.
 This function might take more network load than recvatleastuntil() but guarantees
@@ -2208,7 +2375,7 @@ inline int recvuntil(SOCKET sock, char* recvbuf, char endchar, int maxrecvbuflen
 				"recvbuf full. ", 
 				(int)sock, recvbuf, (int)(unsigned char)endchar, maxrecvbuflen));
 			PRINT_DEBUG_MESSAGE_OSNET(("Total bytes received : %d\n", BytesReceived));
-			return EXIT_FAILURE;
+			return EXIT_OUT_OF_MEMORY;
 		}
 
 		// Receive 1 byte.
@@ -2233,7 +2400,7 @@ inline int recvuntil(SOCKET sock, char* recvbuf, char endchar, int maxrecvbuflen
 		{
 			PRINT_DEBUG_ERROR_OSNET(("recvuntil error (%s) : %s(sock=%d, recvbuf=%#x, endchar=%.2x, maxrecvbuflen=%d)\n", 
 				strtime_m(), 
-				"recv failed. ", 
+				WSAGetLastErrorMsg(), 
 				(int)sock, recvbuf, (int)(unsigned char)endchar, maxrecvbuflen));
 			PRINT_DEBUG_MESSAGE_OSNET(("Total bytes received : %d\n", BytesReceived));
 			return EXIT_FAILURE;
@@ -2264,7 +2431,8 @@ inline int recvuntilstr(SOCKET sock, char* recvbuf, char* endstr, int maxrecvbuf
 				"recvbuf full. ", 
 				(int)sock, recvbuf, endstr, maxrecvbuflen));
 			PRINT_DEBUG_MESSAGE_OSNET(("Total bytes received : %d\n", BytesReceived));
-			return EXIT_FAILURE;
+			*pBytesReceived = BytesReceived;
+			return EXIT_OUT_OF_MEMORY;
 		}
 
 		// Receive 1 byte.
@@ -2278,6 +2446,7 @@ inline int recvuntilstr(SOCKET sock, char* recvbuf, char* endstr, int maxrecvbuf
 					szOSUtilsErrMsgs[EXIT_TIMEOUT], 
 					(int)sock, recvbuf, endstr, maxrecvbuflen));
 				PRINT_DEBUG_MESSAGE_OSNET(("Total bytes received : %d\n", BytesReceived));
+				*pBytesReceived = BytesReceived;
 				return EXIT_TIMEOUT;
 			}
 			else
@@ -2289,9 +2458,10 @@ inline int recvuntilstr(SOCKET sock, char* recvbuf, char* endstr, int maxrecvbuf
 		{
 			PRINT_DEBUG_ERROR_OSNET(("recvuntilstr error (%s) : %s(sock=%d, recvbuf=%#x, endstr=%s, maxrecvbuflen=%d)\n", 
 				strtime_m(), 
-				"recv failed. ", 
+				WSAGetLastErrorMsg(), 
 				(int)sock, recvbuf, endstr, maxrecvbuflen));
 			PRINT_DEBUG_MESSAGE_OSNET(("Total bytes received : %d\n", BytesReceived));
+			*pBytesReceived = BytesReceived;
 			return EXIT_FAILURE;
 		}
 
@@ -2305,4 +2475,4 @@ inline int recvuntilstr(SOCKET sock, char* recvbuf, char* endstr, int maxrecvbuf
 	return EXIT_SUCCESS;
 }
 
-#endif // OSNET_H
+#endif // !OSNET_H

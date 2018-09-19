@@ -29,12 +29,12 @@ int selectedchannelsSSC32[NB_CHANNELS_PWM_SSC32];
 int pwsSSC32[NB_CHANNELS_PWM_SSC32];
 BOOL bExitSSC32 = FALSE;
 
-THREAD_IDENTIFIER MaestroThreadId;
-CRITICAL_SECTION MaestroCS;
-int selectedchannelsMaestro[NB_CHANNELS_PWM_MAESTRO];
-int pwsMaestro[NB_CHANNELS_PWM_MAESTRO];
-int valueMaestro = 0;
-BOOL bExitMaestro = FALSE;
+THREAD_IDENTIFIER PololuThreadId;
+CRITICAL_SECTION PololuCS;
+int selectedchannelsPololu[NB_CHANNELS_PWM_POLOLU];
+int pwsPololu[NB_CHANNELS_PWM_POLOLU];
+int valuePololu = 0;
+BOOL bExitPololu = FALSE;
 
 THREAD_IDENTIFIER HokuyoThreadId;
 CRITICAL_SECTION HokuyoCS;
@@ -42,12 +42,17 @@ double anglesHokuyo[MAX_SLITDIVISION_HOKUYO];
 double distancesHokuyo[MAX_SLITDIVISION_HOKUYO];
 BOOL bExitHokuyo = FALSE;
 
-THREAD_IDENTIFIER RPLIDARThreadId;
+THREAD_IDENTIFIER RPLIDARScanThreadId;
+THREAD_IDENTIFIER RPLIDARExpressScanThreadId;
 CRITICAL_SECTION RPLIDARCS;
+double angleRPLIDAR = 0;
+double distanceRPLIDAR = 0;
 double anglesRPLIDAR[NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR];
 double distancesRPLIDAR[NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR];
 BOOL bNewScanRPLIDAR = FALSE;
-BOOL bExitRPLIDAR = FALSE;
+int qualityRPLIDAR = FALSE;
+BOOL bExitScanRPLIDAR = FALSE;
+BOOL bExitExpressScanRPLIDAR = FALSE;
 
 #ifdef ENABLE_MAVLINK_SUPPORT
 THREAD_IDENTIFIER MAVLinkDeviceThreadId;
@@ -539,112 +544,112 @@ HARDWAREX_API int StopThreadSSC32x(SSC32* pSSC32)
 }
 #pragma endregion
 
-#pragma region Maestro
-HARDWAREX_API MAESTRO* CreateMaestrox(void)
+#pragma region Pololu
+HARDWAREX_API POLOLU* CreatePololux(void)
 {
-	return (MAESTRO*)calloc(1, sizeof(MAESTRO));
+	return (POLOLU*)calloc(1, sizeof(POLOLU));
 }
 
-HARDWAREX_API void DestroyMaestrox(MAESTRO* pMaestro)
+HARDWAREX_API void DestroyPololux(POLOLU* pPololu)
 {
-	return free(pMaestro);
+	return free(pPololu);
 }
 
-HARDWAREX_API int GetValueMaestrox(MAESTRO* pMaestro, int channel, int* pValue)
+HARDWAREX_API int GetValuePololux(POLOLU* pPololu, int channel, int* pValue)
 {
-	return GetValueMaestro(pMaestro, channel, pValue);
+	return GetValuePololu(pPololu, channel, pValue);
 }
 
-HARDWAREX_API int SetPWMMaestrox(MAESTRO* pMaestro, int channel, int pw)
+HARDWAREX_API int SetPWMPololux(POLOLU* pPololu, int channel, int pw)
 {
-	return SetPWMMaestro(pMaestro, channel, pw);
+	return SetPWMPololu(pPololu, channel, pw);
 }
 
-HARDWAREX_API int SetAllPWMsMaestrox(MAESTRO* pMaestro, int* selectedchannels, int* pws)
+HARDWAREX_API int SetAllPWMsPololux(POLOLU* pPololu, int* selectedchannels, int* pws)
 {
-	return SetAllPWMsMaestro(pMaestro, selectedchannels, pws);
+	return SetAllPWMsPololu(pPololu, selectedchannels, pws);
 }
 
-HARDWAREX_API int ConnectMaestrox(MAESTRO* pMaestro, char* szCfgFilePath)
+HARDWAREX_API int ConnectPololux(POLOLU* pPololu, char* szCfgFilePath)
 {
-	return ConnectMaestro(pMaestro, szCfgFilePath);
+	return ConnectPololu(pPololu, szCfgFilePath);
 }
 
-HARDWAREX_API int DisconnectMaestrox(MAESTRO* pMaestro)
+HARDWAREX_API int DisconnectPololux(POLOLU* pPololu)
 {
-	return DisconnectMaestro(pMaestro);
+	return DisconnectPololu(pPololu);
 }
 
-THREAD_PROC_RETURN_VALUE MaestroThread(void* pParam)
+THREAD_PROC_RETURN_VALUE PololuThread(void* pParam)
 {
-	MAESTRO* pMaestro = (MAESTRO*)pParam;
-	int selectedchannels[NB_CHANNELS_PWM_MAESTRO];
-	int pws[NB_CHANNELS_PWM_MAESTRO];
+	POLOLU* pPololu = (POLOLU*)pParam;
+	int selectedchannels[NB_CHANNELS_PWM_POLOLU];
+	int pws[NB_CHANNELS_PWM_POLOLU];
 	int value = 0;
 
 	for (;;)
 	{
 		mSleep(25);
-		EnterCriticalSection(&MaestroCS);
-		memcpy(selectedchannels, selectedchannelsMaestro, NB_CHANNELS_PWM_MAESTRO*sizeof(int));
-		memcpy(pws, pwsMaestro, NB_CHANNELS_PWM_MAESTRO*sizeof(int));
-		LeaveCriticalSection(&MaestroCS);
-		SetAllPWMsMaestro(pMaestro, selectedchannels, pws);
+		EnterCriticalSection(&PololuCS);
+		memcpy(selectedchannels, selectedchannelsPololu, NB_CHANNELS_PWM_POLOLU*sizeof(int));
+		memcpy(pws, pwsPololu, NB_CHANNELS_PWM_POLOLU*sizeof(int));
+		LeaveCriticalSection(&PololuCS);
+		SetAllPWMsPololu(pPololu, selectedchannels, pws);
 		mSleep(25);
 		// Channel 11...
 		value = 0;
-		GetValueMaestro(pMaestro, 11, &value);
-		EnterCriticalSection(&MaestroCS);
-		valueMaestro = value;
-		LeaveCriticalSection(&MaestroCS);
-		if (bExitMaestro) break;
+		GetValuePololu(pPololu, 11, &value);
+		EnterCriticalSection(&PololuCS);
+		valuePololu = value;
+		LeaveCriticalSection(&PololuCS);
+		if (bExitPololu) break;
 	}
 
 	return 0;
 }
 
-HARDWAREX_API int SetAllPWMsFromThreadMaestrox(MAESTRO* pMaestro, int* selectedchannels, int* pws)
+HARDWAREX_API int SetAllPWMsFromThreadPololux(POLOLU* pPololu, int* selectedchannels, int* pws)
 {
-	UNREFERENCED_PARAMETER(pMaestro);
+	UNREFERENCED_PARAMETER(pPololu);
 
-	// id[pMaestro->szCfgFile] to be able to handle several devices...
+	// id[pPololu->szCfgFile] to be able to handle several devices...
 
-	EnterCriticalSection(&MaestroCS);
-	memcpy(selectedchannelsMaestro, selectedchannels, NB_CHANNELS_PWM_MAESTRO*sizeof(int));
-	memcpy(pwsMaestro, pws, NB_CHANNELS_PWM_MAESTRO*sizeof(int));
-	LeaveCriticalSection(&MaestroCS);
+	EnterCriticalSection(&PololuCS);
+	memcpy(selectedchannelsPololu, selectedchannels, NB_CHANNELS_PWM_POLOLU*sizeof(int));
+	memcpy(pwsPololu, pws, NB_CHANNELS_PWM_POLOLU*sizeof(int));
+	LeaveCriticalSection(&PololuCS);
 
 	return EXIT_SUCCESS;
 }
 
-HARDWAREX_API int GetValueFromThreadMaestrox(MAESTRO* pMaestro, int channel, int* pValue)
+HARDWAREX_API int GetValueFromThreadPololux(POLOLU* pPololu, int channel, int* pValue)
 {
-	UNREFERENCED_PARAMETER(pMaestro);
+	UNREFERENCED_PARAMETER(pPololu);
 	UNREFERENCED_PARAMETER(channel);
 
-	// id[pMaestro->szCfgFile] to be able to handle several devices...
+	// id[pPololu->szCfgFile] to be able to handle several devices...
 
-	EnterCriticalSection(&MaestroCS);
-	*pValue = valueMaestro;
-	LeaveCriticalSection(&MaestroCS);
+	EnterCriticalSection(&PololuCS);
+	*pValue = valuePololu;
+	LeaveCriticalSection(&PololuCS);
 
 	return EXIT_SUCCESS;
 }
 
-HARDWAREX_API int StartThreadMaestrox(MAESTRO* pMaestro)
+HARDWAREX_API int StartThreadPololux(POLOLU* pPololu)
 {
-	bExitMaestro = FALSE;
-	InitCriticalSection(&MaestroCS);
-	return CreateDefaultThread(MaestroThread, (void*)pMaestro, &MaestroThreadId);
+	bExitPololu = FALSE;
+	InitCriticalSection(&PololuCS);
+	return CreateDefaultThread(PololuThread, (void*)pPololu, &PololuThreadId);
 }
 
-HARDWAREX_API int StopThreadMaestrox(MAESTRO* pMaestro)
+HARDWAREX_API int StopThreadPololux(POLOLU* pPololu)
 {
-	UNREFERENCED_PARAMETER(pMaestro);
+	UNREFERENCED_PARAMETER(pPololu);
 
-	bExitMaestro = TRUE;
-	WaitForThread(MaestroThreadId);
-	DeleteCriticalSection(&MaestroCS);
+	bExitPololu = TRUE;
+	WaitForThread(PololuThreadId);
+	DeleteCriticalSection(&PololuCS);
 	return EXIT_SUCCESS;
 }
 #pragma endregion
@@ -750,6 +755,11 @@ HARDWAREX_API void DestroyRPLIDARx(RPLIDAR* pRPLIDAR)
 	return free(pRPLIDAR);
 }
 
+HARDWAREX_API int GetScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistance, double* pAngle, BOOL* pbNewScan, int *pQuality)
+{
+	return GetScanDataResponseRPLIDAR(pRPLIDAR, pDistance, pAngle, pbNewScan, pQuality);
+}
+
 HARDWAREX_API int GetExpressScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan)
 {
 	return GetExpressScanDataResponseRPLIDAR(pRPLIDAR, pDistances, pAngles, pbNewScan);
@@ -765,7 +775,33 @@ HARDWAREX_API int DisconnectRPLIDARx(RPLIDAR* pRPLIDAR)
 	return DisconnectRPLIDAR(pRPLIDAR);
 }
 
-THREAD_PROC_RETURN_VALUE RPLIDARThread(void* pParam)
+THREAD_PROC_RETURN_VALUE RPLIDARScanThread(void* pParam)
+{
+	RPLIDAR* pRPLIDAR = (RPLIDAR*)pParam;
+	double angle = 0;
+	double distance = 0;
+	BOOL bNewScan = FALSE;
+	int quality = 0;
+
+	for (;;)
+	{
+		//mSleep(50);
+		angle = 0;
+		distance = 0;
+		GetScanDataResponseRPLIDAR(pRPLIDAR, &distance, &angle, &bNewScan, &quality);
+		EnterCriticalSection(&RPLIDARCS);
+		distanceRPLIDAR = distance;
+		angleRPLIDAR = angle;
+		bNewScanRPLIDAR = bNewScan;
+		qualityRPLIDAR = quality;
+		LeaveCriticalSection(&RPLIDARCS);
+		if (bExitScanRPLIDAR) break;
+	}
+
+	return 0;
+}
+
+THREAD_PROC_RETURN_VALUE RPLIDARExpressScanThread(void* pParam)
 {
 	RPLIDAR* pRPLIDAR = (RPLIDAR*)pParam;
 	double angles[NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR];
@@ -774,7 +810,7 @@ THREAD_PROC_RETURN_VALUE RPLIDARThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(50);
+		//mSleep(50);
 		memset(distances, 0, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
 		memset(angles, 0, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
 		GetExpressScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan);
@@ -783,10 +819,26 @@ THREAD_PROC_RETURN_VALUE RPLIDARThread(void* pParam)
 		memcpy(anglesRPLIDAR, angles, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
 		bNewScanRPLIDAR = bNewScan;
 		LeaveCriticalSection(&RPLIDARCS);
-		if (bExitRPLIDAR) break;
+		if (bExitExpressScanRPLIDAR) break;
 	}
 
 	return 0;
+}
+
+HARDWAREX_API int GetScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistance, double* pAngle, BOOL* pbNewScan, int *pQuality)
+{
+	UNREFERENCED_PARAMETER(pRPLIDAR);
+
+	// id[pRPLIDAR->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&RPLIDARCS);
+	*pDistance = distanceRPLIDAR;
+	*pAngle = angleRPLIDAR;
+	*pbNewScan = bNewScanRPLIDAR;
+	*pQuality = qualityRPLIDAR;
+	LeaveCriticalSection(&RPLIDARCS);
+
+	return EXIT_SUCCESS;
 }
 
 HARDWAREX_API int GetExpressScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan)
@@ -804,19 +856,36 @@ HARDWAREX_API int GetExpressScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR
 	return EXIT_SUCCESS;
 }
 
-HARDWAREX_API int StartThreadRPLIDARx(RPLIDAR* pRPLIDAR)
+HARDWAREX_API int StartScanThreadRPLIDARx(RPLIDAR* pRPLIDAR)
 {
-	bExitRPLIDAR = FALSE;
+	bExitScanRPLIDAR = FALSE;
 	InitCriticalSection(&RPLIDARCS);
-	return CreateDefaultThread(RPLIDARThread, (void*)pRPLIDAR, &RPLIDARThreadId);
+	return CreateDefaultThread(RPLIDARScanThread, (void*)pRPLIDAR, &RPLIDARScanThreadId);
 }
 
-HARDWAREX_API int StopThreadRPLIDARx(RPLIDAR* pRPLIDAR)
+HARDWAREX_API int StopScanThreadRPLIDARx(RPLIDAR* pRPLIDAR)
 {
 	UNREFERENCED_PARAMETER(pRPLIDAR);
 
-	bExitRPLIDAR = TRUE;
-	WaitForThread(RPLIDARThreadId);
+	bExitScanRPLIDAR = TRUE;
+	WaitForThread(RPLIDARScanThreadId);
+	DeleteCriticalSection(&RPLIDARCS);
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int StartExpressScanThreadRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	bExitExpressScanRPLIDAR = FALSE;
+	InitCriticalSection(&RPLIDARCS);
+	return CreateDefaultThread(RPLIDARExpressScanThread, (void*)pRPLIDAR, &RPLIDARExpressScanThreadId);
+}
+
+HARDWAREX_API int StopExpressScanThreadRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	UNREFERENCED_PARAMETER(pRPLIDAR);
+
+	bExitExpressScanRPLIDAR = TRUE;
+	WaitForThread(RPLIDARExpressScanThreadId);
 	DeleteCriticalSection(&RPLIDARCS);
 	return EXIT_SUCCESS;
 }
