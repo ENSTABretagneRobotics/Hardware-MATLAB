@@ -4,15 +4,11 @@ pPololu = CreatePololu();
 [result] = ConnectPololu(pPololu, 'Pololu0.txt')
 %pPololu.value
 
-nbchannels = 24
-selectedchannels = zeros(nbchannels)
-selectedchannels(1) = 1
-selectedchannels(2) = 1
-selectedchannels(3) = 1
-pws = zeros(nbchannels)
-pws(1) = 1000
-pws(2) = 2000
-pws(3) = 1000
+nbchannels = 24;
+selectedchannels = zeros(nbchannels);
+selectedchannels(1) = 1; selectedchannels(2) = 1; selectedchannels(3) = 1;
+pws = zeros(nbchannels);
+pws(1) = 1000; pws(2) = 2000; pws(3) = 1000;
 [result] = SetAllPWMsPololu(pPololu, selectedchannels, pws);
 [result, value] = GetValuePololu(pPololu, 11);
 str = sprintf('value = %d\n', value);
@@ -30,14 +26,10 @@ key = 0;
 while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
     clf; hold on;
     if (mod(a, 2) == 0)
-		pws(1) = 1000
-		pws(2) = 2000
-		pws(3) = 1250
+		pws(1) = 1000; pws(2) = 2000; pws(3) = 1250;
         [result] = SetAllPWMsFromThreadPololu(pPololu, selectedchannels, pws);
     else
-		pws(1) = 2000
-		pws(2) = 1000
-		pws(3) = 1750
+		pws(1) = 2000; pws(2) = 1000; pws(3) = 1750;
         [result] = SetAllPWMsFromThreadPololu(pPololu, selectedchannels, pws);
     end
     a = a+1;

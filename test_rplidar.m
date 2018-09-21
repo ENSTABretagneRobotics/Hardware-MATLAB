@@ -15,24 +15,24 @@ fig = figure('Position',[200 200 400 400],'NumberTitle','off');
 set(fig,'WindowStyle','Modal'); axis('off');
 scale = 6;
 
-% If GetLatestDataRPLIDAR() takes too much time, use a thread to access data faster... 
 %[result] = StartScanThreadRPLIDAR(pRPLIDAR); 
 %[result] = StartExpressScanThreadRPLIDAR(pRPLIDAR); 
 
-count = 0; clf; hold on; axis([-scale,scale,-scale,scale]);
+count = 0; alldistances = []; allangles = [];
 key = 0;
 while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
-    if count > 360
-        count = 0; clf; hold on; axis([-scale,scale,-scale,scale]);
-    end    
-    [result, distance, angle, bNewScan, quality] = GetScanDataResponseRPLIDAR(pRPLIDAR);
-    %[result, distance, angle, bNewScan, quality] = GetScanDataResponseFromThreadRPLIDAR(pRPLIDAR);
-    plot(distance.*cos(angle), distance.*sin(angle), '.');
+    [result, distances, angles, bNewScan, quality] = GetScanDataResponseRPLIDAR(pRPLIDAR);
+    %[result, distances, angles, bNewScan, quality] = GetScanDataResponseFromThreadRPLIDAR(pRPLIDAR);
     %[result, distances, angles, bNewScan] = GetExpressScanDataResponseRPLIDAR(pRPLIDAR);
-    %[result, distances, angles, bNewScan] = GetExpressScanDataResponseFromThreadRPLIDAR(pRPLIDAR);
-    %plot(distances.*cos(angles), distances.*sin(angles), '.');
+    %[result, distances, angles, bNewScan] = GetExpressScanDataResponseFromThreadRPLIDAR(pRPLIDAR);    
+    alldistances = [alldistances distances]; allangles = [allangles angles];    
+    if count > 360
+       clf; hold on; axis([-scale,scale,-scale,scale]);
+       plot(alldistances.*cos(allangles), alldistances.*sin(allangles), '.');
+       pause(0.1); key = get(gcf,'CurrentCharacter');
+       count = 0; alldistances = []; allangles = []; 
+    end    
     count = count+1;
-    pause(0.001); key = get(gcf,'CurrentCharacter');
 end
 
 %[result] = StopScanThreadRPLIDAR(pRPLIDAR);
