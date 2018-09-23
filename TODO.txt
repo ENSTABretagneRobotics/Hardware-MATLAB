@@ -1,9 +1,10 @@
+provide static lib for linux and windows, should be all built with sbg and mavlink?
+cmake?
+
 RPLIDAR : Ne marche même pas avec appli du fabricant parfois, on peut pas renommer le port car une autre application l'utilise, mais quelle autre...? Faut utiliser vieux SDK, et il faudrait que le code CPP récupère les données tout le temps dans un thread...
 
 Problème parsing UBXProtocol.h (bitfields?) : éditer manuellement hardwarex_proto.m?
 http://fr.mathworks.com/help/matlab/matlab_external/limitations-to-shared-library-support.html
-
-Add support of SBG in mavlink binaries and maybe rename as compat/extended the different versions of the binaries...
 
 Add getvalue of ssc32
 

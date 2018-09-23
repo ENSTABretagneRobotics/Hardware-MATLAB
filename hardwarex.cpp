@@ -1,5 +1,12 @@
 #include "hardwarex.h"
 
+#ifdef ENABLE_SBG_SUPPORT
+THREAD_IDENTIFIER SBGThreadId;
+CRITICAL_SECTION SBGCS;
+SBGDATA sbgdataSBG;
+BOOL bExitSBG = FALSE;
+#endif // ENABLE_SBG_SUPPORT
+
 THREAD_IDENTIFIER MTThreadId;
 CRITICAL_SECTION MTCS;
 MTDATA mtdataMT;
@@ -62,6 +69,94 @@ int pwsMAVLinkDevice[NB_CHANNELS_PWM_MAVLINKDEVICE];
 MAVLINKDATA mavlinkdataMAVLinkDevice;
 BOOL bExitMAVLinkDevice = FALSE;
 #endif // ENABLE_MAVLINK_SUPPORT
+
+#ifdef ENABLE_SBG_SUPPORT
+#pragma region SBG
+HARDWAREX_API SBG* CreateSBGx(void)
+{
+	return (SBG*)calloc(1, sizeof(SBG));
+}
+
+HARDWAREX_API void DestroySBGx(SBG* pSBG)
+{
+	return free(pSBG);
+}
+
+HARDWAREX_API SBGDATA* CreateSBGDatax(void)
+{
+	return (SBGDATA*)calloc(1, sizeof(SBGDATA));
+}
+
+HARDWAREX_API void DestroySBGDatax(SBGDATA* pSBGData)
+{
+	return free(pSBGData);
+}
+
+HARDWAREX_API int GetLatestDataSBGx(SBG* pSBG, SBGDATA* pSBGData)
+{
+	return GetLatestDataSBG(pSBG, pSBGData);
+}
+
+HARDWAREX_API int ConnectSBGx(SBG* pSBG, char* szCfgFilePath)
+{
+	return ConnectSBG(pSBG, szCfgFilePath);
+}
+
+HARDWAREX_API int DisconnectSBGx(SBG* pSBG)
+{
+	return DisconnectSBG(pSBG);
+}
+
+THREAD_PROC_RETURN_VALUE SBGThread(void* pParam)
+{
+	SBG* pSBG = (SBG*)pParam;
+	SBGDATA sbgdata;
+
+	for (;;)
+	{
+		mSleep(100);
+		memset(&sbgdata, 0, sizeof(SBGDATA));
+		GetLatestDataSBG(pSBG, &sbgdata);
+		EnterCriticalSection(&SBGCS);
+		sbgdataSBG = sbgdata;
+		LeaveCriticalSection(&SBGCS);
+		if (bExitSBG) break;
+	}
+
+	return 0;
+}
+
+HARDWAREX_API int GetLatestDataFromThreadSBGx(SBG* pSBG, SBGDATA* pSBGData)
+{
+	UNREFERENCED_PARAMETER(pSBG);
+
+	// id[pSBG->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&SBGCS);
+	*pSBGData = sbgdataSBG;
+	LeaveCriticalSection(&SBGCS);
+
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int StartThreadSBGx(SBG* pSBG)
+{
+	bExitSBG = FALSE;
+	InitCriticalSection(&SBGCS);
+	return CreateDefaultThread(SBGThread, (void*)pSBG, &SBGThreadId);
+}
+
+HARDWAREX_API int StopThreadSBGx(SBG* pSBG)
+{
+	UNREFERENCED_PARAMETER(pSBG);
+
+	bExitSBG = TRUE;
+	WaitForThread(SBGThreadId);
+	DeleteCriticalSection(&SBGCS);
+	return EXIT_SUCCESS;
+}
+#pragma endregion
+#endif // ENABLE_SBG_SUPPORT
 
 #pragma region MT
 HARDWAREX_API MT* CreateMTx(void)

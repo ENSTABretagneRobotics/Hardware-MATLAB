@@ -8,13 +8,16 @@
 % Note that this problem does not exist for MATLAB 32 bit (for several
 % reasons, such as the fact that it is provided with a 32 bit internal
 % compiler and therefore do not need Visual Studio...).
+addpath('.');
 switch (computer)
     case 'PCWIN64'
+        addpath('x64');
         %loadlibrary('hardwarex', 'hardwarex.h', 'notempdir')
-        loadlibrary('hardwarex', 'hardwarex.h', 'notempdir', 'includepath', 'C:\Program Files\MAVLinkSDK', 'includepath', 'C:\Program Files (x86)\MAVLinkSDK', 'includepath', 'MAVLinkSDK')
+        loadlibrary('hardwarex', 'hardwarex.h', 'notempdir', 'includepath', 'MAVLinkSDK', 'includepath', 'C:\Program Files\MAVLinkSDK', 'includepath', 'C:\Program Files (x86)\MAVLinkSDK', 'includepath', 'SBG Systems\Inertial SDK\Software Development\sbgECom\src', 'includepath', 'SBG Systems\Inertial SDK\Software Development\sbgECom\common', 'includepath', 'C:\Program Files\SBG Systems\Inertial SDK\Software Development\sbgECom\src', 'includepath', 'C:\Program Files\SBG Systems\Inertial SDK\Software Development\sbgECom\common', 'includepath', 'C:\Program Files (x86)\SBG Systems\Inertial SDK\Software Development\sbgECom\src', 'includepath', 'C:\Program Files (x86)\SBG Systems\Inertial SDK\Software Development\sbgECom\common');
     case 'PCWIN'
-        loadlibrary('hardwarex', 'hardwarex.h', 'notempdir', 'includepath', 'C:\Program Files\MAVLinkSDK', 'includepath', 'C:\Program Files (x86)\MAVLinkSDK', 'includepath', 'MAVLinkSDK')
+        addpath('x86');
+        loadlibrary('hardwarex', 'hardwarex.h', 'notempdir', 'includepath', 'MAVLinkSDK', 'includepath', 'C:\Program Files\MAVLinkSDK', 'includepath', 'C:\Program Files (x86)\MAVLinkSDK', 'includepath', 'SBG Systems\Inertial SDK\Software Development\sbgECom\src', 'includepath', 'SBG Systems\Inertial SDK\Software Development\sbgECom\common', 'includepath', 'C:\Program Files\SBG Systems\Inertial SDK\Software Development\sbgECom\src', 'includepath', 'C:\Program Files\SBG Systems\Inertial SDK\Software Development\sbgECom\common', 'includepath', 'C:\Program Files (x86)\SBG Systems\Inertial SDK\Software Development\sbgECom\src', 'includepath', 'C:\Program Files (x86)\SBG Systems\Inertial SDK\Software Development\sbgECom\common');
     otherwise
-        loadlibrary('hardwarex', 'hardwarex.h', 'notempdir', 'includepath', 'MAVLinkSDK')
+        loadlibrary('hardwarex', 'hardwarex.h', 'notempdir', 'includepath', 'MAVLinkSDK', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/src', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/common');
 end
 %libfunctions hardwarex -full

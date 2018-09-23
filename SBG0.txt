@@ -1,0 +1,31 @@
+% Server TCP port (e.g. :4001), client IP address and TCP port (e.g. 127.0.0.1:4001) or local RS232 port
+%127.0.0.1:4007
+COM5
+%/dev/ttyUSB0
+% BaudRate
+115200
+%921600
+% Timeout (in ms)
+1000
+% bSaveRawData
+0
+% gpsaccuracythreshold (in m)
+10.0
+% rollorientation (in rad)
+0.0
+% rollp1
+0.0
+% rollp2
+0.0
+% pitchorientation (in rad)
+0.0
+% pitchp1
+0.0
+% pitchp2
+0.0
+% yaworientation (in rad)
+0
+% yawp1
+0
+% yawp2
+0

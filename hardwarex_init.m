@@ -4,16 +4,19 @@
 % unloadlibrary('hardwarex');
 % at the end (this will not be done automatically, unloadlibrary might fail if all the variables that use types from the library are not removed using clean...).
 if not(libisloaded('hardwarex'))
+    addpath('.');
     switch (computer)
         case 'PCWIN64'
+            addpath('x64');
             %loadlibrary('hardwarex', @hardwarex_proto);
-            loadlibrary('hardwarex', @hardwarex_proto, 'includepath', 'C:\Program Files\MAVLinkSDK', 'includepath', 'C:\Program Files (x86)\MAVLinkSDK', 'includepath', 'MAVLinkSDK');
+            [notfound,warnings]=loadlibrary('hardwarex', @hardwarex_proto);
         case 'PCWIN'
+            addpath('x86');
             %loadlibrary('hardwarex');
-            loadlibrary('hardwarex', 'hardwarex.h', 'includepath', 'C:\Program Files\MAVLinkSDK', 'includepath', 'C:\Program Files (x86)\MAVLinkSDK', 'includepath', 'MAVLinkSDK');
+            [notfound,warnings]=loadlibrary('hardwarex', @hardwarex_proto);
         otherwise
             %loadlibrary('hardwarex');
-            loadlibrary('hardwarex', 'hardwarex.h', 'includepath', 'MAVLinkSDK');
+            [notfound,warnings]=loadlibrary('hardwarex', 'hardwarex.h', 'includepath', 'MAVLinkSDK', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/src', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/common');
     end
     %libfunctions hardwarex -full
 end

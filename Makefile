@@ -21,7 +21,6 @@
 # to force it to run using the system default version of the C++ Standard Library (otherwise MATLAB might use its 
 # own version, which is likely to be different from the one used when you built the shared libraries)...
 #
-# In MATLAB, go to File\Set Path...\Add Folder... and add this folder.
 # Check test_XXX.m files for usage information.
 
 # Change here depending on your OS (.so for Linux, .dylib for Mac).
@@ -37,14 +36,20 @@ CFLAGS += -g
 CFLAGS += -Wall -Wno-unknown-pragmas
 #CFLAGS += -Wextra -Winline
 
-CFLAGS += -I. -I.. -IMAVLinkSDK
 CFLAGS += -DDISABLE_AIS_SUPPORT
+
+CFLAGS += -I. -I..
+CFLAGS += -IMAVLinkSDK
+CFLAGS += -IsbgECom/src -IsbgECom/common 
+CFLAGS += -I/usr/local/include/sbgECom/src -I/usr/local/include/sbgECom/common 
 
 # Depending on your OS (old Linux or Mac)...
 #CFLAGS += -DUSE_OLD_CHRONO
 
 CXXFLAGS += $(CFLAGS) -fpermissive
 
+#LDFLAGS += -static-libgcc -static-libstdc++ -static
+#LDFLAGS += -lsbgECom
 LDFLAGS += -lrt -lm
 LDFLAGS += -lpthread -lrt -lm
 
@@ -75,7 +80,7 @@ OSTime.o: OSTime.c OSTime.h OSCore.o
 
 ############################# PROGS #############################
 
-hardwarex.o: hardwarex.cpp hardwarex.h OSNet.h OSComputerRS232Port.h OSMisc.h OSTime.h OSThread.o OSCriticalSection.h OSCore.h Hokuyo.h MAVLinkDevice.h MAVLinkProtocol.h MT.h NMEADevice.h NMEAProtocol.h Pololu.h RazorAHRS.h RPLIDAR.h RS232Port.h SSC32.h ublox.h UBXProtocol.h
+hardwarex.o: hardwarex.cpp hardwarex.h OSNet.h OSComputerRS232Port.h OSMisc.h OSTime.h OSThread.o OSCriticalSection.h OSCore.h Hokuyo.h MAVLinkDevice.h MAVLinkProtocol.h MT.h NMEADevice.h NMEAProtocol.h Pololu.h RazorAHRS.h RPLIDAR.h RS232Port.h SBG.h SSC32.h ublox.h UBXProtocol.h
 	$(CXX) $(CXXFLAGS) -c $<
 
 $(LIB): hardwarex.o OSNet.o OSComputerRS232Port.o OSMisc.o OSTime.o OSThread.o OSCriticalSection.o OSCore.o
