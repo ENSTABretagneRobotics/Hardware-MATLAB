@@ -143,8 +143,12 @@ extern "C" {
 
 	HARDWAREX_API SSC32* CreateSSC32x(void);
 	HARDWAREX_API void DestroySSC32x(SSC32* pSSC32);
+	HARDWAREX_API int GetVoltageSSC32x(SSC32* pSSC32, int channel, double* pVoltage);
+	HARDWAREX_API int GetDigitalInputSSC32x(SSC32* pSSC32, int channel, int* pValue);
+	HARDWAREX_API int GetPWMSSC32x(SSC32* pSSC32, int channel, int* pPw);
 	HARDWAREX_API int SetPWMSSC32x(SSC32* pSSC32, int channel, int pw);
 	HARDWAREX_API int SetAllPWMsSSC32x(SSC32* pSSC32, int* selectedchannels, int* pws);
+	HARDWAREX_API int SetDigitalOutputSSC32x(SSC32* pSSC32, int channel, int value);
 	HARDWAREX_API int ConnectSSC32x(SSC32* pSSC32, char* szCfgFilePath);
 	HARDWAREX_API int DisconnectSSC32x(SSC32* pSSC32);
 	HARDWAREX_API int SetAllPWMsFromThreadSSC32x(SSC32* pSSC32, int* selectedchannels, int* pws);
@@ -156,6 +160,7 @@ extern "C" {
 	HARDWAREX_API int GetValuePololux(POLOLU* pPololu, int channel, int* pValue);
 	HARDWAREX_API int SetPWMPololux(POLOLU* pPololu, int channel, int pw);
 	HARDWAREX_API int SetAllPWMsPololux(POLOLU* pPololu, int* selectedchannels, int* pws);
+	HARDWAREX_API int SetPWMJrkPololux(POLOLU* pPololu, int pw);
 	HARDWAREX_API int ConnectPololux(POLOLU* pPololu, char* szCfgFilePath);
 	HARDWAREX_API int DisconnectPololux(POLOLU* pPololu);
 	HARDWAREX_API int SetAllPWMsFromThreadPololux(POLOLU* pPololu, int* selectedchannels, int* pws);
