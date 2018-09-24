@@ -18,7 +18,7 @@ Hardware support :
 - MAVLinkDevice (see `mavlink_sbg_support` folder if needed to rebuild) : ArduPilot/ArduFlyer/HKPilot Mega (APM 2.5), PX4FLOW.
 - MT : Xsens MTi, MTi-G AHRS.
 - NMEADevice (superseded by ublox) : GPS, Furuno WS200 weather station.
-- Pololu : Pololu Mini Maestro 6, 18, 24 servo controllers, Pololu Jrk (preliminary support).
+- Pololu : Pololu Mini Maestro 6, 18, 24 servo controllers.
 - RazorAHRS : SparkFun 9DOF Razor IMU (flash firmware from https://github.com/lebarsfa/razor-9dof-ahrs if needed).
 - RPLIDAR : RPLIDAR A1 and A2 laser telemeters.
 - SBG (see `mavlink_sbg_support` folder if needed to rebuild) : SBG Systems Ellipse AHRS.
