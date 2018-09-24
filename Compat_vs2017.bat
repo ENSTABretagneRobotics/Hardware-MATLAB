@@ -14,8 +14,8 @@
 @replaceinfile /infile hardwarex.h /outfile "%TMP%\hardwarex\hardwarex.h" /searchstr "#define ENABLE_MAVLINK_SUPPORT" /replacestr "//#define ENABLE_MAVLINK_SUPPORT"
 @copy /Y /B "%TMP%\hardwarex\hardwarex.h" hardwarex.h
 
-@replaceinfile /infile hardwarex.vcxproj /outfile "%TMP%\hardwarex\hardwarex.vcxproj" /searchstr ";ENABLE_MAVLINK_SUPPORT" /replacestr ""
-@copy /Y /B "%TMP%\hardwarex\hardwarex.vcxproj" hardwarex.vcxproj
+@rem replaceinfile /infile hardwarex.vcxproj /outfile "%TMP%\hardwarex\hardwarex.vcxproj" /searchstr ";ENABLE_MAVLINK_SUPPORT" /replacestr ""
+@rem copy /Y /B "%TMP%\hardwarex\hardwarex.vcxproj" hardwarex.vcxproj
 
 @replaceinfile /infile hardwarex.vcxproj /outfile "%TMP%\hardwarex\hardwarex.vcxproj" /searchstr ";MAVLinkSDK;$(ProgramFiles)\MAVLinkSDK" /replacestr ""
 @copy /Y /B "%TMP%\hardwarex\hardwarex.vcxproj" hardwarex.vcxproj
@@ -31,8 +31,8 @@
 @replaceinfile /infile hardwarex.h /outfile "%TMP%\hardwarex\hardwarex.h" /searchstr "#define ENABLE_SBG_SUPPORT" /replacestr "//#define ENABLE_SBG_SUPPORT"
 @copy /Y /B "%TMP%\hardwarex\hardwarex.h" hardwarex.h
 
-@replaceinfile /infile hardwarex.vcxproj /outfile "%TMP%\hardwarex\hardwarex.vcxproj" /searchstr ";ENABLE_SBG_SUPPORT" /replacestr ""
-@copy /Y /B "%TMP%\hardwarex\hardwarex.vcxproj" hardwarex.vcxproj
+@rem replaceinfile /infile hardwarex.vcxproj /outfile "%TMP%\hardwarex\hardwarex.vcxproj" /searchstr ";ENABLE_SBG_SUPPORT" /replacestr ""
+@rem copy /Y /B "%TMP%\hardwarex\hardwarex.vcxproj" hardwarex.vcxproj
 
 @replaceinfile /infile hardwarex.vcxproj /outfile "%TMP%\hardwarex\hardwarex.vcxproj" /searchstr ";SBG Systems\Inertial SDK\Software Development\sbgECom\src;SBG Systems\Inertial SDK\Software Development\sbgECom\common;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\src;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\common" /replacestr ""
 @copy /Y /B "%TMP%\hardwarex\hardwarex.vcxproj" hardwarex.vcxproj

@@ -18,6 +18,6 @@ switch (computer)
         addpath('x86');
         loadlibrary('hardwarex', 'hardwarex.h', 'notempdir', 'includepath', 'MAVLinkSDK', 'includepath', 'C:\Program Files\MAVLinkSDK', 'includepath', 'C:\Program Files (x86)\MAVLinkSDK', 'includepath', 'SBG Systems\Inertial SDK\Software Development\sbgECom\src', 'includepath', 'SBG Systems\Inertial SDK\Software Development\sbgECom\common', 'includepath', 'C:\Program Files\SBG Systems\Inertial SDK\Software Development\sbgECom\src', 'includepath', 'C:\Program Files\SBG Systems\Inertial SDK\Software Development\sbgECom\common', 'includepath', 'C:\Program Files (x86)\SBG Systems\Inertial SDK\Software Development\sbgECom\src', 'includepath', 'C:\Program Files (x86)\SBG Systems\Inertial SDK\Software Development\sbgECom\common');
     otherwise
-        loadlibrary('hardwarex', 'hardwarex.h', 'notempdir', 'includepath', 'MAVLinkSDK', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/src', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/common');
+        loadlibrary('hardwarex', 'hardwarex.h', 'notempdir', 'includepath', 'MAVLinkSDK', 'includepath', 'sbgECom/src', 'includepath', 'sbgECom/common', 'includepath', '/usr/local/include/sbgECom/src', 'includepath', '/usr/local/include/sbgECom/common');
 end
 %libfunctions hardwarex -full

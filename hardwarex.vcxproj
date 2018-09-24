@@ -90,7 +90,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>.;..;MAVLinkSDK;$(ProgramFiles)\MAVLinkSDK;SBG Systems\Inertial SDK\Software Development\sbgECom\src;SBG Systems\Inertial SDK\Software Development\sbgECom\common;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\src;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;ENABLE_SBG_SUPPORT;ENABLE_MAVLINK_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -118,7 +118,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>.;..;MAVLinkSDK;$(ProgramFiles)\MAVLinkSDK;SBG Systems\Inertial SDK\Software Development\sbgECom\src;SBG Systems\Inertial SDK\Software Development\sbgECom\common;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\src;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;ENABLE_SBG_SUPPORT;ENABLE_MAVLINK_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -140,7 +140,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;ENABLE_SBG_SUPPORT;ENABLE_MAVLINK_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
@@ -166,7 +166,7 @@
     </Midl>
     <ClCompile>
       <AdditionalIncludeDirectories>.;..;MAVLinkSDK;$(ProgramFiles)\MAVLinkSDK;SBG Systems\Inertial SDK\Software Development\sbgECom\src;SBG Systems\Inertial SDK\Software Development\sbgECom\common;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\src;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;ENABLE_SBG_SUPPORT;ENABLE_MAVLINK_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>

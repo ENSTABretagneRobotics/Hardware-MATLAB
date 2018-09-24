@@ -16,7 +16,7 @@ if not(libisloaded('hardwarex'))
             [notfound,warnings]=loadlibrary('hardwarex', @hardwarex_proto);
         otherwise
             %loadlibrary('hardwarex');
-            [notfound,warnings]=loadlibrary('hardwarex', 'hardwarex.h', 'includepath', 'MAVLinkSDK', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/src', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/common');
+            [notfound,warnings]=loadlibrary('hardwarex', 'hardwarex.h', 'includepath', 'MAVLinkSDK', 'includepath', 'sbgECom/src', 'includepath', 'sbgECom/common', 'includepath', '/usr/local/include/sbgECom/src', 'includepath', '/usr/local/include/sbgECom/common');
     end
     %libfunctions hardwarex -full
 end

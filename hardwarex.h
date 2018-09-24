@@ -12,10 +12,10 @@
 #endif // _WIN32
 
 // Uncomment the following line to enable SBG in MATLAB (requires corresponding SDK...).
-#define ENABLE_SBG_SUPPORT
+//#define ENABLE_SBG_SUPPORT
 
 // Uncomment the following line to enable MAVLink in MATLAB (requires corresponding headers and needs Visual Studio 2013 or later (to set in mex -setup and mex -setup C++)...).
-#define ENABLE_MAVLINK_SUPPORT
+//#define ENABLE_MAVLINK_SUPPORT
 
 //#ifndef DISABLE_THREADS_OSNET
 //#define DISABLE_THREADS_OSNET
