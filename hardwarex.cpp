@@ -40,7 +40,7 @@ THREAD_IDENTIFIER PololuThreadId;
 CRITICAL_SECTION PololuCS;
 int selectedchannelsPololu[NB_CHANNELS_PWM_POLOLU];
 int pwsPololu[NB_CHANNELS_PWM_POLOLU];
-int valuePololu = 0;
+int valuesPololu[NB_CHANNELS_POLOLU];
 BOOL bExitPololu = FALSE;
 
 THREAD_IDENTIFIER HokuyoThreadId;
@@ -613,14 +613,16 @@ THREAD_PROC_RETURN_VALUE SSC32Thread(void* pParam)
 	int selectedchannels[NB_CHANNELS_PWM_SSC32];
 	int pws[NB_CHANNELS_PWM_SSC32];
 
+	mSleep(25);
+
 	for (;;)
 	{
-		mSleep(50);
 		EnterCriticalSection(&SSC32CS);
 		memcpy(selectedchannels, selectedchannelsSSC32, NB_CHANNELS_PWM_SSC32*sizeof(int));
 		memcpy(pws, pwsSSC32, NB_CHANNELS_PWM_SSC32*sizeof(int));
 		LeaveCriticalSection(&SSC32CS);
 		SetAllPWMsSSC32(pSSC32, selectedchannels, pws);
+		mSleep(25);
 		if (bExitSSC32) break;
 	}
 
@@ -707,21 +709,88 @@ THREAD_PROC_RETURN_VALUE PololuThread(void* pParam)
 	int pws[NB_CHANNELS_PWM_POLOLU];
 	int value = 0;
 
+	memset(valuesPololu, 0, NB_CHANNELS_POLOLU*sizeof(int));
+	
+	mSleep(25);
+
 	for (;;)
 	{
-		mSleep(25);
 		EnterCriticalSection(&PololuCS);
 		memcpy(selectedchannels, selectedchannelsPololu, NB_CHANNELS_PWM_POLOLU*sizeof(int));
 		memcpy(pws, pwsPololu, NB_CHANNELS_PWM_POLOLU*sizeof(int));
 		LeaveCriticalSection(&PololuCS);
 		SetAllPWMsPololu(pPololu, selectedchannels, pws);
-		mSleep(25);
-		// Channel 11...
-		value = 0;
-		GetValuePololu(pPololu, 11, &value);
-		EnterCriticalSection(&PololuCS);
-		valuePololu = value;
-		LeaveCriticalSection(&PololuCS);
+		mSleep(10);
+		if (pPololu->winddiranaloginputchan != -1)
+		{
+			value = 0;
+			GetValuePololu(pPololu, pPololu->winddiranaloginputchan, &value);
+			mSleep(10);
+			EnterCriticalSection(&PololuCS);
+			valuesPololu[pPololu->winddiranaloginputchan] = value;
+			LeaveCriticalSection(&PololuCS);
+		}
+		//else mSleep(10);
+		if (pPololu->windspeedanaloginputchan != -1)
+		{
+			value = 0;
+			GetValuePololu(pPololu, pPololu->windspeedanaloginputchan, &value);
+			mSleep(10);
+			EnterCriticalSection(&PololuCS);
+			valuesPololu[pPololu->windspeedanaloginputchan] = value;
+			LeaveCriticalSection(&PololuCS);
+		}
+		//else mSleep(10);
+		if (pPololu->vbat1analoginputchan != -1)
+		{
+			value = 0;
+			GetValuePololu(pPololu, pPololu->vbat1analoginputchan, &value);
+			mSleep(10);
+			EnterCriticalSection(&PololuCS);
+			valuesPololu[pPololu->vbat1analoginputchan] = value;
+			LeaveCriticalSection(&PololuCS);
+		}
+		//else mSleep(10);
+		if (pPololu->ibat1analoginputchan != -1)
+		{
+			value = 0;
+			GetValuePololu(pPololu, pPololu->ibat1analoginputchan, &value);
+			mSleep(10);
+			EnterCriticalSection(&PololuCS);
+			valuesPololu[pPololu->ibat1analoginputchan] = value;
+			LeaveCriticalSection(&PololuCS);
+		}
+		//else mSleep(10);
+		if (pPololu->vbat2analoginputchan != -1)
+		{
+			value = 0;
+			GetValuePololu(pPololu, pPololu->vbat2analoginputchan, &value);
+			mSleep(10);
+			EnterCriticalSection(&PololuCS);
+			valuesPololu[pPololu->vbat2analoginputchan] = value;
+			LeaveCriticalSection(&PololuCS);
+		}
+		//else mSleep(10);
+		if (pPololu->ibat2analoginputchan != -1)
+		{
+			value = 0;
+			GetValuePololu(pPololu, pPololu->ibat2analoginputchan, &value);
+			mSleep(10);
+			EnterCriticalSection(&PololuCS);
+			valuesPololu[pPololu->ibat2analoginputchan] = value;
+			LeaveCriticalSection(&PololuCS);
+		}
+		//else mSleep(10);
+		if (pPololu->switchanaloginputchan != -1)
+		{
+			value = 0;
+			GetValuePololu(pPololu, pPololu->switchanaloginputchan, &value);
+			mSleep(10);
+			EnterCriticalSection(&PololuCS);
+			valuesPololu[pPololu->switchanaloginputchan] = value;
+			LeaveCriticalSection(&PololuCS);
+		}
+		//else mSleep(10);
 		if (bExitPololu) break;
 	}
 
@@ -745,12 +814,11 @@ HARDWAREX_API int SetAllPWMsFromThreadPololux(POLOLU* pPololu, int* selectedchan
 HARDWAREX_API int GetValueFromThreadPololux(POLOLU* pPololu, int channel, int* pValue)
 {
 	UNREFERENCED_PARAMETER(pPololu);
-	UNREFERENCED_PARAMETER(channel);
 
 	// id[pPololu->szCfgFile] to be able to handle several devices...
 
 	EnterCriticalSection(&PololuCS);
-	*pValue = valuePololu;
+	if ((channel >= 0)&&(channel < NB_CHANNELS_POLOLU)) *pValue = valuesPololu[channel];	
 	LeaveCriticalSection(&PololuCS);
 
 	return EXIT_SUCCESS;

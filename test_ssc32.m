@@ -4,12 +4,19 @@ pSSC32 = CreateSSC32();
 [result] = ConnectSSC32(pSSC32, 'SSC320.txt')
 %pSSC32.value
 
+pause(0.1);
+[result] = SetPWMSSC32(pSSC32, 0, 1350);
+pause(0.1);
 nbchannels = 32;
-selectedchannels = zeros(nbchannels);
+selectedchannels = zeros(nbchannels,1);
 selectedchannels(1) = 1; selectedchannels(2) = 1; selectedchannels(3) = 1;
-pws = zeros(nbchannels);
+pws = zeros(nbchannels,1);
 pws(1) = 1000; pws(2) = 2000; pws(3) = 1000;
 [result] = SetAllPWMsSSC32(pSSC32, selectedchannels, pws);
+pause(0.1);
+[result, value] = GetVoltageSSC32(pSSC32, 0);
+str = sprintf('value = %d\n', value);
+disp(str);
 
 fig = figure('Position',[200 200 400 100],'NumberTitle','off');
 % Force the figure to have input focus (required to capture keys).

@@ -4,12 +4,16 @@ pPololu = CreatePololu();
 [result] = ConnectPololu(pPololu, 'Pololu0.txt')
 %pPololu.value
 
+pause(0.1);
+[result] = SetPWMPololu(pPololu, 0, 1350);
+pause(0.5);
 nbchannels = 24;
-selectedchannels = zeros(nbchannels);
+selectedchannels = zeros(nbchannels,1);
 selectedchannels(1) = 1; selectedchannels(2) = 1; selectedchannels(3) = 1;
-pws = zeros(nbchannels);
+pws = zeros(nbchannels,1);
 pws(1) = 1000; pws(2) = 2000; pws(3) = 1000;
 [result] = SetAllPWMsPololu(pPololu, selectedchannels, pws);
+pause(0.1);
 [result, value] = GetValuePololu(pPololu, 11);
 str = sprintf('value = %d\n', value);
 disp(str);

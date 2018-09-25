@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Input Files">
+      <UniqueIdentifier>{6e86b910-ebcd-4cc5-8916-2b62d88349c6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hardwarex.cpp">
@@ -114,5 +117,35 @@
   <ItemGroup>
     <Text Include="ReadMe.txt" />
     <Text Include="TODO.txt" />
+    <Text Include="Hokuyo0.txt">
+      <Filter>Input Files</Filter>
+    </Text>
+    <Text Include="MAVLinkDevice0.txt">
+      <Filter>Input Files</Filter>
+    </Text>
+    <Text Include="MT0.txt">
+      <Filter>Input Files</Filter>
+    </Text>
+    <Text Include="NMEADevice0.txt">
+      <Filter>Input Files</Filter>
+    </Text>
+    <Text Include="Pololu0.txt">
+      <Filter>Input Files</Filter>
+    </Text>
+    <Text Include="RazorAHRS0.txt">
+      <Filter>Input Files</Filter>
+    </Text>
+    <Text Include="RPLIDAR0.txt">
+      <Filter>Input Files</Filter>
+    </Text>
+    <Text Include="SBG0.txt">
+      <Filter>Input Files</Filter>
+    </Text>
+    <Text Include="SSC320.txt">
+      <Filter>Input Files</Filter>
+    </Text>
+    <Text Include="ublox0.txt">
+      <Filter>Input Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

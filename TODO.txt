@@ -5,6 +5,8 @@ RPLIDAR : Ne marche même pas avec appli du fabricant parfois, on peut pas renomm
 
 cmake?
 
+For rebuild, always check defines (to reset after build), mavlink version, update proto.m...
+
 Problème parsing UBXProtocol.h (bitfields?) : éditer manuellement hardwarex_proto.m, faire un ifdef spécial cas MATLAB...?
 http://fr.mathworks.com/help/matlab/matlab_external/limitations-to-shared-library-support.html
 

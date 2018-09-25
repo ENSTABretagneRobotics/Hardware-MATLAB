@@ -223,8 +223,18 @@
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="Hokuyo0.txt" />
+    <Text Include="MAVLinkDevice0.txt" />
+    <Text Include="MT0.txt" />
+    <Text Include="NMEADevice0.txt" />
+    <Text Include="Pololu0.txt" />
+    <Text Include="RazorAHRS0.txt" />
     <Text Include="ReadMe.txt" />
+    <Text Include="RPLIDAR0.txt" />
+    <Text Include="SBG0.txt" />
+    <Text Include="SSC320.txt" />
     <Text Include="TODO.txt" />
+    <Text Include="ublox0.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
