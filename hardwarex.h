@@ -25,15 +25,24 @@
 #ifndef DISABLE_HOKUYOTHREAD
 #define DISABLE_HOKUYOTHREAD
 #endif // !DISABLE_HOKUYOTHREAD
+#ifndef DISABLE_IM483ITHREAD
+#define DISABLE_IM483ITHREAD
+#endif // !DISABLE_IM483ITHREAD
 #ifndef DISABLE_MAVLINKDEVICETHREAD
 #define DISABLE_MAVLINKDEVICETHREAD
 #endif // !DISABLE_MAVLINKDEVICETHREAD
+#ifndef DISABLE_MDMTHREAD
+#define DISABLE_MDMTHREAD
+#endif // !DISABLE_MDMTHREAD
 #ifndef DISABLE_MTTHREAD
 #define DISABLE_MTTHREAD
 #endif // !DISABLE_MTTHREAD
 #ifndef DISABLE_NMEADEVICETHREAD
 #define DISABLE_NMEADEVICETHREAD
 #endif // !DISABLE_NMEADEVICETHREAD
+#ifndef DISABLE_P33XTHREAD
+#define DISABLE_P33XTHREAD
+#endif // !DISABLE_P33XTHREAD
 #ifndef DISABLE_POLOLUTHREAD
 #define DISABLE_POLOLUTHREAD
 #endif // !DISABLE_POLOLUTHREAD
@@ -66,8 +75,11 @@
 #endif // ENABLE_SBG_SUPPORT
 #include "MT.h"
 #include "RazorAHRS.h"
+#include "MDM.h"
+#include "P33x.h"
 #include "NMEADevice.h"
 #include "ublox.h"
+#include "IM483I.h"
 #include "SSC32.h"
 #include "Pololu.h"
 #include "Hokuyo.h"
@@ -115,6 +127,25 @@ extern "C" {
 	HARDWAREX_API int StartThreadRazorAHRSx(RAZORAHRS* pRazorAHRS);
 	HARDWAREX_API int StopThreadRazorAHRSx(RAZORAHRS* pRazorAHRS);
 
+	HARDWAREX_API MDM* CreateMDMx(void);
+	HARDWAREX_API void DestroyMDMx(MDM* pMDM);
+	HARDWAREX_API int SendDataMDMx(MDM* pMDM, unsigned char* buf, int buflen, int* pSentBytes);
+	HARDWAREX_API int RecvDataMDMx(MDM* pMDM, unsigned char* buf, int buflen, int* pReceivedBytes);
+	HARDWAREX_API int PurgeDataMDMx(MDM* pMDM);
+	HARDWAREX_API int ConnectMDMx(MDM* pMDM, char* szCfgFilePath);
+	HARDWAREX_API int DisconnectMDMx(MDM* pMDM);
+
+	HARDWAREX_API P33X* CreateP33xx(void);
+	HARDWAREX_API void DestroyP33xx(P33X* pP33x);
+	HARDWAREX_API int GetPressureP33xx(P33X* pP33x, double* pPressure);
+	HARDWAREX_API int GetTemperatureP33xx(P33X* pP33x, double* pTemperature);
+	HARDWAREX_API int ConnectP33xx(P33X* pP33x, char* szCfgFilePath);
+	HARDWAREX_API int DisconnectP33xx(P33X* pP33x);
+	HARDWAREX_API int GetPressureFromThreadP33xx(P33X* pP33x, double* pPressure);
+	HARDWAREX_API int GetTemperatureFromThreadP33xx(P33X* pP33x, double* pTemperature);
+	HARDWAREX_API int StartThreadP33xx(P33X* pP33x);
+	HARDWAREX_API int StopThreadP33xx(P33X* pP33x);
+
 	HARDWAREX_API NMEADEVICE* CreateNMEADevicex(void);
 	HARDWAREX_API void DestroyNMEADevicex(NMEADEVICE* pNMEADevice);
 	HARDWAREX_API NMEADATA* CreateNMEADatax(void);
@@ -141,6 +172,19 @@ extern "C" {
 	HARDWAREX_API int StartUBXThreadubloxx(UBLOX* publox);
 	HARDWAREX_API int StopUBXThreadubloxx(UBLOX* publox);
 
+	HARDWAREX_API IM483I* CreateIM483Ix(void);
+	HARDWAREX_API void DestroyIM483Ix(IM483I* pIM483I);
+	HARDWAREX_API int SetMotorTorqueIM483Ix(IM483I* pIM483I, int percent);
+	HARDWAREX_API int SetMotorSpeedIM483Ix(IM483I* pIM483I, int val);
+	HARDWAREX_API int SetMotorOriginIM483Ix(IM483I* pIM483I);
+	HARDWAREX_API int SetMaxAngleIM483Ix(IM483I* pIM483I, double angle);
+	HARDWAREX_API int CalibrateMotorIM483Ix(IM483I* pIM483I);
+	HARDWAREX_API int ConnectIM483Ix(IM483I* pIM483I, char* szCfgFilePath);
+	HARDWAREX_API int DisconnectIM483Ix(IM483I* pIM483I);
+	HARDWAREX_API int SetMaxAngleFromThreadIM483Ix(IM483I* pIM483I, double angle);
+	HARDWAREX_API int StartThreadIM483Ix(IM483I* pIM483I);
+	HARDWAREX_API int StopThreadIM483Ix(IM483I* pIM483I);
+
 	HARDWAREX_API SSC32* CreateSSC32x(void);
 	HARDWAREX_API void DestroySSC32x(SSC32* pSSC32);
 	HARDWAREX_API int GetVoltageSSC32x(SSC32* pSSC32, int channel, double* pVoltage);
@@ -158,6 +202,7 @@ extern "C" {
 	HARDWAREX_API POLOLU* CreatePololux(void);
 	HARDWAREX_API void DestroyPololux(POLOLU* pPololu);
 	HARDWAREX_API int GetValuePololux(POLOLU* pPololu, int channel, int* pValue);
+	HARDWAREX_API int GetAllValuesPololux(POLOLU* pPololu, int* selectedchannels, int* ais);
 	HARDWAREX_API int SetPWMPololux(POLOLU* pPololu, int channel, int pw);
 	HARDWAREX_API int SetAllPWMsPololux(POLOLU* pPololu, int* selectedchannels, int* pws);
 	HARDWAREX_API int SetPWMJrkPololux(POLOLU* pPololu, int pw);

@@ -17,6 +17,14 @@ CRITICAL_SECTION RazorAHRSCS;
 RAZORAHRSDATA razorahrsdataRazorAHRS;
 BOOL bExitRazorAHRS = FALSE;
 
+// No thread yet for MDM...
+
+THREAD_IDENTIFIER P33xThreadId;
+CRITICAL_SECTION P33xCS;
+double pressureP33x = 0;
+double temperatureP33x = 0;
+BOOL bExitP33x = FALSE;
+
 THREAD_IDENTIFIER NMEADeviceThreadId;
 CRITICAL_SECTION NMEADeviceCS;
 NMEADATA nmeadataNMEADevice;
@@ -29,6 +37,11 @@ NMEADATA nmeadataublox;
 UBXDATA ubxdataublox;
 BOOL bExitNMEAublox = FALSE;
 BOOL bExitUBXublox = FALSE;
+
+THREAD_IDENTIFIER IM483IThreadId;
+CRITICAL_SECTION IM483ICS;
+double angleIM483I = 0;
+BOOL bExitIM483I = FALSE;
 
 THREAD_IDENTIFIER SSC32ThreadId;
 CRITICAL_SECTION SSC32CS;
@@ -114,7 +127,7 @@ THREAD_PROC_RETURN_VALUE SBGThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(100);
+		mSleep(50);
 		memset(&sbgdata, 0, sizeof(SBGDATA));
 		GetLatestDataSBG(pSBG, &sbgdata);
 		EnterCriticalSection(&SBGCS);
@@ -201,7 +214,7 @@ THREAD_PROC_RETURN_VALUE MTThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(100);
+		mSleep(50);
 		memset(&mtdata, 0, sizeof(MTDATA));
 		GetLatestDataMT(pMT, &mtdata);
 		EnterCriticalSection(&MTCS);
@@ -287,7 +300,7 @@ THREAD_PROC_RETURN_VALUE RazorAHRSThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(100);
+		mSleep(50);
 		memset(&razorahrsdata, 0, sizeof(RAZORAHRSDATA));
 		GetLatestDataRazorAHRS(pRazorAHRS, &razorahrsdata);
 		EnterCriticalSection(&RazorAHRSCS);
@@ -326,6 +339,141 @@ HARDWAREX_API int StopThreadRazorAHRSx(RAZORAHRS* pRazorAHRS)
 	bExitRazorAHRS = TRUE;
 	WaitForThread(RazorAHRSThreadId);
 	DeleteCriticalSection(&RazorAHRSCS);
+	return EXIT_SUCCESS;
+}
+#pragma endregion
+
+#pragma region MDM
+HARDWAREX_API MDM* CreateMDMx(void)
+{
+	return (MDM*)calloc(1, sizeof(MDM));
+}
+
+HARDWAREX_API void DestroyMDMx(MDM* pMDM)
+{
+	return free(pMDM);
+}
+
+HARDWAREX_API int SendDataMDMx(MDM* pMDM, unsigned char* buf, int buflen, int* pSentBytes)
+{
+	return SendDataMDM(pMDM, buf, buflen, pSentBytes);
+}
+
+HARDWAREX_API int RecvDataMDMx(MDM* pMDM, unsigned char* buf, int buflen, int* pReceivedBytes)
+{
+	return RecvDataMDM(pMDM, buf, buflen, pReceivedBytes);
+}
+
+HARDWAREX_API int PurgeDataMDMx(MDM* pMDM)
+{
+	return PurgeDataMDM(pMDM);
+}
+
+HARDWAREX_API int ConnectMDMx(MDM* pMDM, char* szCfgFilePath)
+{
+	return ConnectMDM(pMDM, szCfgFilePath);
+}
+
+HARDWAREX_API int DisconnectMDMx(MDM* pMDM)
+{
+	return DisconnectMDM(pMDM);
+}
+#pragma endregion
+
+#pragma region P33x
+HARDWAREX_API P33X* CreateP33xx(void)
+{
+	return (P33X*)calloc(1, sizeof(P33X));
+}
+
+HARDWAREX_API void DestroyP33xx(P33X* pP33x)
+{
+	return free(pP33x);
+}
+
+HARDWAREX_API int GetPressureP33xx(P33X* pP33x, double* pPressure)
+{
+	return GetPressureP33x(pP33x, pPressure);
+}
+
+HARDWAREX_API int GetTemperatureP33xx(P33X* pP33x, double* pTemperature)
+{
+	return GetTemperatureP33x(pP33x, pTemperature);
+}
+
+HARDWAREX_API int ConnectP33xx(P33X* pP33x, char* szCfgFilePath)
+{
+	return ConnectP33x(pP33x, szCfgFilePath);
+}
+
+HARDWAREX_API int DisconnectP33xx(P33X* pP33x)
+{
+	return DisconnectP33x(pP33x);
+}
+
+THREAD_PROC_RETURN_VALUE P33xThread(void* pParam)
+{
+	P33X* pP33x = (P33X*)pParam;
+	double pressure = 0, temperature = 0;
+
+	for (;;)
+	{
+		mSleep(25);
+		pressure = 0;
+		GetPressureP33x(pP33x, &pressure);
+		mSleep(25);
+		temperature = 0;
+		GetTemperatureP33x(pP33x, &temperature);
+		EnterCriticalSection(&P33xCS);
+		pressureP33x = pressure;
+		temperatureP33x = temperature;
+		LeaveCriticalSection(&P33xCS);
+		if (bExitP33x) break;
+	}
+
+	return 0;
+}
+
+HARDWAREX_API int GetPressureFromThreadP33xx(P33X* pP33x, double* pPressure)
+{
+	UNREFERENCED_PARAMETER(pP33x);
+
+	// id[pP33x->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&P33xCS);
+	*pPressure = pressureP33x;
+	LeaveCriticalSection(&P33xCS);
+
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int GetTemperatureFromThreadP33xx(P33X* pP33x, double* pTemperature)
+{
+	UNREFERENCED_PARAMETER(pP33x);
+
+	// id[pP33x->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&P33xCS);
+	*pTemperature = temperatureP33x;
+	LeaveCriticalSection(&P33xCS);
+
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int StartThreadP33xx(P33X* pP33x)
+{
+	bExitP33x = FALSE;
+	InitCriticalSection(&P33xCS);
+	return CreateDefaultThread(P33xThread, (void*)pP33x, &P33xThreadId);
+}
+
+HARDWAREX_API int StopThreadP33xx(P33X* pP33x)
+{
+	UNREFERENCED_PARAMETER(pP33x);
+
+	bExitP33x = TRUE;
+	WaitForThread(P33xThreadId);
+	DeleteCriticalSection(&P33xCS);
 	return EXIT_SUCCESS;
 }
 #pragma endregion
@@ -373,7 +521,7 @@ THREAD_PROC_RETURN_VALUE NMEADeviceThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(100);
+		mSleep(50);
 		memset(&nmeadata, 0, sizeof(NMEADATA));
 		GetLatestDataNMEADevice(pNMEADevice, &nmeadata);
 		EnterCriticalSection(&NMEADeviceCS);
@@ -464,7 +612,7 @@ THREAD_PROC_RETURN_VALUE ubloxNMEAThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(100);
+		mSleep(50);
 		memset(&nmeadata, 0, sizeof(NMEADATA));
 		GetNMEASentenceublox(publox, &nmeadata);
 		EnterCriticalSection(&ubloxCS);
@@ -483,7 +631,7 @@ THREAD_PROC_RETURN_VALUE ubloxUBXThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(100);
+		mSleep(50);
 		memset(&ubxdata, 0, sizeof(UBXDATA));
 		GetUBXPacketublox(publox, &ubxdata);
 		EnterCriticalSection(&ubloxCS);
@@ -552,6 +700,103 @@ HARDWAREX_API int StopUBXThreadubloxx(UBLOX* publox)
 	bExitUBXublox = TRUE;
 	WaitForThread(ubloxUBXThreadId);
 	DeleteCriticalSection(&ubloxCS);
+	return EXIT_SUCCESS;
+}
+#pragma endregion
+
+#pragma region IM483I
+HARDWAREX_API IM483I* CreateIM483Ix(void)
+{
+	return (IM483I*)calloc(1, sizeof(IM483I));
+}
+
+HARDWAREX_API void DestroyIM483Ix(IM483I* pIM483I)
+{
+	return free(pIM483I);
+}
+
+HARDWAREX_API int SetMotorTorqueIM483Ix(IM483I* pIM483I, int percent)
+{
+	return SetMotorTorqueIM483I(pIM483I, percent);
+}
+
+HARDWAREX_API int SetMotorSpeedIM483Ix(IM483I* pIM483I, int val)
+{
+	return SetMotorSpeedIM483I(pIM483I, val);
+}
+
+HARDWAREX_API int SetMotorOriginIM483Ix(IM483I* pIM483I)
+{
+	return SetMotorOriginIM483I(pIM483I);
+}
+
+HARDWAREX_API int SetMaxAngleIM483Ix(IM483I* pIM483I, double angle)
+{
+	return SetMaxAngleIM483I(pIM483I, angle);
+}
+
+HARDWAREX_API int CalibrateMotorIM483Ix(IM483I* pIM483I)
+{
+	return CalibrateMotorIM483I(pIM483I);
+}
+
+HARDWAREX_API int ConnectIM483Ix(IM483I* pIM483I, char* szCfgFilePath)
+{
+	return ConnectIM483I(pIM483I, szCfgFilePath);
+}
+
+HARDWAREX_API int DisconnectIM483Ix(IM483I* pIM483I)
+{
+	return DisconnectIM483I(pIM483I);
+}
+
+THREAD_PROC_RETURN_VALUE IM483IThread(void* pParam)
+{
+	IM483I* pIM483I = (IM483I*)pParam;
+	double angle = 0;
+
+	mSleep(50);
+
+	for (;;)
+	{
+		EnterCriticalSection(&IM483ICS);
+		angle = angleIM483I;
+		LeaveCriticalSection(&IM483ICS);
+		SetMaxAngleIM483I(pIM483I, angle);
+		mSleep(50);
+		if (bExitIM483I) break;
+	}
+
+	return 0;
+}
+
+HARDWAREX_API int SetMaxAngleFromThreadIM483Ix(IM483I* pIM483I, double angle)
+{
+	UNREFERENCED_PARAMETER(pIM483I);
+
+	// id[pIM483I->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&IM483ICS);
+	angleIM483I = angle;
+	LeaveCriticalSection(&IM483ICS);
+
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int StartThreadIM483Ix(IM483I* pIM483I)
+{
+	bExitIM483I = FALSE;
+	InitCriticalSection(&IM483ICS);
+	return CreateDefaultThread(IM483IThread, (void*)pIM483I, &IM483IThreadId);
+}
+
+HARDWAREX_API int StopThreadIM483Ix(IM483I* pIM483I)
+{
+	UNREFERENCED_PARAMETER(pIM483I);
+
+	bExitIM483I = TRUE;
+	WaitForThread(IM483IThreadId);
+	DeleteCriticalSection(&IM483ICS);
 	return EXIT_SUCCESS;
 }
 #pragma endregion
@@ -675,6 +920,11 @@ HARDWAREX_API void DestroyPololux(POLOLU* pPololu)
 HARDWAREX_API int GetValuePololux(POLOLU* pPololu, int channel, int* pValue)
 {
 	return GetValuePololu(pPololu, channel, pValue);
+}
+
+HARDWAREX_API int GetAllValuesPololux(POLOLU* pPololu, int* selectedchannels, int* ais)
+{
+	return GetAllValuesPololu(pPololu, selectedchannels, ais);
 }
 
 HARDWAREX_API int SetPWMPololux(POLOLU* pPololu, int channel, int pw)

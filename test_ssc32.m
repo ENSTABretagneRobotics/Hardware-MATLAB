@@ -6,7 +6,7 @@ pSSC32 = CreateSSC32();
 
 pause(0.1);
 [result] = SetPWMSSC32(pSSC32, 0, 1350);
-pause(0.1);
+pause(0.5);
 nbchannels = 32;
 selectedchannels = zeros(nbchannels,1);
 selectedchannels(1) = 1; selectedchannels(2) = 1; selectedchannels(3) = 1;

@@ -198,8 +198,10 @@
   <ItemGroup>
     <ClInclude Include="hardwarex.h" />
     <ClInclude Include="Hokuyo.h" />
+    <ClInclude Include="IM483I.h" />
     <ClInclude Include="MAVLinkDevice.h" />
     <ClInclude Include="MAVLinkProtocol.h" />
+    <ClInclude Include="MDM.h" />
     <ClInclude Include="MT.h" />
     <ClInclude Include="NMEADevice.h" />
     <ClInclude Include="NMEAProtocol.h" />
@@ -210,6 +212,7 @@
     <ClInclude Include="OSNet.h" />
     <ClInclude Include="OSThread.h" />
     <ClInclude Include="OSTime.h" />
+    <ClInclude Include="P33x.h" />
     <ClInclude Include="Pololu.h" />
     <ClInclude Include="RazorAHRS.h" />
     <ClInclude Include="RPLIDAR.h" />
@@ -224,9 +227,12 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Hokuyo0.txt" />
+    <Text Include="IM483I0.txt" />
     <Text Include="MAVLinkDevice0.txt" />
+    <Text Include="MDM0.txt" />
     <Text Include="MT0.txt" />
     <Text Include="NMEADevice0.txt" />
+    <Text Include="P33x0.txt" />
     <Text Include="Pololu0.txt" />
     <Text Include="RazorAHRS0.txt" />
     <Text Include="ReadMe.txt" />

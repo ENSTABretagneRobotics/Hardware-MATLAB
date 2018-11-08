@@ -1,0 +1,23 @@
+% Server TCP port (e.g. :4001), client IP address and TCP port (e.g. 127.0.0.1:4001) or local RS232 port
+127.0.0.1:4003
+%COM7
+% BaudRate
+4800
+% Timeout (in ms)
+1000
+% bSaveRawData
+0
+% CalibrationSpeed
+2000
+% CalibrationTime (in ms)
+65000
+% CalibrationTorque
+60
+% NormalTorque
+100
+% ThresholdRval
+5000
+% MinAngle (in rad)
+0.0
+% MaxAngle (in rad)
+1.57

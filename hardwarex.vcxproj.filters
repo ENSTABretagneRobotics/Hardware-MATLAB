@@ -110,6 +110,15 @@
     <ClInclude Include="SBG.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="IM483I.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="P33x.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MDM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile" />
@@ -145,6 +154,15 @@
       <Filter>Input Files</Filter>
     </Text>
     <Text Include="ublox0.txt">
+      <Filter>Input Files</Filter>
+    </Text>
+    <Text Include="IM483I0.txt">
+      <Filter>Input Files</Filter>
+    </Text>
+    <Text Include="P33x0.txt">
+      <Filter>Input Files</Filter>
+    </Text>
+    <Text Include="MDM0.txt">
       <Filter>Input Files</Filter>
     </Text>
   </ItemGroup>
