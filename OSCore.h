@@ -49,6 +49,8 @@ _ 64 bit Linux : __linux__ & _LP64
 
 _ Android : __ANDROID__
 
+_ Mac OS : __APPLE__
+
 _ Windows CE : WINCE
 
 */
@@ -387,6 +389,37 @@ inline RGBCOLOR rgbcolor(UCHAR r, UCHAR g, UCHAR b)
 #		define INIT_DEBUG
 #	endif // INIT_DEBUG
 #endif // defined(_MSC_VER) && defined(_DEBUG) && !defined(DISABLE_ADDITIONAL_DEBUG_FEATURES)
+
+#ifndef DISABLE_USE_SNPRINTF
+#if defined(_MSC_VER) && _MSC_VER < 1900
+#define snprintf c99_snprintf
+#define vsnprintf c99_vsnprintf
+
+__inline int c99_vsnprintf(char *outBuf, size_t size, const char *format, va_list ap)
+{
+	int count = -1;
+
+	if (size != 0)
+		count = _vsnprintf_s(outBuf, size, _TRUNCATE, format, ap);
+	if (count == -1)
+		count = _vscprintf(format, ap);
+
+	return count;
+}
+
+__inline int c99_snprintf(char *outBuf, size_t size, const char *format, ...)
+{
+	int count;
+	va_list ap;
+
+	va_start(ap, format);
+	count = c99_vsnprintf(outBuf, size, format, ap);
+	va_end(ap);
+
+	return count;
+}
+#endif // defined(_MSC_VER) && _MSC_VER < 1900
+#endif // DISABLE_USE_SNPRINTF
 
 /*
 enum EXIT_CODE

@@ -48,11 +48,11 @@ CFLAGS += -I/usr/local/include/sbgECom/src -I/usr/local/include/sbgECom/common
 
 CXXFLAGS += $(CFLAGS) -fpermissive
 
-LDFLAGS += -LsbgECom/lib
-
 # sbgECom needs to be built with -fPIC...
+#LDFLAGS += -LsbgECom/lib
 #LDFLAGS += -lsbgECom
-LDFLAGS += -lrt -lm
+
+# Might need to remove -lrt for Mac...
 LDFLAGS += -lpthread -lrt -lm
 
 default: $(LIB)

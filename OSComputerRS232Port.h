@@ -594,37 +594,47 @@ inline int SetOptionsComputerRS232Port(HANDLE hDev, UINT BaudRate, BYTE ParityMo
 	// None parity means that no parity bit is sent at all. 
 	switch (ParityMode)
 	{
-	case NOPARITY :
+	case NOPARITY:
+#ifndef __APPLE__
 		options.c_cflag &= ~CMSPAR;
+#endif // !__APPLE__
 		options.c_cflag &= ~PARENB;
 		options.c_cflag &= ~PARODD;
 		break;
-	case MARKPARITY :  
+	case MARKPARITY:
+#ifndef __APPLE__
 		options.c_cflag |= CMSPAR;
+#endif // !__APPLE__
 		options.c_cflag &= ~PARENB;
 		options.c_cflag |= PARODD;
 		break;
-	case SPACEPARITY :  
+	case SPACEPARITY:
+#ifndef __APPLE__
 		options.c_cflag |= CMSPAR;
+#endif // !__APPLE__
 		options.c_cflag &= ~PARENB;
 		options.c_cflag &= ~PARODD;
 		break;
-	case ODDPARITY :    
+	case ODDPARITY:
+#ifndef __APPLE__
 		options.c_cflag &= ~CMSPAR;
+#endif // !__APPLE__
 		options.c_cflag |= PARENB;
 		options.c_cflag |= PARODD;
 		break;
-	case EVENPARITY :  
+	case EVENPARITY:
+#ifndef __APPLE__
 		options.c_cflag &= ~CMSPAR;
+#endif // !__APPLE__
 		options.c_cflag |= PARENB;
 		options.c_cflag &= ~PARODD;
 		break;
-	default :
+	default:
 		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
 			"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
-			"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n", 
-			strtime_m(), 
-			"Invalid parity mode. ", 
+			"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+			strtime_m(),
+			"Invalid parity mode. ",
 			hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
 		return EXIT_FAILURE;
 	}
@@ -810,17 +820,23 @@ inline int GetOptionsComputerRS232Port(HANDLE hDev, UINT* pBaudRate, BYTE* pPari
 		return EXIT_FAILURE;
 	}
 
+#ifndef __APPLE__
 	switch (options.c_cflag & (CMSPAR | PARENB | PARODD))
+#else
+	switch (options.c_cflag & (PARENB | PARODD))
+#endif // !__APPLE__
 	{
 	case 0:
 		*pParityMode = NOPARITY;
 		break;
+#ifndef __APPLE__
 	case (CMSPAR | PARODD):
 		*pParityMode = MARKPARITY;
 		break;
 	case (CMSPAR):
 		*pParityMode = SPACEPARITY;
 		break;
+#endif // !__APPLE__
 	case (PARENB | PARODD):
 		*pParityMode = ODDPARITY;
 		break;
@@ -828,9 +844,9 @@ inline int GetOptionsComputerRS232Port(HANDLE hDev, UINT* pBaudRate, BYTE* pPari
 		*pParityMode = EVENPARITY;
 		break;
 	default:
-		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("GetOptionsComputerRS232Port error (%s) : %s(hDev=%#x)\n", 
-			strtime_m(), 
-			"Invalid parity mode. ", 
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("GetOptionsComputerRS232Port error (%s) : %s(hDev=%#x)\n",
+			strtime_m(),
+			"Invalid parity mode. ",
 			hDev));
 		return EXIT_FAILURE;
 	}

@@ -81,7 +81,9 @@ Debug macros specific to OSTime.
 #endif // _WIN32
 
 EXTERN_C char strftime_m_tmpbuf[64]; // Used to store the string returned by strtime_m().
+EXTERN_C char strftimeex_m_tmpbuf[64]; // Used to store the string returned by strtimeex_m().
 EXTERN_C char strftime_fns_tmpbuf[64]; // Used to store the string returned by strtime_fns().
+EXTERN_C char strftimeex_fns_tmpbuf[64]; // Used to store the string returned by strtimeex_fns().
 
 #ifndef USE_OLD_CHRONO
 #ifdef _WIN32
@@ -106,6 +108,7 @@ struct CHRONO
 typedef struct CHRONO CHRONO;
 #endif // _WIN32
 #else
+//#if (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
 #if defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32)
 /*
 Structure for a basic chronometer.
@@ -135,6 +138,7 @@ struct CHRONO
 	BOOL Suspended; // Used to know if the chronometer is currently suspended.
 };
 typedef struct CHRONO CHRONO;
+//#endif // (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
 #endif // defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32)
 #endif // !USE_OLD_CHRONO
 
@@ -398,7 +402,7 @@ inline time_t timegm(struct tm * t)
 /*
 Return a string like ctime() but in this format :
 
-Mon Aug 27 19:28:04 2007\0
+2007-08-27 19:28:04\0
 
 (without the "\n" of ctime()).
 Should not be used directly in concurrent threads as the string value returned might 
@@ -408,10 +412,25 @@ Return : This string.
 */
 EXTERN_C char* strtime_m(void);
 
+#if (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
 /*
 Return a string like ctime() but in this format :
 
-Mon_Aug_27_19h28min04sec_2007\0
+2007-08-27 19:28:04:00\0
+
+(without the "\n" of ctime()).
+Should not be used directly in concurrent threads as the string value returned might 
+be changed by another thread.
+
+Return : This string.
+*/
+EXTERN_C char* strtimeex_m(void);
+#endif // (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
+
+/*
+Return a string like ctime() but in this format :
+
+2007-08-27_19h28min04s\0
 
 (without the "\n", ":", " " of ctime() in order to be safely used in file names).
 Should not be used directly in concurrent threads as the string value returned might 
@@ -420,6 +439,21 @@ be changed by another thread.
 Return : This string.
 */
 EXTERN_C char* strtime_fns(void);
+
+#if (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
+/*
+Return a string like ctime() but in this format :
+
+2007-08-27_19h28min04s00\0
+
+(without the "\n", ":", " " of ctime() in order to be safely used in file names).
+Should not be used directly in concurrent threads as the string value returned might 
+be changed by another thread.
+
+Return : This string.
+*/
+EXTERN_C char* strtimeex_fns(void);
+#endif // (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
 
 /*
 Wait some time...
@@ -1101,6 +1135,7 @@ inline double StopChronoQuick(CHRONO* pChrono)
 }
 #endif // _WIN32
 #else
+//#if (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
 #if defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32)
 /*
 Start a chronometer.
@@ -1693,6 +1728,7 @@ inline double StopChronoQuick(CHRONO* pChrono)
 		return pChrono->Duration;
 	}
 }
+//#endif // (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
 #endif // defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32)
 #endif // !USE_OLD_CHRONO
 
