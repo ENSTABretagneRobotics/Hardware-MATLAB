@@ -1,5 +1,5 @@
 # Check and modify the content of this Makefile to match your configuration if needed to build this library.
-# Put the built library (hardwarex.so/.dylib) in this folder (.so for Linux, .dylib for Mac).
+# Put the built library (hardwarex.so/.dylib) in this folder (.so for Linux, .dylib for Mac OS).
 #
 # For Linux, run in a terminal something similar to : 
 # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/Hardware-MATLAB-master
@@ -11,7 +11,7 @@
 # to force it to run using the system default version of the C++ Standard Library (otherwise MATLAB might use its 
 # own version, which is likely to be different from the one used when you built the shared library)...
 #
-# For Mac, run in a terminal something similar to : 
+# For Mac OS, run in a terminal something similar to : 
 # export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:~/Hardware-MATLAB-master
 # to enable MATLAB to find the library, and launch MATLAB from the same terminal.
 # In some cases (MATLAB before 2013?) you might have to launch MATLAB using something similar to this : 
@@ -23,7 +23,7 @@
 #
 # Check test_XXX.m files for usage information.
 
-# Change here depending on your OS (.so for Linux, .dylib for Mac).
+# Change here depending on your OS (.so for Linux, .dylib for Mac OS).
 LIB = hardwarex.so
 #LIB = hardwarex.dylib
 
@@ -43,7 +43,7 @@ CFLAGS += -IMAVLinkSDK
 CFLAGS += -IsbgECom/src -IsbgECom/common 
 CFLAGS += -I/usr/local/include/sbgECom/src -I/usr/local/include/sbgECom/common 
 
-# Depending on your OS (old Linux or Mac)...
+# Depending on your OS (old Linux or Mac OS)...
 #CFLAGS += -DUSE_OLD_CHRONO
 
 CXXFLAGS += $(CFLAGS) -fpermissive
@@ -52,7 +52,7 @@ CXXFLAGS += $(CFLAGS) -fpermissive
 #LDFLAGS += -LsbgECom/lib
 #LDFLAGS += -lsbgECom
 
-# Might need to remove -lrt for Mac...
+# Might need to remove -lrt for Mac OS...
 LDFLAGS += -lpthread -lrt -lm
 
 default: $(LIB)
