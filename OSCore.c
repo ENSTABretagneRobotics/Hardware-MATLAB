@@ -120,7 +120,7 @@ char* FormatLastErrorMsg(char* buf, int buflen)
 
 	// Note that pthreads do not use errno!
 
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__APPLE__)
 	if (strerror_r(errno, lpMsgBuf, (size_t)buflen-3) == EXIT_SUCCESS)
 	{
 		// Here the use of snprintf() is mandatory to be sure that buf do not overflow...
@@ -134,7 +134,7 @@ char* FormatLastErrorMsg(char* buf, int buflen)
 	// GNU version of strerror_r() is strange...
 	// Here the use of snprintf() is mandatory to be sure that buf do not overflow...
 	snprintf(buf, (size_t)buflen, "%s. ", strerror_r(errno, lpMsgBuf, (size_t)buflen-3));
-#endif // __ANDROID__
+#endif // defined(__ANDROID__) || defined(__APPLE__)
 
 	buf[buflen-1] = 0;
 
