@@ -11,7 +11,10 @@
 # to force it to run using the system default version of the C++ Standard Library (otherwise MATLAB might use its 
 # own version, which is likely to be different from the one used when you built the shared library)...
 #
-# For Mac OS, run in a terminal something similar to : 
+# For Mac OS, MATLAB might display an error related to the licence of Xcode when only its command line tools are installed,
+# so in e.g. /Applications/MATLAB_R2018b.app/bin/maci64/mexopts remove or comment the <XCODE_AGREED_VERSION>...</XCODE_AGREED_VERSION>
+# block in the 3 files and relaunch MATLAB. 
+# If needed (Mac OS or MATLAB before 2018?), run in a terminal something similar to : 
 # export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:~/Hardware-MATLAB-master
 # to enable MATLAB to find the library, and launch MATLAB from the same terminal.
 # In some cases (MATLAB before 2013?) you might have to launch MATLAB using something similar to this : 

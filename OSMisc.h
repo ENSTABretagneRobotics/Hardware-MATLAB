@@ -1645,10 +1645,32 @@ inline void RGB2HSL_MSPaint(double red, double green, double blue, double* pH, d
 inline void RebootComputer(void)
 {
 #ifdef _WIN32
+
+	// https://docs.microsoft.com/fr-fr/windows/desktop/Shutdown/displaying-the-shutdown-dialog-box
+
+	HANDLE hToken;              // handle to process token 
+	TOKEN_PRIVILEGES tkp;       // pointer to token structure 
+
+	// Get the current process token handle so we can get shutdown privilege.  
+	OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken);
+
+	// Get the LUID for shutdown privilege.  
+	LookupPrivilegeValue(NULL, SE_SHUTDOWN_NAME, &tkp.Privileges[0].Luid);
+
+	tkp.PrivilegeCount = 1; // One privilege to set.  
+	tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+
+	// Get shutdown privilege for this process.  
+	AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)NULL, 0);
+
 	if (!InitiateSystemShutdown(NULL, NULL, 0, TRUE, TRUE))
 	{
 		PRINT_DEBUG_ERROR_OSMISC(("RebootComputer error (%s) : %s\n", strtime_m(), GetLastErrorMsg()));
 	}
+
+	// Disable shutdown privilege.  
+	tkp.Privileges[0].Attributes = 0;
+	AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)NULL, 0);
 #else
 	sync();
 	if (reboot(RB_AUTOBOOT) < 0)

@@ -12,6 +12,9 @@ Windows :
 Linux/Mac OS : 
 - In `hardwarex.h`, check that `#define ENABLE_MAVLINK_SUPPORT` and `#define ENABLE_SBG_SUPPORT` are uncommented.
 - In the `Makefile`, check that `LDFLAGS += -lsbgECom` is uncommented.
+- For Mac OS, you might want to install Homebrew and wget : 
+	/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+	brew install wget
 - Copy the headers from https://github.com/mavlink/c_library_v1/archive/0fc203298923f1d7c225cc6f43918d6663809e38.zip in `/usr/local/include/mavlink` (or `../MAVLinkSDK/mavlink`) :
 	wget https://github.com/mavlink/c_library_v1/archive/0fc203298923f1d7c225cc6f43918d6663809e38.zip
 	unzip 0fc203298923f1d7c225cc6f43918d6663809e38.zip
