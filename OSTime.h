@@ -108,8 +108,9 @@ struct CHRONO
 typedef struct CHRONO CHRONO;
 #endif // _WIN32
 #else
-//#if (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
-#if defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32)
+// See https://stackoverflow.com/questions/43295845/is-the-clocks-per-sec-value-wrong-inside-a-virtual-machine
+#if (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
+//#if defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32)
 /*
 Structure for a basic chronometer.
 Might not work correctly if used during more than approximately 68 years. 
@@ -138,8 +139,8 @@ struct CHRONO
 	BOOL Suspended; // Used to know if the chronometer is currently suspended.
 };
 typedef struct CHRONO CHRONO;
-//#endif // (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
-#endif // defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32)
+#endif // (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
+//#endif // defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32)
 #endif // !USE_OLD_CHRONO
 
 #ifdef _WIN32
@@ -1135,8 +1136,9 @@ inline double StopChronoQuick(CHRONO* pChrono)
 }
 #endif // _WIN32
 #else
-//#if (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
-#if defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32)
+// See https://stackoverflow.com/questions/43295845/is-the-clocks-per-sec-value-wrong-inside-a-virtual-machine
+#if (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
+//#if defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32)
 /*
 Start a chronometer.
 
@@ -1728,8 +1730,8 @@ inline double StopChronoQuick(CHRONO* pChrono)
 		return pChrono->Duration;
 	}
 }
-//#endif // (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
-#endif // defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32)
+#endif // (defined(_WIN32) && (defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32))) || (!defined(_WIN32))
+//#endif // defined(ENABLE_GETTIMEOFDAY_WIN32) || defined(ENABLE_SYS_TIME_H_WIN32)
 #endif // !USE_OLD_CHRONO
 
 #endif // !OSTIME_H
