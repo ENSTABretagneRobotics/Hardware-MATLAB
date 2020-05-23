@@ -1,3 +1,4 @@
+Update Hardware-CPP, MATLAB, Python (check structures), in particular mavlink messages...
 
 critical sections should be everywhere especially for Pololu and SSC32...
 
@@ -12,3 +13,9 @@ http://fr.mathworks.com/help/matlab/matlab_external/limitations-to-shared-librar
 
 For the thread, only 1 device of the same type can be used...
 Simplify by gathering Create, Connect...?
+
+
+
+OLD
+
+Hardware-MATLAB/Python : if ENABLE_SBG_SUPPORT disabled, SBG MATLAB and Python functions should not be disabled...

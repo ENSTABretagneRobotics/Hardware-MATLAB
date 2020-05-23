@@ -1,11 +1,9 @@
 #include "hardwarex.h"
 
-#ifdef ENABLE_SBG_SUPPORT
 THREAD_IDENTIFIER SBGThreadId;
 CRITICAL_SECTION SBGCS;
 SBGDATA sbgdataSBG;
 BOOL bExitSBG = FALSE;
-#endif // ENABLE_SBG_SUPPORT
 
 THREAD_IDENTIFIER MTThreadId;
 CRITICAL_SECTION MTCS;
@@ -83,7 +81,6 @@ MAVLINKDATA mavlinkdataMAVLinkDevice;
 BOOL bExitMAVLinkDevice = FALSE;
 #endif // ENABLE_MAVLINK_SUPPORT
 
-#ifdef ENABLE_SBG_SUPPORT
 #pragma region SBG
 HARDWAREX_API SBG* CreateSBGx(void)
 {
@@ -107,7 +104,11 @@ HARDWAREX_API void DestroySBGDatax(SBGDATA* pSBGData)
 
 HARDWAREX_API int GetLatestDataSBGx(SBG* pSBG, SBGDATA* pSBGData)
 {
+#ifdef ENABLE_SBG_SUPPORT
 	return GetLatestDataSBG(pSBG, pSBGData);
+#else
+	return GetFrameSBG(pSBG, pSBGData);
+#endif // ENABLE_SBG_SUPPORT
 }
 
 HARDWAREX_API int ConnectSBGx(SBG* pSBG, char* szCfgFilePath)
@@ -127,9 +128,15 @@ THREAD_PROC_RETURN_VALUE SBGThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(50);
+#ifdef ENABLE_SBG_SUPPORT
+		mSleep(pSBG->threadperiod);
+#endif // ENABLE_SBG_SUPPORT
 		memset(&sbgdata, 0, sizeof(SBGDATA));
+#ifdef ENABLE_SBG_SUPPORT
 		GetLatestDataSBG(pSBG, &sbgdata);
+#else
+		GetFrameSBG(pSBG, &sbgdata);
+#endif // ENABLE_SBG_SUPPORT
 		EnterCriticalSection(&SBGCS);
 		sbgdataSBG = sbgdata;
 		LeaveCriticalSection(&SBGCS);
@@ -169,7 +176,6 @@ HARDWAREX_API int StopThreadSBGx(SBG* pSBG)
 	return EXIT_SUCCESS;
 }
 #pragma endregion
-#endif // ENABLE_SBG_SUPPORT
 
 #pragma region MT
 HARDWAREX_API MT* CreateMTx(void)
@@ -214,7 +220,7 @@ THREAD_PROC_RETURN_VALUE MTThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(50);
+		mSleep(pMT->threadperiod);
 		memset(&mtdata, 0, sizeof(MTDATA));
 		GetLatestDataMT(pMT, &mtdata);
 		EnterCriticalSection(&MTCS);
@@ -300,7 +306,7 @@ THREAD_PROC_RETURN_VALUE RazorAHRSThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(50);
+		mSleep(pRazorAHRS->threadperiod);
 		memset(&razorahrsdata, 0, sizeof(RAZORAHRSDATA));
 		GetLatestDataRazorAHRS(pRazorAHRS, &razorahrsdata);
 		EnterCriticalSection(&RazorAHRSCS);
@@ -418,10 +424,10 @@ THREAD_PROC_RETURN_VALUE P33xThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(25);
+		mSleep(pP33x->threadperiod/2);
 		pressure = 0;
 		GetPressureP33x(pP33x, &pressure);
-		mSleep(25);
+		mSleep(pP33x->threadperiod/2);
 		temperature = 0;
 		GetTemperatureP33x(pP33x, &temperature);
 		EnterCriticalSection(&P33xCS);
@@ -521,7 +527,7 @@ THREAD_PROC_RETURN_VALUE NMEADeviceThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(50);
+		mSleep(pNMEADevice->threadperiod);
 		memset(&nmeadata, 0, sizeof(NMEADATA));
 		GetLatestDataNMEADevice(pNMEADevice, &nmeadata);
 		EnterCriticalSection(&NMEADeviceCS);
@@ -612,7 +618,7 @@ THREAD_PROC_RETURN_VALUE ubloxNMEAThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(50);
+		//mSleep(publox->threadperiod);
 		memset(&nmeadata, 0, sizeof(NMEADATA));
 		GetNMEASentenceublox(publox, &nmeadata);
 		EnterCriticalSection(&ubloxCS);
@@ -631,7 +637,7 @@ THREAD_PROC_RETURN_VALUE ubloxUBXThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(50);
+		//mSleep(publox->threadperiod);
 		memset(&ubxdata, 0, sizeof(UBXDATA));
 		GetUBXPacketublox(publox, &ubxdata);
 		EnterCriticalSection(&ubloxCS);
@@ -755,7 +761,7 @@ THREAD_PROC_RETURN_VALUE IM483IThread(void* pParam)
 	IM483I* pIM483I = (IM483I*)pParam;
 	double angle = 0;
 
-	mSleep(50);
+	mSleep(pIM483I->threadperiod);
 
 	for (;;)
 	{
@@ -763,7 +769,7 @@ THREAD_PROC_RETURN_VALUE IM483IThread(void* pParam)
 		angle = angleIM483I;
 		LeaveCriticalSection(&IM483ICS);
 		SetMaxAngleIM483I(pIM483I, angle);
-		mSleep(50);
+		mSleep(pIM483I->threadperiod);
 		if (bExitIM483I) break;
 	}
 
@@ -858,7 +864,7 @@ THREAD_PROC_RETURN_VALUE SSC32Thread(void* pParam)
 	int selectedchannels[NB_CHANNELS_PWM_SSC32];
 	int pws[NB_CHANNELS_PWM_SSC32];
 
-	mSleep(25);
+	mSleep(pSSC32->threadperiod);
 
 	for (;;)
 	{
@@ -867,7 +873,7 @@ THREAD_PROC_RETURN_VALUE SSC32Thread(void* pParam)
 		memcpy(pws, pwsSSC32, NB_CHANNELS_PWM_SSC32*sizeof(int));
 		LeaveCriticalSection(&SSC32CS);
 		SetAllPWMsSSC32(pSSC32, selectedchannels, pws);
-		mSleep(25);
+		mSleep(pSSC32->threadperiod);
 		if (bExitSSC32) break;
 	}
 
@@ -961,7 +967,7 @@ THREAD_PROC_RETURN_VALUE PololuThread(void* pParam)
 
 	memset(valuesPololu, 0, NB_CHANNELS_POLOLU*sizeof(int));
 	
-	mSleep(25);
+	mSleep(pPololu->threadperiod);
 
 	for (;;)
 	{
@@ -1136,7 +1142,7 @@ THREAD_PROC_RETURN_VALUE HokuyoThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(50);
+		//mSleep(pHokuyo->threadperiod);
 		memset(distances, 0, MAX_SLITDIVISION_HOKUYO*sizeof(double));
 		memset(angles, 0, MAX_SLITDIVISION_HOKUYO*sizeof(double));
 		GetLatestDataHokuyo(pHokuyo, distances, angles);
@@ -1223,7 +1229,7 @@ THREAD_PROC_RETURN_VALUE RPLIDARScanThread(void* pParam)
 
 	for (;;)
 	{
-		//mSleep(50);
+		//mSleep(pRPLIDAR->threadperiod);
 		angle = 0;
 		distance = 0;
 		GetScanDataResponseRPLIDAR(pRPLIDAR, &distance, &angle, &bNewScan, &quality);
@@ -1248,7 +1254,7 @@ THREAD_PROC_RETURN_VALUE RPLIDARExpressScanThread(void* pParam)
 
 	for (;;)
 	{
-		//mSleep(50);
+		//mSleep(pRPLIDAR->threadperiod);
 		memset(distances, 0, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
 		memset(angles, 0, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
 		GetExpressScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan);
@@ -1380,13 +1386,13 @@ THREAD_PROC_RETURN_VALUE MAVLinkDeviceThread(void* pParam)
 
 	for (;;)
 	{
-		mSleep(25);
+		uSleep(1000*pMAVLinkDevice->threadperiod/2);
 		EnterCriticalSection(&MAVLinkDeviceCS);
 		memcpy(selectedchannels, selectedchannelsMAVLinkDevice, NB_CHANNELS_PWM_MAVLINKDEVICE*sizeof(int));
 		memcpy(pws, pwsMAVLinkDevice, NB_CHANNELS_PWM_MAVLINKDEVICE*sizeof(int));
 		LeaveCriticalSection(&MAVLinkDeviceCS);
 		SetAllPWMsMAVLinkDevice(pMAVLinkDevice, selectedchannels, pws);
-		mSleep(25);
+		uSleep(1000*pMAVLinkDevice->threadperiod/2);
 		memset(&mavlinkdata, 0, sizeof(MAVLINKDATA));
 		GetLatestDataMAVLinkDevice(pMAVLinkDevice, &mavlinkdata);
 		EnterCriticalSection(&MAVLinkDeviceCS);

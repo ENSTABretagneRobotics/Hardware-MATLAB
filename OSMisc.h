@@ -578,6 +578,41 @@ inline char* fgets3(FILE* file, char* line, int nbChar)
 }
 
 /*
+Return a line of a file using fgets(), skipping lines that begin with a '%' 
+(Scilab-style comments), a '#' (Linux configuration files-style comments) or 
+"//" (C-style comments). 
+Return NULL when fgets() returns NULL, or if 
+the maximum number of characters to read is less than 2.
+
+FILE* file : (IN) Pointer to a file.
+char* line : (IN) Storage location for data.
+int nbChar : (IN) Maximum number of characters to read.
+
+Return : The line or NULL.
+*/
+inline char* fgets4(FILE* file, char* line, int nbChar)
+{ 
+	char* r = NULL;
+
+	if (nbChar < 2)
+	{
+		return NULL;
+	}
+
+	do   
+	{
+		r = fgets(line, nbChar, file);
+	} 
+	while ((
+		(line[0] == '%')||
+		(line[0] == '#')||
+		((line[0] == '/')&&(line[1] == '/'))
+		) && (r != NULL));
+
+	return r;
+}
+
+/*
 Return a line from an input file using fgets(), skipping lines that begin with a '%' 
 (Scilab-style comments), a '#' (Linux configuration files-style comments) or 
 "//" (C-style comments). 
@@ -1620,25 +1655,139 @@ inline void RGB2HSL_MSPaint(double red, double green, double blue, double* pH, d
 
 	if (maxval != minval)
 	{
-		double rnorm = (maxval-red)/mdiff;
-		double gnorm = (maxval-green)/mdiff;
-		double bnorm = (maxval-blue)/mdiff;
-		saturation = (luminance <= 0.5)?(mdiff/msum):(mdiff/(510.0-msum));
+		double tmp = 60.0/mdiff;
 		if (red == maxval)
-			hue = 60.0*(6.0+bnorm-gnorm);
-		if (green == maxval)
-			hue = 60.0*(2.0+rnorm-bnorm);
-		if (blue == maxval)
-			hue = 60.0*(4.0+gnorm-rnorm);
-		if (hue > 360.0)
-			hue -= 360.0;
+		{
+			hue = (green-blue)*tmp;
+			if (hue < 0) hue += 360.0;
+		}
+		else if (green == maxval)
+			hue = (blue-red)*tmp+120.0;
+		else if (blue == maxval)
+			hue = (red-green)*tmp+240.0;
+		saturation = (luminance <= 0.5)? (mdiff/msum): (mdiff/(510.0-msum));
 	}
 
 	// Microsoft Paint limits for H,S,L are 0..240.
 
-	*pH = hue*240.0/360.0; 
-	*pS = saturation*240.0; 
+	*pH = hue*240.0/360.0;
+	*pS = saturation*240.0;
 	*pL = luminance*240.0;
+}
+
+/*
+Convert from HSV to RGB.
+
+double hue : (IN) Hue between 0..240.
+double saturation : (IN) Saturation between 0..240.
+double value : (IN) Value between 0..240.
+double* pR : (OUT) Pointer to the red between 0..255.
+double* pG : (OUT) Pointer to the green between 0..255.
+double* pB : (OUT) Pointer to the blue between 0..255.
+
+Return : Nothing.
+*/
+inline void HSV2RGB_MSPaint_Fake(double hue, double saturation, double value, double* pR, double* pG, double* pB)
+{
+
+	// From https://fr.wikipedia.org/wiki/Teinte_Saturation_Valeur,
+	// https://en.wikipedia.org/wiki/HSL_and_HSV and https://stackoverflow.com/questions/51203917/math-behind-hsv-to-rgb-conversion-of-colors.
+
+	int ti = 0;
+	double l = 0, m = 0; //, f = 0, n = 0;
+
+	hue = hue*360.0/240.0;
+	saturation = saturation/240.0;
+	value = value/240.0;
+
+	ti = ((int)floor(hue/60.0))%6;
+	//f = (hue/60.0)-ti;
+	l = value*(1-saturation);
+	m = value*(1-saturation*fabs(fmod(hue/60.0, 2)-1));
+	//m = value*(1-f*saturation);
+	//n = value*(1-(1-f)*saturation);
+
+	switch (ti)
+	{
+	case 0:
+		*pR = value*255.0;
+		*pG = m*255.0; //*pG = n*255.0;
+		*pB = l*255.0;
+		break;
+	case 1:
+		*pR = m*255.0;
+		*pG = value*255.0;
+		*pB = l*255.0;
+		break;
+	case 2:
+		*pR = l*255.0;
+		*pG = value*255.0;
+		*pB = m*255.0; //*pB = n*255.0;
+		break;
+	case 3:
+		*pR = l*255.0;
+		*pG = m*255.0;
+		*pB = value*255.0;
+		break;
+	case 4:
+		*pR = m*255.0; //*pR = n*255.0;
+		*pG = l*255.0;
+		*pB = value*255.0;
+		break;
+	case 5:
+		*pR = value*255.0;
+		*pG = l*255.0;
+		*pB = m*255.0;
+		break;
+	default:
+		*pR = 0;
+		*pG = 0;
+		*pB = 0;
+		break;
+	}
+}
+
+/*
+Convert from RGB to HSV.
+
+double red : (IN) Red between 0..255.
+double green : (IN) Green between 0..255.
+double blue : (IN) Blue between 0..255.
+double* pH : (OUT) Pointer to the hue between 0..240.
+double* pS : (OUT) Pointer to the saturation between 0..240.
+double* pV : (OUT) Pointer to the value between 0..240.
+
+Return : Nothing.
+*/
+inline void RGB2HSV_MSPaint_Fake(double red, double green, double blue, double* pH, double* pS, double* pV)
+{
+
+	// From https://fr.wikipedia.org/wiki/Teinte_Saturation_Valeur.
+
+	double minval = min(red, min(green, blue));
+	double maxval = max(red, max(green, blue));
+	double mdiff = maxval-minval;
+	double hue = 0.0;
+	double saturation = (maxval == 0)? 0: (1-minval/maxval);
+	double value = maxval/255.0;
+
+	if (maxval != minval)
+	{
+		double tmp = 60.0/mdiff;
+		if (red == maxval)
+		{
+			hue = (green-blue)*tmp;
+			if (hue < 0) hue += 360.0;
+		}
+		else if (green == maxval)
+			hue = (blue-red)*tmp+120.0;
+		else if (blue == maxval)
+			hue = (red-green)*tmp+240.0;
+	}
+
+	*pH = hue*240.0/360.0;
+	*pS = saturation*240.0;
+	*pV = value*240.0;
 }
 
 #ifndef DISABLE_REBOOT_FUNCTIONS

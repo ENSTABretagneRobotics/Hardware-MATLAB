@@ -24,8 +24,8 @@ Hardware support :
 - Pololu : Pololu Mini Maestro 6, 18, 24 servo controllers, Pololu Jrk (preliminary support).
 - RazorAHRS : SparkFun 9DOF Razor IMU (flash firmware from https://github.com/lebarsfa/razor-9dof-ahrs if needed).
 - RPLIDAR : RPLIDAR A1 and A2 laser telemeters.
-- SBG (see `mavlink_sbg_support` folder if needed to rebuild) : SBG Systems Ellipse AHRS.
+- SBG (see `mavlink_sbg_support` folder if needed to rebuild with SBG SDK) : SBG Systems Ellipse AHRS.
 - SSC-32 : Lynxmotion SSC-32, SSC-32u servo controllers.
 - ublox : ublox GPS (only with NMEA protocol), Furuno WS200 weather station, or other NMEA-compatible devices with supported NMEA sentences.
 
-See also https://github.com/ENSTABretagneRobotics/Hardware-CPP, https://github.com/ENSTABretagneRobotics/Hardware-Python, https://github.com/ENSTABretagneRobotics/Hardware-Java, https://github.com/ENSTABretagneRobotics/Android.
+See also https://github.com/ENSTABretagneRobotics/Hardware-CPP , https://github.com/ENSTABretagneRobotics/Hardware-Python , https://github.com/ENSTABretagneRobotics/Hardware-Java , https://github.com/ENSTABretagneRobotics/Android .

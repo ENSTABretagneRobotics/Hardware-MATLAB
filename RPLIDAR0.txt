@@ -4,9 +4,11 @@ COM9
 % BaudRate
 115200
 % Timeout (in ms)
-1000
-% bSaveRawData
-0
+2500
+% threadperiod (in ms, require associated thread)
+50
+% bSaveRawData (require associated thread)
+1
 % ScanMode (0 : SCAN, 1 : EXPRESS_SCAN, 2 : FORCE_SCAN)
 0
 % motordelay (in ms)

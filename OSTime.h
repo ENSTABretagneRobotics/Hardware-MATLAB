@@ -478,6 +478,38 @@ inline void mSleep(long Milliseconds)
 #endif // _WIN32
 }
 
+/*
+Wait some time...
+
+long Microseconds : (IN) Time to wait in us.
+
+Return : Nothing.
+*/
+inline void uSleep(long Microseconds)
+{
+#ifdef _WIN32
+	// From https://stackoverflow.com/questions/5801813/c-usleep-is-obsolete-workarounds-for-windows-mingw.
+	HANDLE timer;
+	LARGE_INTEGER ft;
+
+	ft.QuadPart = -(10*(LONGLONG)Microseconds); // Convert to 100 nanosecond interval, negative value indicates relative time.
+
+	timer = CreateWaitableTimer(NULL, TRUE, NULL);
+	SetWaitableTimer(timer, &ft, 0, NULL, NULL, FALSE);
+	//WaitForSingleObject(timer, INFINITE);
+	WaitForSingleObject(timer, (DWORD)(1+Microseconds/1000));
+	CloseHandle(timer);
+#else 
+	// usleep() is considered as obsolete.
+	//usleep(Microseconds);
+	struct timespec req;
+
+	req.tv_sec = Microseconds/1000000; // Seconds.
+	req.tv_nsec = (Microseconds%1000000)*1000; // Additional nanoseconds.
+	nanosleep(&req, NULL);
+#endif // _WIN32
+}
+
 inline void DecSec2DaysHoursMinSec(double decsec, int* pDays, int* pHours, int* pMin, int* pSec, double* pDeccsec)
 {
 	int hours = 0, minutes = 0, seconds = 0; 

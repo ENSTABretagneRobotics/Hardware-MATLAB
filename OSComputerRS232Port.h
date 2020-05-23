@@ -244,7 +244,7 @@ inline int OpenComputerRS232Port(HANDLE* phDev, char* szDevice)
 #else
 	memcpy(tstr, szDeviceTemp, sizeof(szDeviceTemp)/2);
 #endif // UNICODE
-	tstr[sizeof(tstr)-1] = 0;
+	tstr[sizeof(tstr)/sizeof(TCHAR)-1] = 0;
 
 	hDev = CreateFile( 
 		tstr,
@@ -487,7 +487,7 @@ inline int SetOptionsComputerRS232Port(HANDLE hDev, UINT BaudRate, BYTE ParityMo
 	timeouts.ReadIntervalTimeout = MAXDWORD;
 	timeouts.ReadTotalTimeoutConstant = timeout;
 	timeouts.ReadTotalTimeoutMultiplier = MAXDWORD;
-	//timeouts.WriteTotalTimeoutConstant = 0; // Linux do not seem to have options for write timeouts, so disable for Windows...
+	//timeouts.WriteTotalTimeoutConstant = 0; // Linux does not seem to have options for write timeouts, so disable for Windows...?
 	timeouts.WriteTotalTimeoutConstant = timeout;
 	timeouts.WriteTotalTimeoutMultiplier = 0;
 

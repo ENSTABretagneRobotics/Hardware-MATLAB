@@ -183,9 +183,15 @@ _ Windows CE : WINCE
 #include <signal.h> // Signals.
 #endif // !WINCE
 
-#ifdef __GNUC__
-// C99 headers. Some headers are not supported by all the compilers or depends 
+// C99 headers. Some headers are not supported by all the compilers or depend 
 // on its options.
+#ifdef __GNUC__
+
+// See https://stackoverflow.com/questions/3233054/error-int32-max-was-not-declared-in-this-scope
+#ifndef __STDC_LIMIT_MACROS
+#define __STDC_LIMIT_MACROS
+#endif // !__STDC_LIMIT_MACROS
+
 //#include <complex.h> // Complex arithmetic.
 //#include <fenv.h> // IEEE-style floating-point arithmetic.
 //#include <inttypes.h> // Integer types.
@@ -196,6 +202,9 @@ _ Windows CE : WINCE
 //#include <wchar.h> // Wide streams and several kinds of strings.
 //#include <wctype.h> // Wide characters.
 #endif // __GNUC__
+#if defined(_MSC_VER) && _MSC_VER >= 1600
+#include <stdint.h>
+#endif // defined(_MSC_VER) && _MSC_VER >= 1600
 
 #ifndef WINCE
 #include <fcntl.h>
@@ -240,11 +249,13 @@ _ Windows CE : WINCE
 #ifdef __GNUC__
 // extern __inline__ in ws2tcpip.h for GNU?
 #ifdef _WIN32
-#if !(((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)) || (__GNUC__ > 4))
+#if (__MINGW_GNUC_PREREQ(4, 3) && __STDC_VERSION__ >= 199901L) || (defined (__clang__))
+// Problem with the use of inline in _mingw.h for WS2TCPIP_INLINE...
+#include <ws2tcpip.h>
 #define inline static __inline__
 #else
-#define inline __inline__
-#endif // !(((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)) || (__GNUC__ > 4))
+#define inline static __inline__
+#endif // (__MINGW_GNUC_PREREQ(4, 3) && __STDC_VERSION__ >= 199901L) || (defined (__clang__))
 #else
 #define inline static __inline__
 #endif // _WIN32
@@ -295,6 +306,14 @@ typedef double DOUBLE;
 #endif
 #endif // WINCE
 
+// The definition of M_PI and M_PI_2 is not in C++ standard, although it is often provided by compilers...
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif // !M_PI
+#ifndef M_PI_2
+#define M_PI_2 1.57079632679489661923
+#endif // !M_PI_2
+
 #ifndef _WIN32
 //#ifndef ZeroMemory
 #define ZeroMemory(Destination,Length) memset((Destination),0,(Length))
@@ -318,9 +337,11 @@ typedef BYTE BOOLEAN;
 #endif // !_WIN32
 
 // Might depend on the platform...
+#ifndef DISABLE_UINT8_16_32_TYPEDEF
 typedef unsigned char uint8;
 typedef unsigned short uint16;
 typedef unsigned int uint32;
+#endif // !DISABLE_UINT8_16_32_TYPEDEF
 
 // Conflict with OpenCV...
 #ifdef ENABLE_INT64_TYPEDEF
@@ -333,6 +354,22 @@ typedef int64_t int64;
 typedef uint64_t uint64;
 #endif // defined(_MSC_VER) || defined(__BORLANDC__)
 #endif // ENABLE_INT64_TYPEDEF
+
+#ifndef DISABLE_OLD_MSC_VER_INT_T_TYPEDEF
+#if defined(_MSC_VER) || defined(__BORLANDC__)
+#if _MSC_VER >= 1600
+#else
+typedef __int8 int8_t;
+typedef __int16 int16_t;
+typedef __int32 int32_t;
+typedef __int64 int64_t;
+typedef unsigned __int8 uint8_t;
+typedef unsigned __int16 uint16_t;
+typedef unsigned __int32 uint32_t;
+typedef unsigned __int64 uint64_t;
+#endif // _MSC_VER >= 1600
+#endif // defined(_MSC_VER) || defined(__BORLANDC__)
+#endif // !DISABLE_OLD_MSC_VER_INT_T_TYPEDEF
 
 #ifndef _WIN32
 typedef union _LARGE_INTEGER {
@@ -439,15 +476,16 @@ enum EXIT_CODE
 #define EXIT_NAME_TOO_LONG 5
 #define EXIT_OUT_OF_MEMORY 6
 #define EXIT_OBJECT_NONSIGNALED 7
-#define EXIT_KILLED_THREAD 8
-#define EXIT_CANCELED_THREAD 9
-#define EXIT_IO_PENDING 10
-#define EXIT_KILLED_PROCESS 11
-#define EXIT_CHANGED 12
-#define EXIT_NOT_CHANGED 13
-#define EXIT_FOUND 14
-#define EXIT_NOT_FOUND 15
-#define EXIT_NOT_IMPLEMENTED 16
+#define EXIT_TOO_MANY_SEMAPHORES 8
+#define EXIT_KILLED_THREAD 9
+#define EXIT_CANCELED_THREAD 10
+#define EXIT_IO_PENDING 11
+#define EXIT_KILLED_PROCESS 12
+#define EXIT_CHANGED 13
+#define EXIT_NOT_CHANGED 14
+#define EXIT_FOUND 15
+#define EXIT_NOT_FOUND 16
+#define EXIT_NOT_IMPLEMENTED 17
 
 // Strings corresponding to the previous return values.
 EXTERN_C const char* szOSUtilsErrMsgs[];

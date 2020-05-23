@@ -59,6 +59,7 @@ struct SSC32
 	char szDevPath[256];
 	int BaudRate;
 	int timeout;
+	int threadperiod;
 	BOOL bSaveRawData;
 	int MinPWs[NB_CHANNELS_PWM_SSC32];
 	int MidPWs[NB_CHANNELS_PWM_SSC32];
@@ -78,7 +79,15 @@ struct SSC32
 };
 typedef struct SSC32 SSC32;
 
-// value = 0 or 1.
+/*
+Set a digital output channel.
+
+SSC32* pSSC32 : (INOUT) Valid pointer to a structure corresponding to a SSC-32.
+int channel : (IN) Channel number.
+int value : (IN) Digital value (0 or 1).
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int SetDigitalOutputSSC32(SSC32* pSSC32, int channel, int value)
 {
 	char sendbuf[MAX_NB_BYTES_SSC32];
@@ -105,6 +114,15 @@ inline int SetDigitalOutputSSC32(SSC32* pSSC32, int channel, int value)
 	return EXIT_SUCCESS;
 }
 
+/*
+Get a digital input channel value.
+
+SSC32* pSSC32 : (INOUT) Valid pointer to a structure corresponding to a SSC-32.
+int channel : (IN) Channel number.
+int* pValue : (INOUT) Valid pointer that will receive the digital value (0 or 1).
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int GetDigitalInputSSC32(SSC32* pSSC32, int channel, int* pValue)
 {
 	char sendbuf[MAX_NB_BYTES_SSC32];
@@ -160,6 +178,15 @@ inline int GetDigitalInputSSC32(SSC32* pSSC32, int channel, int* pValue)
 	return EXIT_SUCCESS;
 }
 
+/*
+Get an analog input channel voltage.
+
+SSC32* pSSC32 : (INOUT) Valid pointer to a structure corresponding to a SSC-32.
+int channel : (IN) Channel number.
+int* pVoltage : (INOUT) Valid pointer that will receive the voltage (in V).
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int GetVoltageSSC32(SSC32* pSSC32, int channel, double* pVoltage)
 {
 	char sendbuf[MAX_NB_BYTES_SSC32];
@@ -215,8 +242,15 @@ inline int GetVoltageSSC32(SSC32* pSSC32, int channel, double* pVoltage)
 	return EXIT_SUCCESS;
 }
 
-// Only for IOIOSrv...
-// pw in us.
+/*
+Get the pulse width from a pulse input channel (only available when connected to IOIOSrv).
+
+SSC32* pSSC32 : (INOUT) Valid pointer to a structure corresponding to a SSC-32.
+int channel : (IN) Channel number.
+int* pPw : (INOUT) Valid pointer that will receive the pulse width (in us).
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int GetPWMSSC32(SSC32* pSSC32, int channel, int* pPw)
 {
 	char sendbuf[MAX_NB_BYTES_SSC32];
@@ -261,7 +295,16 @@ inline int GetPWMSSC32(SSC32* pSSC32, int channel, int* pPw)
 	return EXIT_SUCCESS;
 }
 
-// pw in us.
+/*
+Set a PWM channel.
+
+SSC32* pSSC32 : (INOUT) Valid pointer to a structure corresponding to a SSC-32.
+int channel : (IN) Channel number (from 0 to NB_CHANNELS_PWM_SSC32-1).
+int pw : (IN) Desired pulse width (in us). For example, if a servomotor is connected, 
+pass 1500 to put it at a neutral state, 1000 in one side or 2000 in the other side.
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int SetPWMSSC32(SSC32* pSSC32, int channel, int pw)
 {
 	char sendbuf[MAX_NB_BYTES_SSC32];
@@ -309,7 +352,19 @@ inline int SetPWMSSC32(SSC32* pSSC32, int channel, int pw)
 	return EXIT_SUCCESS;
 }
 
-// pw in us.
+/*
+Set selected PWM channels.
+For example, if a servomotor is connected to channel 2, set pws[2] to 1500 to put it at a neutral state, 1000 in 
+one side or 2000 in the other side, and set selectedchannels[2] to 1.
+
+SSC32* pSSC32 : (INOUT) Valid pointer to a structure corresponding to a SSC-32.
+int* selectedchannels : (IN) Valid pointer to a table of NB_CHANNELS_PWM_SSC32 elements to indicate which channels 
+should be considered in pws (0 to ignore the channel or 1 to select it).
+int* pws : (IN) Valid pointer to a table of NB_CHANNELS_PWM_SSC32 elements with the desired pulse width for each 
+channel (in us).
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int SetAllPWMsSSC32(SSC32* pSSC32, int* selectedchannels, int* pws)
 {
 	char szTmp[MAX_NB_BYTES_SSC32];
@@ -387,7 +442,14 @@ inline int SetAllPWMsSSC32(SSC32* pSSC32, int* selectedchannels, int* pws)
 	return EXIT_SUCCESS;
 }
 
-// angle should be in [-max(fabs(ssc32.MinAngle),fabs(ssc32.MaxAngle));max(fabs(ssc32.MinAngle),fabs(ssc32.MaxAngle))].
+/*
+Set rudderchan PWM channel as a rudder angle.
+
+SSC32* pSSC32 : (INOUT) Valid pointer to a structure corresponding to a SSC-32.
+double angle : (IN) Desired rudder angle (in rad, should be in [-max(fabs(ssc32.MinAngle),fabs(ssc32.MaxAngle));max(fabs(ssc32.MinAngle),fabs(ssc32.MaxAngle))]).
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int SetRudderSSC32(SSC32* pSSC32, double angle)
 {
 	int pw = 0;
@@ -415,7 +477,15 @@ inline int SetRudderSSC32(SSC32* pSSC32, double angle)
 	return SetPWMSSC32(pSSC32, pSSC32->rudderchan, pw);
 }
 
-// u should be in [-1;1].
+/*
+Set rightthrusterchan and leftthrusterchan PWM channels as thrusters inputs.
+
+SSC32* pSSC32 : (INOUT) Valid pointer to a structure corresponding to a SSC-32.
+double urt : (IN) Desired right thruster input (in [-1;1]).
+double ult : (IN) Desired left thruster input (in [-1;1]).
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int SetThrustersSSC32(SSC32* pSSC32, double urt, double ult)
 {
 	int selectedchannels[NB_CHANNELS_PWM_SSC32];
@@ -437,8 +507,15 @@ inline int SetThrustersSSC32(SSC32* pSSC32, double urt, double ult)
 	return SetAllPWMsSSC32(pSSC32, selectedchannels, pws);
 }
 
-// angle should be in [-max(fabs(ssc32.MinAngle),fabs(ssc32.MaxAngle));max(fabs(ssc32.MinAngle),fabs(ssc32.MaxAngle))].
-// u should be in [-1;1].
+/*
+Set rudderchan PWM channel as a rudder angle and rightthrusterchan PWM channel as a thruster input.
+
+SSC32* pSSC32 : (INOUT) Valid pointer to a structure corresponding to a SSC-32.
+double angle : (IN) Desired rudder angle (in rad, should be in [-max(fabs(ssc32.MinAngle),fabs(ssc32.MaxAngle));max(fabs(ssc32.MinAngle),fabs(ssc32.MaxAngle))]).
+double urt : (IN) Desired thruster input (in [-1;1]).
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int SetRudderThrusterSSC32(SSC32* pSSC32, double angle, double urt)
 {
 	int selectedchannels[NB_CHANNELS_PWM_SSC32];
@@ -476,8 +553,19 @@ inline int SetRudderThrusterSSC32(SSC32* pSSC32, double angle, double urt)
 	return SetAllPWMsSSC32(pSSC32, selectedchannels, pws);
 }
 
-// angle should be in [-max(fabs(ssc32.MinAngle),fabs(ssc32.MaxAngle));max(fabs(ssc32.MinAngle),fabs(ssc32.MaxAngle))].
-// u should be in [-1;1].
+/*
+Set rudderchan PWM channel as a rudder angle, rightthrusterchan and leftthrusterchan PWM channels as thrusters inputs,
+rightfluxchan and leftfluxchan as flux direction inputs.
+
+SSC32* pSSC32 : (INOUT) Valid pointer to a structure corresponding to a SSC-32.
+double angle : (IN) Desired rudder angle (in rad, should be in [-max(fabs(ssc32.MinAngle),fabs(ssc32.MaxAngle));max(fabs(ssc32.MinAngle),fabs(ssc32.MaxAngle))]).
+double urt : (IN) Desired right thruster input (in [-1;1]).
+double ult : (IN) Desired left thruster input (in [-1;1]).
+double urf : (IN) Desired right flux direction input (in [-1;1]).
+double ulf : (IN) Desired left flux direction input (in [-1;1]).
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int SetRudderThrustersFluxSSC32(SSC32* pSSC32, double angle, double urt, double ult, double urf, double ulf)
 {
 	int selectedchannels[NB_CHANNELS_PWM_SSC32];
@@ -524,7 +612,7 @@ inline int SetRudderThrustersFluxSSC32(SSC32* pSSC32, double angle, double urt, 
 	return SetAllPWMsSSC32(pSSC32, selectedchannels, pws);
 }
 
-inline int CheckSSC32(SSC32* pSSC32)
+inline int CheckRudderSSC32(SSC32* pSSC32)
 {
 	if (SetRudderSSC32(pSSC32, -0.25) != EXIT_SUCCESS)
 	{
@@ -542,6 +630,11 @@ inline int CheckSSC32(SSC32* pSSC32)
 	}
 	mSleep(2000);
 
+	return EXIT_SUCCESS;
+}
+
+inline int CheckThrustersSSC32(SSC32* pSSC32)
+{
 	if (SetThrustersSSC32(pSSC32, -0.25, -0.25) != EXIT_SUCCESS)
 	{
 		return EXIT_FAILURE;
@@ -587,6 +680,7 @@ inline int ConnectSSC32(SSC32* pSSC32, char* szCfgFilePath)
 		sprintf(pSSC32->szDevPath, "COM1");
 		pSSC32->BaudRate = 115200;
 		pSSC32->timeout = 1000;
+		pSSC32->threadperiod = 50;
 		pSSC32->bSaveRawData = 1;
 		for (channel = 0; channel < NB_CHANNELS_PWM_SSC32; channel++)
 		{
@@ -617,6 +711,8 @@ inline int ConnectSSC32(SSC32* pSSC32, char* szCfgFilePath)
 			if (sscanf(line, "%d", &pSSC32->BaudRate) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pSSC32->timeout) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pSSC32->threadperiod) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pSSC32->bSaveRawData) != 1) printf("Invalid configuration file.\n");
 
@@ -662,6 +758,12 @@ inline int ConnectSSC32(SSC32* pSSC32, char* szCfgFilePath)
 		{
 			printf("Configuration file not found.\n");
 		}
+	}
+
+	if (pSSC32->threadperiod < 0)
+	{
+		printf("Invalid parameter : threadperiod.\n");
+		pSSC32->threadperiod = 50;
 	}
 
 	for (channel = 0; channel < NB_CHANNELS_PWM_SSC32; channel++)

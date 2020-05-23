@@ -5,8 +5,10 @@ COM5
 57600
 % Timeout (in ms)
 2000
-% bSaveRawData
-0
+% threadperiod (in ms, require associated thread)
+50
+% bSaveRawData (require associated thread)
+1
 % bROSMode
 1
 % bSendCalibration

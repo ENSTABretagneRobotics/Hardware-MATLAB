@@ -5,8 +5,10 @@ COM12
 115200
 % Timeout (in ms)
 1500
-% bSaveRawData
-0
+% threadperiod (in ms, require associated thread)
+50
+% bSaveRawData (require associated thread)
+1
 % bExternal (0 if the data can be used for the state estimation, 1 otherwise and to enable Follow Me)
 0
 % quality_threshold
@@ -24,7 +26,7 @@ COM12
 % bDisableArmingCheck
 0
 % bOverridePWMAtStartup
-1
+0
 % bForceStabilizeModeAtStartup
 0
 % bArmAtStartup
@@ -43,7 +45,9 @@ COM12
 1
 % ManualControlMode (-1 to disable, 0 to send RC_OVERRIDE, 1 to send MANUAL_CONTROL, 2 to send RC_OVERRIDE+MANUAL_CONTROL (only joystick buttons), 3 to send SET_ATTITUDE_TARGET (Copter needs to be in Guided mode) MAVLink messages)
 0
-% overridechan (RC input channel used to disable RC override, from 1 to 18)
+% bDefaultDisablePWMOverride
+1
+% overridechan (RC input channel used to disable RC override, from 1 to 18, set to higher if unused)
 6
 % channel 0
 % MinPW (in us)

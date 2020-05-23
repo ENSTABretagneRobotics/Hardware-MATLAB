@@ -57,6 +57,7 @@ struct UBLOX
 	char szDevPath[256];
 	int BaudRate;
 	int timeout;
+	int threadperiod;
 	BOOL bSaveRawData;
 	BOOL bRevertToDefaultCfg;
 	int SetCfg;
@@ -67,6 +68,12 @@ struct UBLOX
 	double fixedLon;
 	double fixedAlt;
 	double fixedPosAcc;
+	BOOL bSaveCfg;
+	BOOL bDisableRTCMTransfer;
+	BOOL bSendStartSentence;
+	char szStartSentence[256];
+	BOOL bSendStopSentence;
+	char szStopSentence[256];
 	BOOL bEnable_NMEA_GGA;
 	BOOL bEnable_NMEA_RMC;
 	BOOL bEnable_NMEA_GLL;
@@ -712,6 +719,46 @@ inline int RevertToDefaultCfgublox(UBLOX* publox)
 	return EXIT_SUCCESS;
 }
 
+inline int SaveCfgublox(UBLOX* publox)
+{
+	unsigned char sendbuf[32];
+	int sendbuflen = 0;
+	struct CFG_CFG_PL_UBX cfg_cfg_pl;
+
+	memset(&cfg_cfg_pl, 0, sizeof(cfg_cfg_pl));	
+	cfg_cfg_pl.saveMask.ioPort = 1;
+	cfg_cfg_pl.saveMask.msgConf = 1;
+	cfg_cfg_pl.saveMask.infMsg = 1;
+	cfg_cfg_pl.saveMask.navConf = 1;
+	cfg_cfg_pl.saveMask.rxmConf = 1;
+	cfg_cfg_pl.saveMask.senConf = 1;
+	cfg_cfg_pl.saveMask.rinvConf = 1;
+	cfg_cfg_pl.saveMask.antConf = 1;
+	cfg_cfg_pl.saveMask.logConf = 1;
+	cfg_cfg_pl.saveMask.ftsConf = 1;
+	cfg_cfg_pl.deviceMask.devBBR = 1;
+	cfg_cfg_pl.deviceMask.devFlash = 1;
+	cfg_cfg_pl.deviceMask.devEEPROM = 1;
+	cfg_cfg_pl.deviceMask.devSpiFlash = 1;
+	EncodePacketUBX(sendbuf, &sendbuflen, CFG_CLASS_UBX, CFG_CFG_ID_UBX, (unsigned char*)&cfg_cfg_pl, LEN_CFG_CFG_PL_UBX);
+	//EncodePacketUBX(sendbuf, &sendbuflen, CFG_CLASS_UBX, CFG_CFG_ID_UBX, (unsigned char*)&cfg_cfg_pl, sizeof(cfg_cfg_pl));
+
+	if (WriteAllRS232Port(&publox->RS232Port, sendbuf, sendbuflen) != EXIT_SUCCESS)
+	{
+		printf("Error writing data to a ublox. \n");
+		return EXIT_FAILURE;
+	}
+	if ((publox->bSaveRawData)&&(publox->pfSaveFile))
+	{
+		fwrite(sendbuf, sendbuflen, 1, publox->pfSaveFile);
+		fflush(publox->pfSaveFile);
+	}
+
+	// Should check ACK...
+
+	return EXIT_SUCCESS;
+}
+
 inline int SetBaseCfgublox(UBLOX* publox)
 {
 	unsigned char sendbuf[512];
@@ -962,6 +1009,7 @@ inline int Connectublox(UBLOX* publox, char* szCfgFilePath)
 		sprintf(publox->szDevPath, "COM1");
 		publox->BaudRate = 9600;
 		publox->timeout = 1000;
+		publox->threadperiod = 100;
 		publox->bSaveRawData = 1;
 		publox->bRevertToDefaultCfg = 1;
 		publox->SetCfg = KEEP_CURRENT_CFG_UBX;
@@ -972,6 +1020,14 @@ inline int Connectublox(UBLOX* publox, char* szCfgFilePath)
 		publox->fixedLon = 0;
 		publox->fixedAlt = 0;
 		publox->fixedPosAcc = 10;
+		publox->bSaveCfg = 0;
+		publox->bDisableRTCMTransfer = 0;
+		publox->bSendStartSentence = 0;
+		memset(publox->szStartSentence, 0, sizeof(publox->szStartSentence));
+		sprintf(publox->szStartSentence, "$GPS_START");
+		publox->bSendStopSentence = 0;
+		memset(publox->szStopSentence, 0, sizeof(publox->szStopSentence));
+		sprintf(publox->szStopSentence, "$GPS_STOP");
 		publox->bEnable_NMEA_GGA = 0;
 		publox->bEnable_NMEA_RMC = 0;
 		publox->bEnable_NMEA_GLL = 0;
@@ -1008,6 +1064,8 @@ inline int Connectublox(UBLOX* publox, char* szCfgFilePath)
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &publox->timeout) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &publox->threadperiod) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &publox->bSaveRawData) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &publox->bRevertToDefaultCfg) != 1) printf("Invalid configuration file.\n");
@@ -1027,6 +1085,20 @@ inline int Connectublox(UBLOX* publox, char* szCfgFilePath)
 			if (sscanf(line, "%lf", &publox->fixedAlt) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%lf", &publox->fixedPosAcc) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &publox->bSaveCfg) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &publox->bDisableRTCMTransfer) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &publox->bSendStartSentence) != 1) printf("Invalid configuration file.\n");
+			// Need fgets4() because of '$'...
+			if (fgets4(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%255s", publox->szStartSentence) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &publox->bSendStopSentence) != 1) printf("Invalid configuration file.\n");
+			// Need fgets4() because of '$'...
+			if (fgets4(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%255s", publox->szStopSentence) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &publox->bEnable_NMEA_GGA) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
@@ -1083,6 +1155,34 @@ inline int Connectublox(UBLOX* publox, char* szCfgFilePath)
 		}
 	}
 
+	if (publox->threadperiod < 0)
+	{
+		printf("Invalid parameter : threadperiod.\n");
+		publox->threadperiod = 100;
+	}
+	if ((publox->fixedLat < -90)||(publox->fixedLat > 90))
+	{
+		printf("Invalid parameter : fixedLat.\n");
+		publox->fixedLat = 0;
+	}
+	if ((publox->fixedLon < -180)||(publox->fixedLon > 180))
+	{
+		printf("Invalid parameter : fixedLon.\n");
+		publox->fixedLon = 0;
+	}
+	if (strlen(publox->szStartSentence) >= 255)
+	{
+		printf("Invalid parameter : szStartSentence.\n");
+		memset(publox->szStartSentence, 0, sizeof(publox->szStartSentence));
+		sprintf(publox->szStartSentence, "$GPS_START");
+	}
+	if (strlen(publox->szStopSentence) >= 255)
+	{
+		printf("Invalid parameter : szStopSentence.\n");
+		memset(publox->szStopSentence, 0, sizeof(publox->szStopSentence));
+		sprintf(publox->szStopSentence, "$GPS_STOP");
+	}
+
 	// Used to save raw data, should be handled specifically...
 	//publox->pfSaveFile = NULL;
 
@@ -1100,17 +1200,6 @@ inline int Connectublox(UBLOX* publox, char* szCfgFilePath)
 		printf("Unable to connect to a ublox.\n");
 		CloseRS232Port(&publox->RS232Port);
 		return EXIT_FAILURE;
-	}
-
-	if ((publox->fixedLat < -90)||(publox->fixedLat > 90))
-	{
-		printf("Invalid parameter : fixedLat.\n");
-		publox->fixedLat = 0;
-	}
-	if ((publox->fixedLon < -180)||(publox->fixedLon > 180))
-	{
-		printf("Invalid parameter : fixedLon.\n");
-		publox->fixedLon = 0;
 	}
 
 	if (publox->bRevertToDefaultCfg)
@@ -1149,6 +1238,28 @@ inline int Connectublox(UBLOX* publox, char* szCfgFilePath)
 		break;
 	}
 
+	if (publox->bSaveCfg)
+	{
+		if (SaveCfgublox(publox) != EXIT_SUCCESS)
+		{
+			printf("Unable to configure a ublox.\n");
+			CloseRS232Port(&publox->RS232Port);
+			return EXIT_FAILURE;
+		}
+		mSleep(250);
+	}
+
+	if (publox->bSendStartSentence)
+	{
+		if (TransferToublox(publox, (unsigned char*)publox->szStartSentence, (int)strlen(publox->szStartSentence)) != EXIT_SUCCESS)
+		{
+			printf("Unable to configure a ublox.\n");
+			CloseRS232Port(&publox->RS232Port);
+			return EXIT_FAILURE;
+		}
+		mSleep(250);
+	}
+
 	printf("ublox connected.\n");
 
 	return EXIT_SUCCESS;
@@ -1156,6 +1267,16 @@ inline int Connectublox(UBLOX* publox, char* szCfgFilePath)
 
 inline int Disconnectublox(UBLOX* publox)
 {
+	if (publox->bSendStopSentence)
+	{
+		if (TransferToublox(publox, (unsigned char*)publox->szStopSentence, (int)strlen(publox->szStopSentence)) != EXIT_SUCCESS)
+		{
+			printf("Error while disconnecting a ublox.\n");
+			CloseRS232Port(&publox->RS232Port);
+			return EXIT_FAILURE;
+		}
+		mSleep(50);
+	}
 	if (CloseRS232Port(&publox->RS232Port) != EXIT_SUCCESS)
 	{
 		printf("ublox disconnection failed.\n");

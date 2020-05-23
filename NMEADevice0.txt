@@ -5,8 +5,10 @@ COM3
 4800
 % Timeout (in ms)
 1500
-% bSaveRawData
-0
+% threadperiod (in ms, require associated thread)
+100
+% bSaveRawData (require associated thread)
+1
 % bEnableGPGGA
 0
 % bEnableGPRMC

@@ -214,10 +214,13 @@ char* strtimeex_m(void)
 #endif // !WINCE
 
 #ifndef DISABLE_USE_SNPRINTF
-	snprintf(sztmp, sizeof(sztmp), ":%02d", (int)(tv.tv_usec/10000));
+	if (snprintf(sztmp, sizeof(sztmp), ":%02d", (int)(tv.tv_usec/10000)) != 3)
 #else
-	sprintf(sztmp, ":%02d", (int)(tv.tv_usec/10000));
+	if (sprintf(sztmp, ":%02d", (int)(tv.tv_usec/10000)) != 3)
 #endif // DISABLE_USE_SNPRINTF
+	{
+		strcpy(sztmp, ":00");
+	}
 	strcat(strftimeex_fns_tmpbuf, sztmp);
 
 	return strftimeex_m_tmpbuf;
@@ -410,10 +413,13 @@ char* strtimeex_fns(void)
 #endif // !WINCE
 
 #ifndef DISABLE_USE_SNPRINTF
-	snprintf(sztmp, sizeof(sztmp), "%02d", (int)(tv.tv_usec/10000));
+	if (snprintf(sztmp, sizeof(sztmp), "%02d", (int)(tv.tv_usec/10000)) != 2)
 #else
-	sprintf(sztmp, "%02d", (int)(tv.tv_usec/10000));
+	if (sprintf(sztmp, "%02d", (int)(tv.tv_usec/10000)) != 2)
 #endif // DISABLE_USE_SNPRINTF
+	{
+		strcpy(sztmp, "00");
+	}
 	strcat(strftimeex_fns_tmpbuf, sztmp);
 
 	return strftimeex_fns_tmpbuf;

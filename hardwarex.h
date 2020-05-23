@@ -11,7 +11,7 @@
 #define HARDWAREX_API 
 #endif // _WIN32
 
-// Uncomment the following line to enable SBG in MATLAB (requires corresponding SDK...).
+// Uncomment the following line to enable SBG SDK in MATLAB (requires corresponding SDK...).
 //#define ENABLE_SBG_SUPPORT
 
 // Uncomment the following line to enable MAVLink in MATLAB (requires corresponding headers and needs Visual Studio 2013 or later (to set in mex -setup and mex -setup C++)...).
@@ -70,9 +70,7 @@
 #endif // ENABLE_MAVLINK_SUPPORT
 
 #include "OSCriticalSection.h"
-#ifdef ENABLE_SBG_SUPPORT
 #include "SBG.h"
-#endif // ENABLE_SBG_SUPPORT
 #include "MT.h"
 #include "RazorAHRS.h"
 #include "MDM.h"
@@ -92,7 +90,6 @@
 extern "C" {
 #endif
 
-#ifdef ENABLE_SBG_SUPPORT
 	HARDWAREX_API SBG* CreateSBGx(void);
 	HARDWAREX_API void DestroySBGx(SBG* pSBG);
 	HARDWAREX_API SBGDATA* CreateSBGDatax(void);
@@ -103,7 +100,6 @@ extern "C" {
 	HARDWAREX_API int GetLatestDataFromThreadSBGx(SBG* pSBG, SBGDATA* pSBGData);
 	HARDWAREX_API int StartThreadSBGx(SBG* pSBG);
 	HARDWAREX_API int StopThreadSBGx(SBG* pSBG);
-#endif // ENABLE_SBG_SUPPORT
 
 	HARDWAREX_API MT* CreateMTx(void);
 	HARDWAREX_API void DestroyMTx(MT* pMT);

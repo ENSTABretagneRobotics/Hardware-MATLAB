@@ -54,6 +54,7 @@ struct IM483I
 	char szDevPath[256];
 	int BaudRate;
 	int timeout;
+	int threadperiod;
 	BOOL bSaveRawData;
 	int CalibrationSpeed;
 	int CalibrationTime;
@@ -184,6 +185,34 @@ inline int SetMaxAngleIM483I(IM483I* pIM483I, double angle)
 	return EXIT_SUCCESS;
 }
 
+inline int SetMotorRelativeIM483I(IM483I* pIM483I, int val)
+{
+	char sendbuf[MAX_NB_BYTES_IM483I];
+	int sendbuflen = 0;
+
+	// Prepare data to send to device.
+	memset(sendbuf, 0, sizeof(sendbuf));
+	sprintf(sendbuf, "R%d\r", val);
+	sendbuflen = (int)strlen(sendbuf);
+
+	if (WriteAllRS232Port(&pIM483I->RS232Port, (unsigned char*)sendbuf, sendbuflen) != EXIT_SUCCESS)
+	{
+		return EXIT_FAILURE;
+	}
+	if ((pIM483I->bSaveRawData)&&(pIM483I->pfSaveFile))
+	{
+		fwrite(sendbuf, sendbuflen, 1, pIM483I->pfSaveFile);
+		fflush(pIM483I->pfSaveFile);
+	}
+
+	mSleep(20);
+
+	// Update last known value.
+	pIM483I->LastRval = val;
+
+	return EXIT_SUCCESS;
+}
+
 inline int CalibrateMotorIM483I(IM483I* pIM483I)
 {
 	if (SetMotorTorqueIM483I(pIM483I, pIM483I->CalibrationTorque) != EXIT_SUCCESS)
@@ -237,6 +266,7 @@ inline int ConnectIM483I(IM483I* pIM483I, char* szCfgFilePath)
 		sprintf(pIM483I->szDevPath, "COM1");
 		pIM483I->BaudRate = 4800;
 		pIM483I->timeout = 1000;
+		pIM483I->threadperiod = 50;
 		pIM483I->bSaveRawData = 1;
 		pIM483I->CalibrationSpeed = CALIBRATION_SPEED_IM483I;
 		pIM483I->CalibrationTime = CALIBRATION_TIME_IM483I;
@@ -256,6 +286,8 @@ inline int ConnectIM483I(IM483I* pIM483I, char* szCfgFilePath)
 			if (sscanf(line, "%d", &pIM483I->BaudRate) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pIM483I->timeout) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pIM483I->threadperiod) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pIM483I->bSaveRawData) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
@@ -280,6 +312,11 @@ inline int ConnectIM483I(IM483I* pIM483I, char* szCfgFilePath)
 		}
 	}
 
+	if (pIM483I->threadperiod < 0)
+	{
+		printf("Invalid parameter : threadperiod.\n");
+		pIM483I->threadperiod = 50;
+	}
 	if ((pIM483I->CalibrationSpeed < MIN_MOTOR_SPEED_IM483I)||(pIM483I->CalibrationSpeed > MAX_MOTOR_SPEED_IM483I))
 	{
 		printf("Invalid parameter : CalibrationSpeed.\n");

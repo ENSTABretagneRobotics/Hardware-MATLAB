@@ -1,4 +1,4 @@
-MAVLink and SBG support (if needed to rebuild)
+MAVLink and SBG SDK support (if needed to rebuild)
 ===============
 Windows : 
 - In `hardwarex.h`, check that `#define ENABLE_MAVLINK_SUPPORT` and `#define ENABLE_SBG_SUPPORT` are uncommented.

@@ -58,14 +58,14 @@ Debug macros specific to RS232Port.
 #	define PRINT_DEBUG_ERROR_RS232PORT(params)
 #endif // _DEBUG_ERRORS_RS232PORT
 
-#define MAX_RS232PORT_TIMEOUT 25500
-#define MAX_RS232PORT_NAME_LENGTH (128-8)
+#define MAX_TIMEOUT_RS232PORT 25500
+#define MAX_NAME_LENGTH_RS232PORT (128-8)
 
-#define LOCAL_TYPE_RS232PORT 0
-#define TCP_CLIENT_TYPE_RS232PORT 1
-#define TCP_SERVER_TYPE_RS232PORT 2
-#define UDP_CLIENT_TYPE_RS232PORT 3
-#define UDP_SERVER_TYPE_RS232PORT 4
+#define LOCAL_TYPE_RS232PORT OTHER_DEV_TYPE_OSNET
+#define TCP_CLIENT_TYPE_RS232PORT TCP_CLIENT_DEV_TYPE_OSNET
+#define TCP_SERVER_TYPE_RS232PORT TCP_SERVER_DEV_TYPE_OSNET
+#define UDP_CLIENT_TYPE_RS232PORT UDP_CLIENT_DEV_TYPE_OSNET
+#define UDP_SERVER_TYPE_RS232PORT UDP_SERVER_DEV_TYPE_OSNET
 //#define UE9_TYPE_RS232PORT 5
 
 struct RS232PORT
@@ -90,70 +90,27 @@ corresponding to a RS232 port.
 char* szDevPath : (IN) Server TCP port (e.g. :4001), client IP address and TCP port (e.g. 127.0.0.1:4001), 
 server UDP port (udp:4001), client IP address and UDP port (e.g. udp://127.0.0.1:4001) or local RS232 port.
 
-Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+Return : EXIT_SUCCESS, EXIT_INVALID_PARAMETER or EXIT_FAILURE if there is an error.
 */
 inline int OpenRS232Port(RS232PORT* pRS232Port, char* szDevPath)
 {
-	char* ptr = NULL;
-	char* ptr2 = NULL;
 	int iResult = EXIT_FAILURE;
 
 	memset(pRS232Port->szDevPath, 0, sizeof(pRS232Port->szDevPath));
 	memset(pRS232Port->address, 0, sizeof(pRS232Port->address));
 	memset(pRS232Port->port, 0, sizeof(pRS232Port->port));
+	pRS232Port->DevType = -1;
 
 	// Try to determine whether it is a server TCP port (e.g. :4001), client IP address and TCP port (e.g. 127.0.0.1:4001), 
 	// server UDP port (udp:4001), client IP address and UDP port (e.g. udp://127.0.0.1:4001) or local RS232 port.
-	ptr = strchr(szDevPath, ':');
-	if ((ptr != NULL)&&(strlen(ptr) >= 6)) ptr2 = strchr(ptr+1, ':');
-	if ((strlen(szDevPath) >= 12)&&(strncmp(szDevPath, "tcpsrv://", strlen("tcpsrv://")) == 0)&&(ptr2 != NULL)&&(ptr2[1] != 0))
+	if (GetAddrPortTypeFromDevPath(szDevPath, pRS232Port->address, sizeof(pRS232Port->address), pRS232Port->port, sizeof(pRS232Port->port), &pRS232Port->DevType) != EXIT_SUCCESS)
 	{
-		memcpy(pRS232Port->address, szDevPath+9, ptr2-(szDevPath+9));
-		strcpy(pRS232Port->port, ptr2+1);
-		pRS232Port->DevType = TCP_SERVER_TYPE_RS232PORT;
-	}
-	else if ((strlen(szDevPath) >= 12)&&(strncmp(szDevPath, "udpsrv://", strlen("udpsrv://")) == 0)&&(ptr2 != NULL)&&(ptr2[1] != 0))
-	{
-		memcpy(pRS232Port->address, szDevPath+9, ptr2-(szDevPath+9));
-		strcpy(pRS232Port->port, ptr2+1);
-		pRS232Port->DevType = UDP_SERVER_TYPE_RS232PORT;
-	}
-	else if ((strlen(szDevPath) >= 9)&&(strncmp(szDevPath, "tcp://", strlen("tcp://")) == 0)&&(ptr2 != NULL)&&(ptr2[1] != 0))
-	{
-		memcpy(pRS232Port->address, szDevPath+6, ptr2-(szDevPath+6));
-		strcpy(pRS232Port->port, ptr2+1);
-		pRS232Port->DevType = TCP_CLIENT_TYPE_RS232PORT;
-	}
-	else if ((strlen(szDevPath) >= 9)&&(strncmp(szDevPath, "udp://", strlen("udp://")) == 0)&&(ptr2 != NULL)&&(ptr2[1] != 0))
-	{
-		memcpy(pRS232Port->address, szDevPath+6, ptr2-(szDevPath+6));
-		strcpy(pRS232Port->port, ptr2+1);
-		pRS232Port->DevType = UDP_CLIENT_TYPE_RS232PORT;
-	}
-	else if ((strlen(szDevPath) >= 5)&&(strncmp(szDevPath, "tcp:", strlen("tcp:")) == 0)&&(atoi(szDevPath+4) > 0))
-	{
-		strcpy(pRS232Port->port, szDevPath+4);
-		pRS232Port->DevType = TCP_SERVER_TYPE_RS232PORT;
-	}
-	else if ((strlen(szDevPath) >= 5)&&(strncmp(szDevPath, "udp:", strlen("udp:")) == 0)&&(atoi(szDevPath+4) > 0))
-	{
-		strcpy(pRS232Port->port, szDevPath+4);
-		pRS232Port->DevType = UDP_SERVER_TYPE_RS232PORT;
-	}
-	else if ((szDevPath[0] == ':')&&(atoi(szDevPath+1) > 0))
-	{
-		strcpy(pRS232Port->port, szDevPath+1);
-		pRS232Port->DevType = TCP_SERVER_TYPE_RS232PORT;
-	}
-	else if ((ptr != NULL)&&(ptr[1] != 0))
-	{
-		memcpy(pRS232Port->address, szDevPath, ptr-szDevPath);
-		strcpy(pRS232Port->port, ptr+1);
-		pRS232Port->DevType = TCP_CLIENT_TYPE_RS232PORT;
-	}
-	else
-	{
-		pRS232Port->DevType = LOCAL_TYPE_RS232PORT;
+		PRINT_DEBUG_ERROR_RS232PORT(("OpenRS232Port error (%s) : %s"
+			"(szDevPath=%s)\n",
+			strtime_m(),
+			szOSUtilsErrMsgs[EXIT_INVALID_PARAMETER],
+			szDevPath));
+		return EXIT_INVALID_PARAMETER;
 	}
 
 	switch (pRS232Port->DevType)
@@ -222,8 +179,6 @@ inline int OpenRS232Port(RS232PORT* pRS232Port, char* szDevPath)
 		}
 		break;
 	case UDP_SERVER_TYPE_RS232PORT:
-		//memset(&pRS232Port->addr, 0, sizeof(pRS232Port->addr));
-		//pRS232Port->addrlen = sizeof(pRS232Port->addr);
 		if (strlen(pRS232Port->address) == 0)
 		{
 			if (initudpsrv(&pRS232Port->s_srv, "0.0.0.0", pRS232Port->port, DEFAULT_SOCK_TIMEOUT) != EXIT_SUCCESS)
@@ -276,12 +231,11 @@ inline int OpenRS232Port(RS232PORT* pRS232Port, char* szDevPath)
 		}
 		if (PurgeComputerRS232Port(pRS232Port->hDev) != EXIT_SUCCESS)
 		{
-			PRINT_DEBUG_ERROR_RS232PORT(("OpenRS232Port error (%s) : %s"
+			PRINT_DEBUG_WARNING_RS232PORT(("OpenRS232Port warning (%s) : %s"
 				"(szDevPath=%s)\n",
 				strtime_m(),
 				"PurgeComputerRS232Port failed. ",
 				szDevPath));
-			return EXIT_FAILURE;
 		}
 		break;
 	default:
@@ -356,7 +310,7 @@ BOOL bCheckParity : (IN) If TRUE, enable input parity checking.
 BYTE nbDataBits : (IN) Number of bits of the data bytes.
 BYTE StopBitsMode : (IN) Stop bits mode. Should be either ONESTOPBIT or TWOSTOPBITS.
 UINT timeout : (IN) Time to wait to get at least 1 byte in ms (near 1000 ms for example, max is 
-MAX_RRS232PORT_TIMEOUT).
+MAX_TIMEOUT_RS232PORT).
 
 Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
 */
@@ -389,13 +343,12 @@ inline int SetOptionsRS232Port(RS232PORT* pRS232Port, UINT BaudRate, BYTE Parity
 		}
 		if (PurgeComputerRS232Port(pRS232Port->hDev) != EXIT_SUCCESS)
 		{
-			PRINT_DEBUG_ERROR_RS232PORT(("SetOptionsRS232Port error (%s) : %s"
+			PRINT_DEBUG_WARNING_RS232PORT(("SetOptionsRS232Port warning (%s) : %s"
 				"(pRS232Port=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
 				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n", 
 				strtime_m(), 
 				"PurgeComputerRS232Port failed. ", 
 				pRS232Port, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
-			return EXIT_FAILURE;
 		}
 		break;
 	default:

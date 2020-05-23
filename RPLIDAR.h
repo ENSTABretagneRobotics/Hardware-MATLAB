@@ -108,6 +108,7 @@ struct RPLIDAR
 	char szDevPath[256];
 	int BaudRate;
 	int timeout;
+	int threadperiod;
 	BOOL bSaveRawData;
 	int ScanMode;
 	int motordelay;
@@ -542,6 +543,13 @@ inline int StartExpressScanRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 		return EXIT_FAILURE;	
 	}
 
+	// The first data response might take some time to come, see https://github.com/ENSTABretagneRobotics/Hardware-MATLAB/issues/2...
+	if (WaitForRS232Port(&pRPLIDAR->RS232Port, 1500, 5) != EXIT_SUCCESS)
+	{
+		printf("A RPLIDAR is not responding correctly. \n");
+		return EXIT_FAILURE;
+	}
+
 	// Receive the first data response (2 data responses needed for angles computation...).
 	memset(pRPLIDAR->esdata_prev, 0, sizeof(pRPLIDAR->esdata_prev));
 	if (ReadAllRS232Port(&pRPLIDAR->RS232Port, pRPLIDAR->esdata_prev, sizeof(pRPLIDAR->esdata_prev)) != EXIT_SUCCESS)
@@ -668,6 +676,7 @@ inline int ConnectRPLIDAR(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
 		sprintf(pRPLIDAR->szDevPath, "COM1");
 		pRPLIDAR->BaudRate = 115200;
 		pRPLIDAR->timeout = 1000;
+		pRPLIDAR->threadperiod = 50;
 		pRPLIDAR->bSaveRawData = 1;
 		pRPLIDAR->ScanMode = SCAN_MODE_RPLIDAR;
 		pRPLIDAR->motordelay = 500;
@@ -685,6 +694,8 @@ inline int ConnectRPLIDAR(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
 			if (sscanf(line, "%d", &pRPLIDAR->BaudRate) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pRPLIDAR->timeout) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pRPLIDAR->threadperiod) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pRPLIDAR->bSaveRawData) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
@@ -705,6 +716,11 @@ inline int ConnectRPLIDAR(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
 		}
 	}
 
+	if (pRPLIDAR->threadperiod < 0)
+	{
+		printf("Invalid parameter : threadperiod.\n");
+		pRPLIDAR->threadperiod = 50;
+	}
 	if (pRPLIDAR->ScanMode < 0)
 	{
 		printf("Invalid parameter : ScanMode.\n");
@@ -843,7 +859,7 @@ inline int DisconnectRPLIDAR(RPLIDAR* pRPLIDAR)
 {		
 	if (StopRequestRPLIDAR(pRPLIDAR) != EXIT_SUCCESS)
 	{
-		printf("RPLIDAR disconnection failed.\n");
+		printf("Error while disconnecting a RPLIDAR.\n");
 		SetMotorPWMRequestRPLIDAR(pRPLIDAR, 0);
 		CloseRS232Port(&pRPLIDAR->RS232Port);
 		return EXIT_FAILURE;
@@ -851,7 +867,7 @@ inline int DisconnectRPLIDAR(RPLIDAR* pRPLIDAR)
 
 	if (SetMotorPWMRequestRPLIDAR(pRPLIDAR, 0) != EXIT_SUCCESS)
 	{
-		printf("RPLIDAR disconnection failed.\n");
+		printf("Error while disconnecting a RPLIDAR.\n");
 		CloseRS232Port(&pRPLIDAR->RS232Port);
 		return EXIT_FAILURE;
 	}

@@ -72,6 +72,8 @@
 // In us.
 #define DEFAULT_ABSOLUTE_MAX_PW_POLOLU 2500
 
+#define MAX_NB_TELEMETERS_POLOLU 12
+
 struct POLOLU
 {
 	RS232PORT RS232Port;
@@ -83,7 +85,10 @@ struct POLOLU
 	char szDevPath[256];
 	int BaudRate;
 	int timeout;
+	int threadperiod;
 	BOOL bSaveRawData;
+	int RangingDelay;
+	BOOL bMedianFilter;
 	int PololuType;
 	int DeviceNumber;
 	int MinPWs[NB_CHANNELS_PWM_POLOLU];
@@ -137,6 +142,10 @@ struct POLOLU
 	int telem6analoginputchan;
 	int telem7analoginputchan;
 	int telem8analoginputchan;
+	int telem9analoginputchan;
+	int telem10analoginputchan;
+	int telem11analoginputchan;
+	int telem12analoginputchan;
 	double MinAngle;
 	double MidAngle;
 	double MaxAngle;
@@ -146,7 +155,18 @@ struct POLOLU
 };
 typedef struct POLOLU POLOLU;
 
-// If analog input, voltage = value*5.0/1023.0 V. If digital input, bit = (value == 1023)? 1: 0. If digital output, bit = (value < 6000)? 0: 1. If servo, pw = value/4 us.
+/*
+Get a channel value.
+If the channel is configured as analog input in Maestro Control Center, voltage = value*5.0/1023.0 V. If it is a digital 
+input, bit = (value == 1023)? 1: 0. If it is a digital output, bit = (value < 6000)? 0: 1. If it is a servo output, 
+pw = value/4 us.
+
+POLOLU* pPololu : (INOUT) Valid pointer to a structure corresponding to a Pololu Maestro.
+int channel : (IN) Channel number.
+int* pValue : (INOUT) Valid pointer that will receive the value.
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int GetValuePololu(POLOLU* pPololu, int channel, int* pValue)
 {
 	unsigned char sendbuf[MAX_NB_BYTES_POLOLU];
@@ -196,7 +216,21 @@ inline int GetValuePololu(POLOLU* pPololu, int channel, int* pValue)
 	return EXIT_SUCCESS;
 }
 
-// int selectedchannels[NB_CHANNELS_AI_POLOLU], int ais[NB_CHANNELS_AI_POLOLU]
+/*
+Get selected channels value.
+For example, if the value of channel 2 needs to be retrieved, set selectedchannels[2] to 1 and check ais[2]. If 
+the channel is configured as analog input in Maestro Control Center, voltage = ais[2]*5.0/1023.0 V. If it is a digital 
+input, bit = (ais[2] == 1023)? 1: 0. If it is a digital output, bit = (ais[2] < 6000)? 0: 1. If it is a servo output, 
+pw = ais[2]/4 us.
+
+POLOLU* pPololu : (INOUT) Valid pointer to a structure corresponding to a Pololu Maestro.
+int* selectedchannels : (IN) Valid pointer to a table of NB_CHANNELS_AI_POLOLU elements to indicate which channels 
+should be considered in ais (0 to ignore the channel or 1 to select it).
+int* ais : (IN) Valid pointer to a table of NB_CHANNELS_AI_POLOLU elements that will receive the value for each 
+channel.
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int GetAllValuesPololu(POLOLU* pPololu, int* selectedchannels, int* ais)
 {
 	unsigned char sendbuf[MAX_NB_BYTES_POLOLU];
@@ -278,8 +312,18 @@ inline int GetAllValuesPololu(POLOLU* pPololu, int* selectedchannels, int* ais)
 	return EXIT_SUCCESS;
 }
 
-// If digital output, bit = (pw >= 1500)? 1 : 0;.
-// pw in us. 
+/*
+Set a PWM channel.
+The channel needs to be configured as servo output in Maestro Control Center. If it is configured as digital output, 
+bit = (pw >= 1500)? 1 : 0;.
+
+POLOLU* pPololu : (INOUT) Valid pointer to a structure corresponding to a Pololu Maestro.
+int channel : (IN) Channel number (from 0 to NB_CHANNELS_PWM_POLOLU-1).
+int pw : (IN) Desired pulse width (in us). For example, if a servomotor is connected, 
+pass 1500 to put it at a neutral state, 1000 in one side or 2000 in the other side.
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int SetPWMPololu(POLOLU* pPololu, int channel, int pw)
 {
 	unsigned char sendbuf[MAX_NB_BYTES_POLOLU];
@@ -334,9 +378,20 @@ inline int SetPWMPololu(POLOLU* pPololu, int channel, int pw)
 	return EXIT_SUCCESS;
 }
 
-// If digital output, bit = (pw >= 1500)? 1 : 0;.
-// pw in us.
-// int selectedchannels[NB_CHANNELS_PWM_POLOLU], int pws[NB_CHANNELS_PWM_POLOLU]
+/*
+Set selected PWM channels.
+For example, if a servomotor is connected to channel 2, set pws[2] to 1500 to put it at a neutral state, 1000 in 
+one side or 2000 in the other side, and set selectedchannels[2] to 1. The channel needs to be configured as servo 
+output in Maestro Control Center. If it is configured as digital output, bit = (pws[2] >= 1500)? 1 : 0;.
+
+POLOLU* pPololu : (INOUT) Valid pointer to a structure corresponding to a Pololu Maestro.
+int* selectedchannels : (IN) Valid pointer to a table of NB_CHANNELS_PWM_POLOLU elements to indicate which channels 
+should be considered in pws (0 to ignore the channel or 1 to select it).
+int* pws : (IN) Valid pointer to a table of NB_CHANNELS_PWM_POLOLU elements with the desired pulse width for each 
+channel (in us).
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int SetAllPWMsPololu(POLOLU* pPololu, int* selectedchannels, int* pws)
 {
 	unsigned char sendbuf[MAX_NB_BYTES_POLOLU];
@@ -555,7 +610,15 @@ inline int SetPWMJrkPololu(POLOLU* pPololu, int pw)
 	return EXIT_SUCCESS;
 }
 
-// angle should be in [-max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle));max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle))].
+/*
+Set rudderchan PWM channel as a rudder angle.
+The channel needs to be configured as servo output in Maestro Control Center.
+
+POLOLU* pPololu : (INOUT) Valid pointer to a structure corresponding to a Pololu Maestro.
+double angle : (IN) Desired rudder angle (in rad, should be in [-max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle));max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle))]).
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int SetRudderPololu(POLOLU* pPololu, double angle)
 {
 	int pw = 0;
@@ -583,7 +646,16 @@ inline int SetRudderPololu(POLOLU* pPololu, double angle)
 	return SetPWMPololu(pPololu, pPololu->rudderchan, pw);
 }
 
-// u should be in [-1;1].
+/*
+Set rightthrusterchan and leftthrusterchan PWM channels as thrusters inputs.
+The channels need to be configured as servo output in Maestro Control Center.
+
+POLOLU* pPololu : (INOUT) Valid pointer to a structure corresponding to a Pololu Maestro.
+double urt : (IN) Desired right thruster input (in [-1;1]).
+double ult : (IN) Desired left thruster input (in [-1;1]).
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int SetThrustersPololu(POLOLU* pPololu, double urt, double ult)
 {
 	int selectedchannels[NB_CHANNELS_PWM_POLOLU];
@@ -605,8 +677,16 @@ inline int SetThrustersPololu(POLOLU* pPololu, double urt, double ult)
 	return SetAllPWMsPololu(pPololu, selectedchannels, pws);
 }
 
-// angle should be in [-max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle));max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle))].
-// u should be in [-1;1].
+/*
+Set rudderchan PWM channel as a rudder angle and rightthrusterchan PWM channel as a thruster input.
+The channels need to be configured as servo output in Maestro Control Center.
+
+POLOLU* pPololu : (INOUT) Valid pointer to a structure corresponding to a Pololu Maestro.
+double angle : (IN) Desired rudder angle (in rad, should be in [-max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle));max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle))]).
+double urt : (IN) Desired thruster input (in [-1;1]).
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int SetRudderThrusterPololu(POLOLU* pPololu, double angle, double urt)
 {
 	int selectedchannels[NB_CHANNELS_PWM_POLOLU];
@@ -644,8 +724,17 @@ inline int SetRudderThrusterPololu(POLOLU* pPololu, double angle, double urt)
 	return SetAllPWMsPololu(pPololu, selectedchannels, pws);
 }
 
-// angle should be in [-max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle));max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle))].
-// u should be in [-1;1].
+/*
+Set rudderchan PWM channel as a rudder angle, rightthrusterchan and leftthrusterchan PWM channels as thrusters inputs.
+The channels need to be configured as servo output in Maestro Control Center.
+
+POLOLU* pPololu : (INOUT) Valid pointer to a structure corresponding to a Pololu Maestro.
+double angle : (IN) Desired rudder angle (in rad, should be in [-max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle));max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle))]).
+double urt : (IN) Desired right thruster input (in [-1;1]).
+double ult : (IN) Desired left thruster input (in [-1;1]).
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int SetRudderThrustersPololu(POLOLU* pPololu, double angle, double urt, double ult)
 {
 	int selectedchannels[NB_CHANNELS_PWM_POLOLU];
@@ -686,8 +775,20 @@ inline int SetRudderThrustersPololu(POLOLU* pPololu, double angle, double urt, d
 	return SetAllPWMsPololu(pPololu, selectedchannels, pws);
 }
 
-// angle should be in [-max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle));max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle))].
-// u should be in [-1;1].
+/*
+Set rudderchan PWM channel as a rudder angle, rightthrusterchan and leftthrusterchan PWM channels as thrusters inputs,
+rightfluxchan and leftfluxchan as flux direction inputs.
+The channels need to be configured as servo output in Maestro Control Center.
+
+POLOLU* pPololu : (INOUT) Valid pointer to a structure corresponding to a Pololu Maestro.
+double angle : (IN) Desired rudder angle (in rad, should be in [-max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle));max(fabs(pololu.MinAngle),fabs(pololu.MaxAngle))]).
+double urt : (IN) Desired right thruster input (in [-1;1]).
+double ult : (IN) Desired left thruster input (in [-1;1]).
+double urf : (IN) Desired right flux direction input (in [-1;1]).
+double ulf : (IN) Desired left flux direction input (in [-1;1]).
+
+Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
+*/
 inline int SetRudderThrustersFluxPololu(POLOLU* pPololu, double angle, double urt, double ult, double urf, double ulf)
 {
 	int selectedchannels[NB_CHANNELS_PWM_POLOLU];
@@ -778,7 +879,7 @@ inline int SetRudderJrkPololu(POLOLU* pPololu, double angle)
 }
 
 // In m.
-inline int GetTelemetersPololu(POLOLU* pPololu, double* pDist1, double* pDist2, double* pDist3, double* pDist4, double* pDist5, double* pDist6, double* pDist7, double* pDist8)
+inline int GetTelemetersPololu(POLOLU* pPololu, double* pDist1, double* pDist2, double* pDist3, double* pDist4, double* pDist5, double* pDist6, double* pDist7, double* pDist8, double* pDist9, double* pDist10, double* pDist11, double* pDist12)
 {
 	int selectedchannels[NB_CHANNELS_AI_POLOLU];
 	int ais[NB_CHANNELS_AI_POLOLU];
@@ -795,6 +896,10 @@ inline int GetTelemetersPololu(POLOLU* pPololu, double* pDist1, double* pDist2, 
 	selectedchannels[pPololu->telem6analoginputchan] = 1;
 	selectedchannels[pPololu->telem7analoginputchan] = 1;
 	selectedchannels[pPololu->telem8analoginputchan] = 1;
+	selectedchannels[pPololu->telem9analoginputchan] = 1;
+	selectedchannels[pPololu->telem10analoginputchan] = 1;
+	selectedchannels[pPololu->telem11analoginputchan] = 1;
+	selectedchannels[pPololu->telem12analoginputchan] = 1;
 
 	if (GetAllValuesPololu(pPololu, selectedchannels, ais) != EXIT_SUCCESS)
 	{
@@ -817,6 +922,30 @@ inline int GetTelemetersPololu(POLOLU* pPololu, double* pDist1, double* pDist2, 
 	*pDist7 = pPololu->analoginputcoef[i]*ais[i]*5.0/1023.0+pPololu->analoginputoffset[i];
 	i = pPololu->telem8analoginputchan;
 	*pDist8 = pPololu->analoginputcoef[i]*ais[i]*5.0/1023.0+pPololu->analoginputoffset[i];
+	i = pPololu->telem9analoginputchan;
+	*pDist9 = pPololu->analoginputcoef[i]*ais[i]*5.0/1023.0+pPololu->analoginputoffset[i];
+	i = pPololu->telem10analoginputchan;
+	*pDist10 = pPololu->analoginputcoef[i]*ais[i]*5.0/1023.0+pPololu->analoginputoffset[i];
+	i = pPololu->telem11analoginputchan;
+	*pDist11 = pPololu->analoginputcoef[i]*ais[i]*5.0/1023.0+pPololu->analoginputoffset[i];
+	i = pPololu->telem12analoginputchan;
+	*pDist12 = pPololu->analoginputcoef[i]*ais[i]*5.0/1023.0+pPololu->analoginputoffset[i];
+
+	return EXIT_SUCCESS;
+}
+
+// duration in us.
+inline int SetPulsePololu(POLOLU* pPololu, int channel, int duration)
+{
+	if (SetPWMPololu(pPololu, channel, 2000) != EXIT_SUCCESS)
+	{
+		return EXIT_FAILURE;
+	}
+	mSleep(duration/1000);
+	if (SetPWMPololu(pPololu, channel, 1000) != EXIT_SUCCESS)
+	{
+		return EXIT_FAILURE;
+	}
 
 	return EXIT_SUCCESS;
 }
@@ -884,7 +1013,10 @@ inline int ConnectPololu(POLOLU* pPololu, char* szCfgFilePath)
 		sprintf(pPololu->szDevPath, "COM1");
 		pPololu->BaudRate = 115200;
 		pPololu->timeout = 1000;
+		pPololu->threadperiod = 50;
 		pPololu->bSaveRawData = 1;
+		pPololu->RangingDelay = 1000;
+		pPololu->bMedianFilter = 0;
 		pPololu->PololuType = 0;
 		pPololu->DeviceNumber = DEFAULT_DEVICE_NUMBER_MAESTRO;
 		for (channel = 0; channel < NB_CHANNELS_PWM_POLOLU; channel++)
@@ -944,6 +1076,10 @@ inline int ConnectPololu(POLOLU* pPololu, char* szCfgFilePath)
 		pPololu->telem6analoginputchan = -1;
 		pPololu->telem7analoginputchan = -1;
 		pPololu->telem8analoginputchan = -1;
+		pPololu->telem9analoginputchan = -1;
+		pPololu->telem10analoginputchan = -1;
+		pPololu->telem11analoginputchan = -1;
+		pPololu->telem12analoginputchan = -1;
 		pPololu->MinAngle = -0.5;
 		pPololu->MidAngle = 0;
 		pPololu->MaxAngle = 0.5;
@@ -962,7 +1098,13 @@ inline int ConnectPololu(POLOLU* pPololu, char* szCfgFilePath)
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pPololu->timeout) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pPololu->threadperiod) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pPololu->bSaveRawData) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pPololu->RangingDelay) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pPololu->bMedianFilter) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pPololu->PololuType) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
@@ -1078,6 +1220,14 @@ inline int ConnectPololu(POLOLU* pPololu, char* szCfgFilePath)
 			if (sscanf(line, "%d", &pPololu->telem7analoginputchan) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pPololu->telem8analoginputchan) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pPololu->telem9analoginputchan) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pPololu->telem10analoginputchan) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pPololu->telem11analoginputchan) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pPololu->telem12analoginputchan) != 1) printf("Invalid configuration file.\n");
 
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%lf", &pPololu->MinAngle) != 1) printf("Invalid configuration file.\n");
@@ -1102,6 +1252,11 @@ inline int ConnectPololu(POLOLU* pPololu, char* szCfgFilePath)
 		}
 	}
 
+	if (pPololu->threadperiod < 0)
+	{
+		printf("Invalid parameter : threadperiod.\n");
+		pPololu->threadperiod = 50;
+	}
 	if ((pPololu->DeviceNumber < 0)||(pPololu->DeviceNumber > 255))
 	{
 		printf("Invalid parameter : DeviceNumber.\n");

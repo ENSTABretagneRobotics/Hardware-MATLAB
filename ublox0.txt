@@ -5,8 +5,10 @@ COM14
 9600
 % Timeout (in ms)
 1500
-% bSaveRawData
-0
+% threadperiod (in ms, require associated thread)
+100
+% bSaveRawData (require associated thread)
+1
 % bRevertToDefaultCfg
 0
 % SetCfg (0 : keep current, 1 : default for rover, 2 : default for base)
@@ -25,6 +27,18 @@ COM14
 0
 % fixedPosAcc (in m)
 10
+% bSaveCfg
+0
+% bDisableRTCMTransfer
+0
+% bSendStartSentence
+0
+% szStartSentence
+$GPS_START
+% bSendStopSentence
+0
+% szStopSentence
+$GPS_STOP
 % bEnable_NMEA_GGA
 0
 % bEnable_NMEA_RMC
