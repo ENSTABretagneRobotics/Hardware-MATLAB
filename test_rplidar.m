@@ -25,12 +25,13 @@ while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
     %[result, distances, angles, bNewScan, quality] = GetScanDataResponseFromThreadRPLIDAR(pRPLIDAR);
     %[result, distances, angles, bNewScan] = GetExpressScanDataResponseRPLIDAR(pRPLIDAR);
     %[result, distances, angles, bNewScan] = GetExpressScanDataResponseFromThreadRPLIDAR(pRPLIDAR);    
-    alldistances = [alldistances distances]; allangles = [allangles angles];    
+    alldistances = [alldistances distances]; allangles = [allangles angles]; 
+    %if bNewScan
     if count > 360
     %if count > 720/32
        clf; hold on; axis([-scale,scale,-scale,scale]);
        plot(alldistances.*cos(allangles), alldistances.*sin(allangles), '.');
-       pause(0.1); key = get(gcf,'CurrentCharacter');
+       pause(0.01); key = get(gcf,'CurrentCharacter');
        count = 0; alldistances = []; allangles = []; 
     end    
     count = count+1;

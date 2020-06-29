@@ -63,9 +63,15 @@ Debug macros specific to OSComputerRS232Port.
 #ifndef DISABLE_SELECT_OSCOMPUTERRS232PORT
 #include <sys/select.h>
 #endif // !DISABLE_SELECT_OSCOMPUTERRS232PORT
-#if !defined(DISABLE_FORCE_CLEAR_DTR) || defined(ENABLE_DTR_FUNCTIONS)
+#if !defined(DISABLE_CUSTOM_BAUDRATE) || !defined(DISABLE_FORCE_CLEAR_DTR) || defined(ENABLE_DTR_FUNCTIONS)
 #include <sys/ioctl.h>
-#endif // !defined(DISABLE_FORCE_CLEAR_DTR) || defined(ENABLE_DTR_FUNCTIONS)
+#ifdef __APPLE__
+#include <IOKit/serial/ioss.h>
+#endif // __APPLE__
+#ifdef __linux__
+#include <linux/serial.h>
+#endif // __linux__
+#endif // !defined(DISABLE_CUSTOM_BAUDRATE) || !defined(DISABLE_FORCE_CLEAR_DTR) || defined(ENABLE_DTR_FUNCTIONS)
 #endif // _WIN32
 
 #ifndef _WIN32
@@ -95,34 +101,54 @@ inline UINT _BaudRate2Constant(UINT BaudRate)
 		return CBR_600;
 	case 1200:
 		return CBR_1200;
-	case 4800:
-		return CBR_4800;
 	case 2400:
 		return CBR_2400;
+	case 4800:
+		return CBR_4800;
 	case 9600:
 		return CBR_9600;
+	case 14400:
+		return CBR_14400;
 	case 19200:
 		return CBR_19200;
 	case 38400:
 		return CBR_38400;
+	case 56000:
+		return CBR_56000;
 	case 57600:
 		return CBR_57600;
 	case 115200:
 		return CBR_115200;
+	case 128000:
+		return CBR_128000;
+	case 256000:
+		return CBR_256000;
 	default:
 		return 0;
 	}
 #else 
 	switch (BaudRate)
 	{
+	case 50:
+		return B50;
+	case 75:
+		return B75;
 	case 110:
 		return B110;
+	case 134:
+		return B134;
+	case 150:
+		return B150;
+	case 200:
+		return B200;
 	case 300:
 		return B300;
 	case 600:
 		return B600;
 	case 1200:
 		return B1200;
+	case 1800:
+		return B1800;
 	case 2400:
 		return B2400;
 	case 4800:
@@ -137,6 +163,34 @@ inline UINT _BaudRate2Constant(UINT BaudRate)
 		return B57600;
 	case 115200:
 		return B115200;
+	case 230400:
+		return B230400;
+#ifndef __APPLE__
+	case 460800:
+		return B460800;
+	case 500000:
+		return B500000;
+	case 576000:
+		return B576000;
+	case 921600:
+		return B921600;
+	case 1000000:
+		return B1000000;
+	case 1152000:
+		return B1152000;
+	case 1500000:
+		return B1500000;
+	case 2000000:
+		return B2000000;
+	case 2500000:
+		return B2500000;
+	case 3000000:
+		return B3000000;
+	case 3500000:
+		return B3500000;
+	case 4000000:
+		return B4000000;
+#endif // !__APPLE__
 	default:
 		return 0;
 	}
@@ -156,34 +210,54 @@ inline UINT _Constant2BaudRate(UINT Constant)
 		return 600;
 	case CBR_1200:
 		return 1200;
-	case CBR_4800:
-		return 4800;
 	case CBR_2400:
 		return 2400;
+	case CBR_4800:
+		return 4800;
 	case CBR_9600:
 		return 9600;
+	case CBR_14400:
+		return 14400;
 	case CBR_19200:
 		return 19200;
 	case CBR_38400:
 		return 38400;
+	case CBR_56000:
+		return 56000;
 	case CBR_57600:
 		return 57600;
 	case CBR_115200:
 		return 115200;
+	case CBR_128000:
+		return 128000;
+	case CBR_256000:
+		return 256000;
 	default:
 		return 0;
 	}
 #else 
 	switch (Constant)
 	{
+	case B50:
+		return 50;
+	case B75:
+		return 75;
 	case B110:
 		return 110;
+	case B134:
+		return 134;
+	case B150:
+		return 150;
+	case B200:
+		return 200;
 	case B300:
 		return 300;
 	case B600:
 		return 600;
 	case B1200:
 		return 1200;
+	case B1800:
+		return 1800;
 	case B2400:
 		return 2400;
 	case B4800:
@@ -198,6 +272,34 @@ inline UINT _Constant2BaudRate(UINT Constant)
 		return 57600;
 	case B115200:
 		return 115200;
+	case B230400:
+		return 230400;
+#ifndef __APPLE__
+	case B460800:
+		return 460800;
+	case B500000:
+		return 500000;
+	case B576000:
+		return 576000;
+	case B921600:
+		return 921600;
+	case B1000000:
+		return 1000000;
+	case B1152000:
+		return 1152000;
+	case B1500000:
+		return 1500000;
+	case B2000000:
+		return 2000000;
+	case B2500000:
+		return 2500000;
+	case B3000000:
+		return 3000000;
+	case B3500000:
+		return 3500000;
+	case B4000000:
+		return 4000000;
+#endif // !__APPLE__
 	default:
 		return 0;
 	}
@@ -556,35 +658,104 @@ inline int SetOptionsComputerRS232Port(HANDLE hDev, UINT BaudRate, BYTE ParityMo
 	speed = _BaudRate2Constant(BaudRate);
 	if (speed == 0)
 	{
-		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
-			"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
-			"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n", 
-			strtime_m(), 
-			"Invalid BaudRate. ", 
-			hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
-		return EXIT_FAILURE;
-	}
+		// Baud rate is probably non-standard...
+#ifndef DISABLE_CUSTOM_BAUDRATE
 
-	if (cfsetospeed(&options, speed) != EXIT_SUCCESS)
-	{
-		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
-			"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
-			"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n", 
-			strtime_m(), 
-			GetLastErrorMsg(), 
-			hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
-		return EXIT_FAILURE;
-	}
+		// From https://github.com/wjwwood/serial/blob/master/src/impl/unix.cc.
+		// See also https://developer.apple.com/library/archive/samplecode/SerialPortSample/Listings/SerialPortSample_SerialPortSample_c.html, 
+		// https://stackoverflow.com/questions/4968529/how-to-set-baud-rate-to-307200-on-linux/7152671, 
+		// https://stackoverflow.com/questions/37710525/including-termios-h-and-asm-termios-h-in-the-same-project.
 
-	if (cfsetispeed(&options, speed) != EXIT_SUCCESS)
-	{
+#if defined(__APPLE__) && defined(IOSSIOSPEED)
+		// Starting with Tiger, the IOSSIOSPEED ioctl can be used to set arbitrary baud rates
+		// other than those specified by POSIX. The driver for the underlying serial hardware
+		// ultimately determines which baud rates can be used. This ioctl sets both the input
+		// and output speed.
+		speed_t new_baud = (speed_t)BaudRate;
+
+		if (ioctl((intptr_t)hDev, IOSSIOSPEED, &new_baud) == -1)
+		{
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
+				"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
+				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+				strtime_m(),
+				GetLastErrorMsg(),
+				hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
+			return EXIT_FAILURE;
+		}
+#elif defined(__linux__) && defined(TIOCSSERIAL)
+		struct serial_struct ser;
+
+		memset(&ser, 0, sizeof(struct serial_struct));
+		if (ioctl((intptr_t)hDev, TIOCGSERIAL, &ser) == -1)
+		{
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
+				"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
+				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+				strtime_m(),
+				GetLastErrorMsg(),
+				hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
+			return EXIT_FAILURE;
+		}
+
+		// Set custom divisor.
+		if (BaudRate != 0) ser.custom_divisor = ser.baud_base/(int)BaudRate;
+		// Update flags.
+		ser.flags &= ~ASYNC_SPD_MASK;
+		ser.flags |= ASYNC_SPD_CUST;
+
+		if (ioctl((intptr_t)hDev, TIOCSSERIAL, &ser) == -1)
+		{
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
+				"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
+				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+				strtime_m(),
+				GetLastErrorMsg(),
+				hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
+			return EXIT_FAILURE;
+		}
+#else
 		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
 			"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
-			"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n", 
-			strtime_m(), 
-			GetLastErrorMsg(), 
+			"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+			strtime_m(),
+			"Invalid BaudRate. ",
 			hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
 		return EXIT_FAILURE;
+#endif 
+#else
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
+			"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
+			"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+			strtime_m(),
+			"Invalid BaudRate. ",
+			hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
+		return EXIT_FAILURE;
+#endif // !DISABLE_CUSTOM_BAUDRATE
+	}
+	else
+	{
+		if (cfsetospeed(&options, speed) != EXIT_SUCCESS)
+		{
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
+				"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
+				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+				strtime_m(),
+				GetLastErrorMsg(),
+				hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
+			return EXIT_FAILURE;
+		}
+
+		if (cfsetispeed(&options, speed) != EXIT_SUCCESS)
+		{
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
+				"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
+				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+				strtime_m(),
+				GetLastErrorMsg(),
+				hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
+			return EXIT_FAILURE;
+		}
 	}
 
 	// An even parity bit will be set to "1" if the number of 1's + 1 is even, and an odd 
@@ -813,11 +984,38 @@ inline int GetOptionsComputerRS232Port(HANDLE hDev, UINT* pBaudRate, BYTE* pPari
 	*pBaudRate = _Constant2BaudRate(cfgetispeed(&options)); 
 	if (*pBaudRate == 0)
 	{
-		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("GetOptionsComputerRS232Port error (%s) : %s(hDev=%#x)\n", 
-			strtime_m(), 
-			"Invalid BaudRate. ", 
+		// Baud rate is probably non-standard...
+#ifndef DISABLE_CUSTOM_BAUDRATE
+#if defined(MAC_OS_X_VERSION_10_4) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4)
+		PRINT_DEBUG_WARNING_OSCOMPUTERRS232PORT(("GetOptionsComputerRS232Port warning (%s) : %s(hDev=%#x)\n",
+			strtime_m(),
+			"Invalid BaudRate. ",
+			hDev));
+#elif defined(__linux__) && defined(TIOCSSERIAL)
+		struct serial_struct ser;
+		memset(&ser, 0, sizeof(struct serial_struct));
+		if (ioctl((intptr_t)hDev, TIOCGSERIAL, &ser) == -1)
+		{
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("GetOptionsComputerRS232Port error (%s) : %s(hDev=%#x)\n",
+				strtime_m(),
+				GetLastErrorMsg(),
+				hDev));
+			return EXIT_FAILURE;
+		}
+		if (ser.custom_divisor != 0) *pBaudRate = ser.baud_base/(int)ser.custom_divisor;
+#else
+		PRINT_DEBUG_WARNING_OSCOMPUTERRS232PORT(("GetOptionsComputerRS232Port warning (%s) : %s(hDev=%#x)\n",
+			strtime_m(),
+			"Invalid BaudRate. ",
+			hDev));
+#endif 
+#else
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("GetOptionsComputerRS232Port error (%s) : %s(hDev=%#x)\n",
+			strtime_m(),
+			"Invalid BaudRate. ",
 			hDev));
 		return EXIT_FAILURE;
+#endif // !DISABLE_CUSTOM_BAUDRATE
 	}
 
 #ifndef __APPLE__
