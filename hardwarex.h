@@ -11,6 +11,9 @@
 #define HARDWAREX_API 
 #endif // _WIN32
 
+// Uncomment the following line to enable RPLIDAR SDK in MATLAB (requires corresponding SDK...).
+//#define ENABLE_RPLIDAR_SDK_SUPPORT
+
 // Uncomment the following line to enable SBG SDK in MATLAB (requires corresponding SDK...).
 //#define ENABLE_SBG_SUPPORT
 

@@ -1,17 +1,17 @@
-MAVLink and SBG SDK support (if needed to rebuild)
+MAVLink, SBG, RPLIDAR SDK support (if needed to rebuild)
 ===============
 Windows : 
-- In `hardwarex.h`, check that `#define ENABLE_MAVLINK_SUPPORT` and `#define ENABLE_SBG_SUPPORT` are uncommented.
+- In `hardwarex.h`, check that `#define ENABLE_MAVLINK_SUPPORT`, `#define ENABLE_SBG_SUPPORT`, `#define ENABLE_RPLIDAR_SDK_SUPPORT` are uncommented.
 - Copy the headers from https://github.com/mavlink/c_library_v1/archive/0fc203298923f1d7c225cc6f43918d6663809e38.zip in `C:\Program Files (x86)\MAVLinkSDK\mavlink` for a 64 bit version of Windows or `C:\Program Files\MAVLinkSDK\mavlink` for a 32 bit version of Windows (or in `..\MAVLinkSDK\mavlink`).
-- Copy the files from https://www.ensta-bretagne.fr/lebars/Share/SBG%20Systems.zip in `C:\Program Files (x86)` for a 64 bit version of Windows or `C:\Program Files` for a 32 bit version of Windows (or in `..`).
+- Copy the files from https://www.ensta-bretagne.fr/lebars/Share/SBG%20Systems.zip and https://github.com/slamtec/rplidar_sdk (rebuild this one) in `C:\Program Files (x86)` for a 64 bit version of Windows or `C:\Program Files` for a 32 bit version of Windows (or in `..`).
 - Rebuild using Visual Studio 2012 or later and put the resulting hardwarex.dll in the corresponding `..\x86` and `..\x64` folders.
 - In MATLAB, run `mex -setup` and `mex -setup C++` and choose Visual Studio 2013 or later.
 - Run `hardwarex_setup.m` and put the resulting `hardwarex_proto.m` and `hardwarex_thunk_pcwin64.dll` in the corresponding `..\x86` and `..\x64` folders.
 - Follow `..\ReadMe.txt`
 
 Linux/Mac OS : 
-- In `hardwarex.h`, check that `#define ENABLE_MAVLINK_SUPPORT` and `#define ENABLE_SBG_SUPPORT` are uncommented.
-- In the `Makefile`, check that `LDFLAGS += -lsbgECom` is uncommented.
+- In `hardwarex.h`, check that `#define ENABLE_MAVLINK_SUPPORT`, `#define ENABLE_SBG_SUPPORT`, `#define ENABLE_RPLIDAR_SDK_SUPPORT` are uncommented.
+- In the `Makefile`, check that `LDFLAGS += -lsbgECom -lrplidar_sdk` is uncommented.
 - For Mac OS, you might want to install Homebrew and wget : 
 	/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 	brew install wget
@@ -35,4 +35,5 @@ Linux/Mac OS :
 	cd ../../../../../..
 	rm -Rf "SBG Systems"
 	rm -Rf "SBG Systems.zip"
+- Get, build, install RPLIDAR SDK : https://github.com/slamtec/rplidar_sdk
 - Follow `../ReadMe.txt`

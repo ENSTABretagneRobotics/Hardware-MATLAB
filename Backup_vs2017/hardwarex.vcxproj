@@ -89,9 +89,10 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.;..;MAVLinkSDK;$(ProgramFiles)\MAVLinkSDK;SBG Systems\Inertial SDK\Software Development\sbgECom\src;SBG Systems\Inertial SDK\Software Development\sbgECom\common;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\src;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..;MAVLinkSDK;$(ProgramFiles)\MAVLinkSDK;SBG Systems\Inertial SDK\Software Development\sbgECom\src;SBG Systems\Inertial SDK\Software Development\sbgECom\common;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\src;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\common;rplidar_sdk\sdk\sdk\include;rplidar_sdk\sdk\sdk\src;$(ProgramFiles)\rplidar_sdk\sdk\sdk\include;$(ProgramFiles)\rplidar_sdk\sdk\sdk\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
+      <MinimalRebuild>
+      </MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader />
@@ -100,7 +101,7 @@
       <EnablePREfast>false</EnablePREfast>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>WS2_32.lib;sbgEComd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>WS2_32.lib;sbgEComd.lib;rplidar_driver.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile />
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -108,7 +109,7 @@
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
       <ImageHasSafeExceptionHandlers />
-      <AdditionalLibraryDirectories>SBG Systems\Inertial SDK\Software Development\sbgECom\x86\vc15\lib;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\x86\vc15\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>SBG Systems\Inertial SDK\Software Development\sbgECom\x86\vc15\lib;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\x86\vc15\lib;rplidar_sdk\sdk\output\win32\Debug;$(ProgramFiles)\rplidar_sdk\sdk\output\win32\Debug</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -117,9 +118,10 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.;..;MAVLinkSDK;$(ProgramFiles)\MAVLinkSDK;SBG Systems\Inertial SDK\Software Development\sbgECom\src;SBG Systems\Inertial SDK\Software Development\sbgECom\common;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\src;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..;MAVLinkSDK;$(ProgramFiles)\MAVLinkSDK;SBG Systems\Inertial SDK\Software Development\sbgECom\src;SBG Systems\Inertial SDK\Software Development\sbgECom\common;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\src;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\common;rplidar_sdk\sdk\sdk\include;rplidar_sdk\sdk\sdk\src;$(ProgramFiles)\rplidar_sdk\sdk\sdk\include;$(ProgramFiles)\rplidar_sdk\sdk\sdk\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
+      <MinimalRebuild>
+      </MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader />
@@ -128,14 +130,14 @@
       <EnablePREfast>false</EnablePREfast>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>WS2_32.lib;sbgEComd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>WS2_32.lib;sbgEComd.lib;rplidar_driver.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile />
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <TargetMachine>MachineX64</TargetMachine>
-      <AdditionalLibraryDirectories>SBG Systems\Inertial SDK\Software Development\sbgECom\x64\vc15\lib;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\x64\vc15\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>SBG Systems\Inertial SDK\Software Development\sbgECom\x64\vc15\lib;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\x64\vc15\lib;rplidar_sdk\sdk\output\win64\Debug;$(ProgramFiles)\rplidar_sdk\sdk\output\win64\Debug</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -145,10 +147,10 @@
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>.;..;MAVLinkSDK;$(ProgramFiles)\MAVLinkSDK;SBG Systems\Inertial SDK\Software Development\sbgECom\src;SBG Systems\Inertial SDK\Software Development\sbgECom\common;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\src;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..;MAVLinkSDK;$(ProgramFiles)\MAVLinkSDK;SBG Systems\Inertial SDK\Software Development\sbgECom\src;SBG Systems\Inertial SDK\Software Development\sbgECom\common;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\src;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\common;rplidar_sdk\sdk\sdk\include;rplidar_sdk\sdk\sdk\src;$(ProgramFiles)\rplidar_sdk\sdk\sdk\include;$(ProgramFiles)\rplidar_sdk\sdk\sdk\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>WS2_32.lib;sbgECom.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>WS2_32.lib;sbgECom.lib;rplidar_driver.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile />
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -157,7 +159,7 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalLibraryDirectories>SBG Systems\Inertial SDK\Software Development\sbgECom\x86\vc15\staticlib;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\x86\vc15\staticlib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>SBG Systems\Inertial SDK\Software Development\sbgECom\x86\vc15\staticlib;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\x86\vc15\staticlib;rplidar_sdk\sdk\output\win32\Release;$(ProgramFiles)\rplidar_sdk\sdk\output\win32\Release</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -165,7 +167,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>.;..;MAVLinkSDK;$(ProgramFiles)\MAVLinkSDK;SBG Systems\Inertial SDK\Software Development\sbgECom\src;SBG Systems\Inertial SDK\Software Development\sbgECom\common;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\src;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..;MAVLinkSDK;$(ProgramFiles)\MAVLinkSDK;SBG Systems\Inertial SDK\Software Development\sbgECom\src;SBG Systems\Inertial SDK\Software Development\sbgECom\common;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\src;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\common;rplidar_sdk\sdk\sdk\include;rplidar_sdk\sdk\sdk\src;$(ProgramFiles)\rplidar_sdk\sdk\sdk\include;$(ProgramFiles)\rplidar_sdk\sdk\sdk\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_USRDLL;HARDWAREX_EXPORTS;ENABLE_GETTIMEOFDAY_WIN32;DISABLE_AIS_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
@@ -173,7 +175,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>WS2_32.lib;sbgECom.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>WS2_32.lib;sbgECom.lib;rplidar_driver.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile />
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -182,7 +184,7 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <TargetMachine>MachineX64</TargetMachine>
-      <AdditionalLibraryDirectories>SBG Systems\Inertial SDK\Software Development\sbgECom\x64\vc15\staticlib;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\x64\vc15\staticlib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>SBG Systems\Inertial SDK\Software Development\sbgECom\x64\vc15\staticlib;$(ProgramFiles)\SBG Systems\Inertial SDK\Software Development\sbgECom\x64\vc15\staticlib;rplidar_sdk\sdk\output\win64\Release;$(ProgramFiles)\rplidar_sdk\sdk\output\win64\Release</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

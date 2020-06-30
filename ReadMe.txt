@@ -16,15 +16,15 @@ Tested on Windows 10 64 bit using MATLAB R2017b 64 bit and MATLAB R2015b 32 bit,
 Hardware support : 
 - Hokuyo : Hokuyo URG-04LX-UG01 laser telemeter.
 - IM483I : Intelligent Motion Systems IM483I step motor controller.
-- MAVLinkDevice (see `mavlink_sbg_support` folder if needed to rebuild) : ArduPilot/ArduFlyer/HKPilot Mega (APM 2.5), PX4FLOW.
+- MAVLinkDevice (see `3rd_support` folder if needed to rebuild) : ArduPilot/ArduFlyer/HKPilot Mega (APM 2.5), PX4FLOW.
 - MDM : Tritech Micron Data Modem (or other kinds of simple RS232 modems).
 - MT : Xsens MTi, MTi-G AHRS.
 - NMEADevice (superseded by ublox) : GPS, Furuno WS200 weather station.
 - P33x : Keller pressure sensor PAA-33x.
 - Pololu : Pololu Mini Maestro 6, 18, 24 servo controllers, Pololu Jrk (preliminary support).
 - RazorAHRS : SparkFun 9DOF Razor IMU (flash firmware from https://github.com/lebarsfa/razor-9dof-ahrs if needed).
-- RPLIDAR : RPLIDAR A1 and A2 laser telemeters.
-- SBG (see `mavlink_sbg_support` folder if needed to rebuild with SBG SDK) : SBG Systems Ellipse AHRS.
+- RPLIDAR (see `3rd_support` folder if needed to rebuild with RPLIDAR SDK) : RPLIDAR A1 and A2 laser telemeters.
+- SBG (see `3rd_support` folder if needed to rebuild with SBG SDK) : SBG Systems Ellipse AHRS.
 - SSC-32 : Lynxmotion SSC-32, SSC-32u servo controllers.
 - ublox : ublox GPS (only with NMEA protocol), Furuno WS200 weather station, or other NMEA-compatible devices with supported NMEA sentences.
 
