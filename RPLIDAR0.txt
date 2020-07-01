@@ -9,10 +9,12 @@ COM9
 50
 % bSaveRawData (require associated thread)
 1
+% bStartScanModeAtStartup (require associated thread)
+1
 % ScanMode (0 : SCAN, 1 : EXPRESS_SCAN, 2 : FORCE_SCAN)
 0
 % motordelay (in ms)
-500
+2000
 % maxhist (0 : try to automatically remove old data, around 180 : advised for SCAN mode, around 360 : advised for EXPRESS_SCAN mode, require associated thread)
 0
 % alpha_max_err (in rad)

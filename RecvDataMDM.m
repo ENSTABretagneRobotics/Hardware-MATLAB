@@ -1,6 +1,6 @@
 function [result, ReceivedBytes] = RecvDataMDM(pMDM, buf, buflen)
 
-pbuf_p = libpointer('int32Ptr', buf);
+pbuf_p = libpointer('int8Ptr', buf);
 ReceivedBytes = 0;
 pReceivedBytes = libpointer('int32Ptr', ReceivedBytes);
 

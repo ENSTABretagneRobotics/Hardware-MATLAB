@@ -23,7 +23,7 @@ Hardware support :
 - P33x : Keller pressure sensor PAA-33x.
 - Pololu : Pololu Mini Maestro 6, 18, 24 servo controllers, Pololu Jrk (preliminary support).
 - RazorAHRS : SparkFun 9DOF Razor IMU (flash firmware from https://github.com/lebarsfa/razor-9dof-ahrs if needed).
-- RPLIDAR (see `3rd_support` folder if needed to rebuild with RPLIDAR SDK) : RPLIDAR A1 and A2 laser telemeters.
+- RPLIDAR (see `3rd_support` folder if needed to rebuild with RPLIDAR SDK) : RPLIDAR A1, A2, A3 laser telemeters.
 - SBG (see `3rd_support` folder if needed to rebuild with SBG SDK) : SBG Systems Ellipse AHRS.
 - SSC-32 : Lynxmotion SSC-32, SSC-32u servo controllers.
 - ublox : ublox GPS (only with NMEA protocol), Furuno WS200 weather station, or other NMEA-compatible devices with supported NMEA sentences.

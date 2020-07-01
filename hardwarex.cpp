@@ -1199,14 +1199,69 @@ HARDWAREX_API void DestroyRPLIDARx(RPLIDAR* pRPLIDAR)
 	return free(pRPLIDAR);
 }
 
+HARDWAREX_API int StopRequestRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	return StopRequestRPLIDAR(pRPLIDAR);
+}
+
+HARDWAREX_API int ResetRequestRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	return ResetRequestRPLIDAR(pRPLIDAR);
+}
+
+HARDWAREX_API int GetStartupMessageRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	return GetStartupMessageRPLIDAR(pRPLIDAR);
+}
+
+HARDWAREX_API int GetHealthRequestRPLIDARx(RPLIDAR* pRPLIDAR, BOOL* pbProtectionStop)
+{
+	return GetHealthRequestRPLIDAR(pRPLIDAR, pbProtectionStop);
+}
+
+HARDWAREX_API int GetInfoRequestRPLIDARx(RPLIDAR* pRPLIDAR, int* pModelID, int* pHardwareVersion, int* pFirmwareMajor, int* pFirmwareMinor, char* SerialNumber)
+{
+	return GetInfoRequestRPLIDAR(pRPLIDAR, pModelID, pHardwareVersion, pFirmwareMajor, pFirmwareMinor, SerialNumber);
+}
+
+HARDWAREX_API int SetMotorPWMRequestRPLIDARx(RPLIDAR* pRPLIDAR, int pwm)
+{
+	return SetMotorPWMRequestRPLIDAR(pRPLIDAR, pwm);
+}
+
+HARDWAREX_API int StartScanRequestRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	return StartScanRequestRPLIDAR(pRPLIDAR);
+}
+
+HARDWAREX_API int StartForceScanRequestRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	return StartForceScanRequestRPLIDAR(pRPLIDAR);
+}
+
 HARDWAREX_API int GetScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistance, double* pAngle, BOOL* pbNewScan, int *pQuality)
 {
 	return GetScanDataResponseRPLIDAR(pRPLIDAR, pDistance, pAngle, pbNewScan, pQuality);
 }
 
+HARDWAREX_API int StartExpressScanRequestRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	return StartExpressScanRequestRPLIDAR(pRPLIDAR);
+}
+
 HARDWAREX_API int GetExpressScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan)
 {
 	return GetExpressScanDataResponseRPLIDAR(pRPLIDAR, pDistances, pAngles, pbNewScan);
+}
+
+HARDWAREX_API int StartOtherScanRequestRPLIDARx(RPLIDAR* pRPLIDAR, int scanmode)
+{
+	return StartOtherScanRequestRPLIDAR(pRPLIDAR, scanmode);
+}
+
+HARDWAREX_API int GetOtherScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan)
+{
+	return GetOtherScanDataResponseRPLIDAR(pRPLIDAR, pDistances, pAngles, pbNewScan);
 }
 
 HARDWAREX_API int ConnectRPLIDARx(RPLIDAR* pRPLIDAR, char* szCfgFilePath)

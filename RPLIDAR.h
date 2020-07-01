@@ -106,6 +106,8 @@ using namespace rp::standalone::rplidar;
 #define NB_CABINS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR 16
 #define NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR (2*NB_CABINS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR)
 
+#define NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR
+
 #define MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR 8192
 
 #pragma endregion
@@ -135,6 +137,7 @@ struct RPLIDAR
 	int timeout;
 	int threadperiod;
 	BOOL bSaveRawData;
+	BOOL bStartScanModeAtStartup;
 	int ScanMode;
 	int motordelay;
 	int maxhist;
@@ -201,7 +204,9 @@ inline int StopRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 #endif // ENABLE_RPLIDAR_SDK_SUPPORT
 
 	// Host systems should wait for at least 1 millisecond (ms) before sending another request.
-	uSleep(1000);
+	//uSleep(1000);
+	// https://github.com/Slamtec/rplidar_sdk/issues/36.
+	mSleep(20);
 
 	return EXIT_SUCCESS;
 }
@@ -226,16 +231,24 @@ inline int ResetRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 #endif // ENABLE_RPLIDAR_SDK_SUPPORT
 
 	// Host systems should wait for at least 2 milliseconds (ms) before sending another request.
-	uSleep(2000);
+	//uSleep(2000);
+	// https://github.com/Slamtec/rplidar_sdk/issues/36.
+	mSleep(20);
 
 	return EXIT_SUCCESS;
 }
 
-// Undocumented...
+// Undocumented... 	
+// https://github.com/Slamtec/rplidar_sdk/issues/36?
 inline int GetStartupMessageRPLIDAR(RPLIDAR* pRPLIDAR)
 {
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
-	UNREFERENCED_PARAMETER(pRPLIDAR);
+	mSleep(100);
+	if (IS_FAIL(pRPLIDAR->drv->clearNetSerialRxCache()))
+	{
+		printf("A RPLIDAR is not responding correctly. \n");
+		return EXIT_FAILURE;
+	}
 #else
 	//unsigned char databuf[57]; // A2...
 	//unsigned char databuf[MAX_NB_BYTES_RPLIDAR];
@@ -521,7 +534,7 @@ inline int SetMotorPWMRequestRPLIDAR(RPLIDAR* pRPLIDAR, int pwm)
 inline int StartScanRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 {
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
-	if (IS_FAIL(pRPLIDAR->drv->startScan(false, true)))
+	if (IS_FAIL(pRPLIDAR->drv->startScan(false, false)))
 	{
 		printf("A RPLIDAR is not responding correctly. \n");
 		return EXIT_FAILURE;
@@ -559,7 +572,7 @@ inline int StartScanRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 inline int StartForceScanRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 {
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
-	if (IS_FAIL(pRPLIDAR->drv->startScan(true, true)))
+	if (IS_FAIL(pRPLIDAR->drv->startScan(true, false)))
 	{
 		printf("A RPLIDAR is not responding correctly. \n");
 		return EXIT_FAILURE;
@@ -657,14 +670,14 @@ inline int GetScanDataResponseRPLIDAR(RPLIDAR* pRPLIDAR, double* pDistance, doub
 inline int StartExpressScanRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 {
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
-	_u16 scanMode = 0;
+	//_u16 scanMode = 0;
 
-	if (IS_FAIL(pRPLIDAR->drv->getTypicalScanMode(scanMode)))
-	{
-		printf("A RPLIDAR is not responding correctly. \n");
-		return EXIT_FAILURE;
-	}
-	if (IS_FAIL(pRPLIDAR->drv->startScanExpress(false, scanMode)))
+	//if (IS_FAIL(pRPLIDAR->drv->getTypicalScanMode(scanMode)))
+	//{
+	//	printf("A RPLIDAR is not responding correctly. \n");
+	//	return EXIT_FAILURE;
+	//}
+	if (IS_FAIL(pRPLIDAR->drv->startScanExpress(false, RPLIDAR_CONF_SCAN_COMMAND_EXPRESS)))
 	{
 		printf("A RPLIDAR is not responding correctly. \n");
 		return EXIT_FAILURE;
@@ -752,7 +765,7 @@ inline int GetExpressScanDataResponseRPLIDAR(RPLIDAR* pRPLIDAR, double* pDistanc
 
 	//memset(pAngles, 0, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR);
 	//memset(pDistances, 0, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR);
-	for (j = 0; j < NB_CABINS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR; j++)
+	for (j = 0; j < NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR; j++)
 	{
 		*pbNewScan = (*pbNewScan) | (nodes[j].flag & RPLIDAR_RESP_MEASUREMENT_SYNCBIT);
 
@@ -838,6 +851,64 @@ inline int GetExpressScanDataResponseRPLIDAR(RPLIDAR* pRPLIDAR, double* pDistanc
 	return EXIT_SUCCESS;
 }
 
+inline int StartOtherScanRequestRPLIDAR(RPLIDAR* pRPLIDAR, int scanmode)
+{
+#ifdef ENABLE_RPLIDAR_SDK_SUPPORT
+	if (IS_FAIL(pRPLIDAR->drv->startScanExpress(false, (_u16)scanmode)))
+	{
+		printf("A RPLIDAR is not responding correctly. \n");
+		return EXIT_FAILURE;
+	}
+	return EXIT_SUCCESS;
+#else
+	UNREFERENCED_PARAMETER(pRPLIDAR);
+	UNREFERENCED_PARAMETER(scanmode);
+	printf("RPLIDAR : Not implemented. \n");
+	return EXIT_NOT_IMPLEMENTED;
+#endif // ENABLE_RPLIDAR_SDK_SUPPORT
+}
+
+// NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR distances, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR angles...
+inline int GetOtherScanDataResponseRPLIDAR(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan)
+{
+#ifdef ENABLE_RPLIDAR_SDK_SUPPORT
+	int j = 0;
+	rplidar_response_measurement_node_hq_t nodes[NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR];
+	size_t nodeCount = sizeof(nodes)/sizeof(rplidar_response_measurement_node_hq_t);
+
+	if (IS_FAIL(pRPLIDAR->drv->getScanDataWithIntervalHq(nodes, nodeCount)))
+	{
+		printf("A RPLIDAR is not responding correctly. \n");
+		return EXIT_FAILURE;
+	}
+
+	// Analyze the data response.
+	*pbNewScan = 0;
+
+	//memset(pAngles, 0, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR);
+	//memset(pDistances, 0, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR);
+	for (j = 0; j < NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR; j++)
+	{
+		*pbNewScan = (*pbNewScan) | (nodes[j].flag & RPLIDAR_RESP_MEASUREMENT_SYNCBIT);
+
+		// Convert in rad.
+		pAngles[j] = fmod_2PI_deg2rad(-nodes[j].angle_z_q14*90.0/(1 << 14));
+
+		// Convert in m.
+		pDistances[j] = nodes[j].dist_mm_q2/4000.0;
+	}
+
+	return EXIT_SUCCESS;
+#else
+	UNREFERENCED_PARAMETER(pRPLIDAR);
+	UNREFERENCED_PARAMETER(pDistances);
+	UNREFERENCED_PARAMETER(pAngles);
+	UNREFERENCED_PARAMETER(pbNewScan);
+	printf("RPLIDAR : Not implemented. \n");
+	return EXIT_NOT_IMPLEMENTED;
+#endif // ENABLE_RPLIDAR_SDK_SUPPORT
+}
+
 // RPLIDAR must be initialized to 0 before (e.g. RPLIDAR rplidar; memset(&rplidar, 0, sizeof(RPLIDAR));)!
 inline int ConnectRPLIDAR(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
 {
@@ -861,6 +932,7 @@ inline int ConnectRPLIDAR(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
 		pRPLIDAR->timeout = 1000;
 		pRPLIDAR->threadperiod = 50;
 		pRPLIDAR->bSaveRawData = 1;
+		pRPLIDAR->bStartScanModeAtStartup = 1;
 		pRPLIDAR->ScanMode = SCAN_MODE_RPLIDAR;
 		pRPLIDAR->motordelay = 500;
 		pRPLIDAR->maxhist = 1024;
@@ -881,6 +953,8 @@ inline int ConnectRPLIDAR(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
 			if (sscanf(line, "%d", &pRPLIDAR->threadperiod) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pRPLIDAR->bSaveRawData) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pRPLIDAR->bStartScanModeAtStartup) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pRPLIDAR->ScanMode) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
@@ -924,14 +998,72 @@ inline int ConnectRPLIDAR(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
 	//pRPLIDAR->pfSaveFile = NULL;
 
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
-	pRPLIDAR->drv = RPlidarDriver::CreateDriver(DRIVER_TYPE_SERIALPORT);
+	_u32 drvtype = DRIVER_TYPE_SERIALPORT;
+	char address[256];
+	char port[256];
+	int iport = 0, ilport = 0;
+	char* ptr = NULL;
+	char* ptr2 = NULL;
+
+	memset(address, 0, sizeof(address));
+	memset(port, 0, sizeof(port));
+
+	// Try to determine whether it is a server TCP port (e.g. :4001), client IP address and TCP port (e.g. 127.0.0.1:4001), 
+	// IP address and UDP ports (e.g. udp://127.0.0.1:4001:4002) or local RS232 port.
+	ptr = strchr(pRPLIDAR->szDevPath, ':');
+	if ((ptr != NULL)&&(strlen(ptr) >= 6)) ptr2 = strchr(ptr+1, ':');
+	if ((strlen(pRPLIDAR->szDevPath) >= 12)&&(strncmp(pRPLIDAR->szDevPath, "tcpsrv://", strlen("tcpsrv://")) == 0)&&(ptr2 != NULL)&&(ptr2[1] != 0))
+	{
+		memcpy(address, pRPLIDAR->szDevPath+9, ptr2-(pRPLIDAR->szDevPath+9));
+		strcpy(port, ptr2+1);
+		drvtype = DRIVER_TYPE_TCP;
+	}
+	else if ((strlen(pRPLIDAR->szDevPath) >= 9)&&(strncmp(pRPLIDAR->szDevPath, "tcp://", strlen("tcp://")) == 0)&&(ptr2 != NULL)&&(ptr2[1] != 0))
+	{
+		memcpy(address, pRPLIDAR->szDevPath+6, ptr2-(pRPLIDAR->szDevPath+6));
+		strcpy(port, ptr2+1);
+		drvtype = DRIVER_TYPE_TCP;
+	}
+	else if ((strlen(pRPLIDAR->szDevPath) >= 9)&&(strncmp(pRPLIDAR->szDevPath, "udp://", strlen("udp://")) == 0)&&(ptr2 != NULL)&&(ptr2[1] != 0))
+	{
+		memcpy(address, pRPLIDAR->szDevPath+6, ptr2-(pRPLIDAR->szDevPath+6));
+		sscanf(ptr2, ":%d:%d", &iport, &ilport);
+		printf("Unable to connect to a RPLIDAR : Not implemented.\n");
+		return EXIT_NOT_IMPLEMENTED;
+	}
+	else if ((strlen(pRPLIDAR->szDevPath) >= 5)&&(strncmp(pRPLIDAR->szDevPath, "tcp:", strlen("tcp:")) == 0)&&(atoi(pRPLIDAR->szDevPath+4) > 0))
+	{
+		strcpy(address, "0.0.0.0");
+		strcpy(port, pRPLIDAR->szDevPath+4);
+		drvtype = DRIVER_TYPE_TCP;
+	}
+	else if ((pRPLIDAR->szDevPath[0] == ':')&&(atoi(pRPLIDAR->szDevPath+1) > 0))
+	{
+		strcpy(address, "0.0.0.0");
+		strcpy(port, pRPLIDAR->szDevPath+1);
+		drvtype = DRIVER_TYPE_TCP;
+	}
+	else if ((ptr != NULL)&&(ptr[1] != 0))
+	{
+		memcpy(address, pRPLIDAR->szDevPath, ptr-pRPLIDAR->szDevPath);
+		strcpy(port, ptr+1);
+		drvtype = DRIVER_TYPE_TCP;
+	}
+	else
+	{
+		strcpy(address, pRPLIDAR->szDevPath);
+		sprintf(port, "%d", pRPLIDAR->BaudRate);
+		drvtype = DRIVER_TYPE_SERIALPORT;
+	}
+
+	pRPLIDAR->drv = RPlidarDriver::CreateDriver(drvtype);
 	if (!pRPLIDAR->drv)
 	{
 		printf("Unable to connect to a RPLIDAR.\n");
 		return EXIT_FAILURE;
 	}
 
-	if (IS_FAIL(pRPLIDAR->drv->connect(pRPLIDAR->szDevPath, pRPLIDAR->BaudRate)))
+	if (IS_FAIL(pRPLIDAR->drv->connect(address, atoi(port))))
 	{
 		printf("Unable to connect to a RPLIDAR.\n");
 		RPlidarDriver::DisposeDriver(pRPLIDAR->drv); pRPLIDAR->drv = NULL;
@@ -961,6 +1093,8 @@ inline int ConnectRPLIDAR(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
 	}
 #endif // ENABLE_RPLIDAR_SDK_SUPPORT
 
+	if (pRPLIDAR->bStartScanModeAtStartup)
+	{
 	GetStartupMessageRPLIDAR(pRPLIDAR);
 
 	memset(pRPLIDAR->SerialNumber, 0, sizeof(pRPLIDAR->SerialNumber));
@@ -1098,9 +1232,9 @@ inline int ConnectRPLIDAR(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
 		}
 		break;
 	default:
-		if (StartScanRequestRPLIDAR(pRPLIDAR) != EXIT_SUCCESS)
+		if (StartOtherScanRequestRPLIDAR(pRPLIDAR, pRPLIDAR->ScanMode) != EXIT_SUCCESS)
 		{
-			printf("Unable to connect to a RPLIDAR : SCAN failure.\n");
+			printf("Unable to connect to a RPLIDAR : scan mode failure.\n");
 			SetMotorPWMRequestRPLIDAR(pRPLIDAR, 0);
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
 			pRPLIDAR->drv->stopMotor();
@@ -1116,6 +1250,7 @@ inline int ConnectRPLIDAR(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
 
 	// Wait for the motor rotation to become stable.
 	mSleep(pRPLIDAR->motordelay);
+	}
 
 	printf("RPLIDAR connected.\n");
 

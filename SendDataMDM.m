@@ -1,6 +1,6 @@
 function [result, SentBytes] = SendDataMDM(pMDM, buf, buflen)
 
-pbuf_p = libpointer('int32Ptr', buf);
+pbuf_p = libpointer('int8Ptr', buf);
 SentBytes = 0;
 pSentBytes = libpointer('int32Ptr', SentBytes);
 
