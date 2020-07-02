@@ -3,6 +3,8 @@ Update Hardware-CPP, MATLAB, Python (check structures), in particular mavlink me
 critical sections should be everywhere especially for Pololu and SSC32...
 
 RPLIDAR : Ne marche pas avec appli du fabricant parfois, on peut pas renommer le port car une autre application l'utilise, mais quelle autre...? Faut utiliser vieux SDK, et il faudrait que le code CPP récupère les données tout le temps dans un thread...
+Crash matlab when exiting getotherscan...?
+BSOD?
 
 cmake?
 

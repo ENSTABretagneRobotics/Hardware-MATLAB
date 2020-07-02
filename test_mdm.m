@@ -11,9 +11,9 @@ set(fig,'WindowStyle','Modal'); axis('off');
 key = 0;
 while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
     clf; hold on;
-	buf = zeros(4)
-    [result, nbbytes] = RecvDataMDM(pMDM, buf, 4);
-	str = sprintf('%D\n', buf(1));
+	buf = zeros(4);
+    [result, buf, nbbytes] = RecvDataMDM(pMDM, buf, 4);
+	str = sprintf('%d, %d, %d, %d\n', buf(1), buf(2), buf(3), buf(4));
     uicontrol('Style','text','String',str,'Units','normalized','Position',[0 0 1 1]);
     pause(1); key = get(gcf,'CurrentCharacter');
 end

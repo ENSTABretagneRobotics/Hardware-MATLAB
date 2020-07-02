@@ -9,7 +9,7 @@ COM9
 50
 % bSaveRawData (require associated thread)
 1
-% bStartScanModeAtStartup (require associated thread)
+% bStartScanModeAtStartup
 1
 % ScanMode (0 : SCAN, 1 : EXPRESS_SCAN, 2 : FORCE_SCAN)
 0
