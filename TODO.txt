@@ -2,7 +2,7 @@ Update Hardware-CPP, MATLAB, Python (check structures), in particular mavlink me
 
 critical sections should be everywhere especially for Pololu and SSC32...
 
-RPLIDAR : Ne marche même pas avec appli du fabricant parfois, on peut pas renommer le port car une autre application l'utilise, mais quelle autre...? Faut utiliser vieux SDK, et il faudrait que le code CPP récupère les données tout le temps dans un thread...
+RPLIDAR : Ne marche pas avec appli du fabricant parfois, on peut pas renommer le port car une autre application l'utilise, mais quelle autre...? Faut utiliser vieux SDK, et il faudrait que le code CPP récupère les données tout le temps dans un thread...
 
 cmake?
 
@@ -18,4 +18,6 @@ Simplify by gathering Create, Connect...?
 
 OLD
 
-Hardware-MATLAB/Python : if ENABLE_SBG_SUPPORT disabled, SBG MATLAB and Python functions should not be disabled...
+hardwarex_setup->error rplidar sdk C++->tweak rplidar struct (add padding when not using sdk?) so that size corresponds...?
+
+Hardware-MATLAB/Python : if ENABLE_SBG_SDK_SUPPORT disabled, SBG MATLAB and Python functions should not be disabled...

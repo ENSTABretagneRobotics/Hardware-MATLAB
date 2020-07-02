@@ -15,7 +15,7 @@
 //#define ENABLE_RPLIDAR_SDK_SUPPORT
 
 // Uncomment the following line to enable SBG SDK in MATLAB (requires corresponding SDK...).
-//#define ENABLE_SBG_SUPPORT
+//#define ENABLE_SBG_SDK_SUPPORT
 
 // Uncomment the following line to enable MAVLink in MATLAB (requires corresponding headers and needs Visual Studio 2013 or later (to set in mex -setup and mex -setup C++)...).
 //#define ENABLE_MAVLINK_SUPPORT

@@ -17,6 +17,10 @@
 #include "OSThread.h"
 #endif // !DISABLE_RPLIDARTHREAD
 
+#if !defined(__cplusplus) && defined(ENABLE_RPLIDAR_SDK_SUPPORT)
+#undef ENABLE_RPLIDAR_SDK_SUPPORT
+#endif // !defined(__cplusplus) && defined(ENABLE_RPLIDAR_SDK_SUPPORT)
+
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
 #ifdef _MSC_VER
 // Disable some Visual Studio warnings.
@@ -115,11 +119,10 @@ struct RPLIDAR
 {
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
 	RPlidarDriver* drv;
-    rplidar_response_device_health_t healthinfo;
-    rplidar_response_device_info_t devinfo;
 #else
-	RS232PORT RS232Port;
+	void* drv; // Kept as padding for MATLAB since it does not seem to support C++ types in the configuration used...
 #endif // ENABLE_RPLIDAR_SDK_SUPPORT
+	RS232PORT RS232Port; // Kept as padding for MATLAB since it does not seem to support C++ types in the configuration used...
 	int model;
 	int hardware;
 	int firmware_major;
@@ -285,14 +288,16 @@ inline int GetStartupMessageRPLIDAR(RPLIDAR* pRPLIDAR)
 inline int GetHealthRequestRPLIDAR(RPLIDAR* pRPLIDAR, BOOL* pbProtectionStop)
 {
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
-	if (IS_FAIL(pRPLIDAR->drv->getHealth(pRPLIDAR->healthinfo)))
+    rplidar_response_device_health_t healthinfo;
+
+	if (IS_FAIL(pRPLIDAR->drv->getHealth(healthinfo)))
 	{
 		printf("A RPLIDAR is not responding correctly. \n");
 		return EXIT_FAILURE;
 	}
 
 	// Analyze the data response.
-	*pbProtectionStop = (pRPLIDAR->healthinfo.status == RPLIDAR_STATUS_ERROR)? TRUE: FALSE;
+	*pbProtectionStop = (healthinfo.status == RPLIDAR_STATUS_ERROR)? TRUE: FALSE;
 #else
 	unsigned char reqbuf[] = {START_FLAG1_RPLIDAR,GET_HEALTH_REQUEST_RPLIDAR};
 	unsigned char descbuf[7];
@@ -341,23 +346,25 @@ inline int GetInfoRequestRPLIDAR(RPLIDAR* pRPLIDAR, int* pModelID, int* pHardwar
 	int i = 0;
 
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
-	if (IS_FAIL(pRPLIDAR->drv->getDeviceInfo(pRPLIDAR->devinfo)))
+    rplidar_response_device_info_t devinfo;
+
+	if (IS_FAIL(pRPLIDAR->drv->getDeviceInfo(devinfo)))
 	{
 		printf("A RPLIDAR is not responding correctly. \n");
 		return EXIT_FAILURE;
 	}
 
 	// Analyze the data response.
-	*pModelID = pRPLIDAR->devinfo.model;
-	*pFirmwareMinor = (pRPLIDAR->devinfo.firmware_version & 0x00FF);
-	*pFirmwareMajor = (pRPLIDAR->devinfo.firmware_version >> 8);
-	*pHardwareVersion = pRPLIDAR->devinfo.hardware_version;
+	*pModelID = devinfo.model;
+	*pFirmwareMinor = (devinfo.firmware_version & 0x00FF);
+	*pFirmwareMajor = (devinfo.firmware_version >> 8);
+	*pHardwareVersion = devinfo.hardware_version;
 
 	// 128bit unique serial number, when converting to text in hex, the Least Significant Byte prints first.
 	memset(SerialNumber, 0, MAX_BUF_LEN_SERIAL_NUMBER_RPLIDAR);
 	for (i = 0; i < NB_BYTES_SERIAL_NUMBER_RPLIDAR; i++)
 	{
-		sprintf(SerialNumber+2*i, "%02X", (int)(unsigned char)pRPLIDAR->devinfo.serialnum[i]);
+		sprintf(SerialNumber+2*i, "%02X", (int)(unsigned char)devinfo.serialnum[i]);
 	}
 #else
 	unsigned char reqbuf[] = {START_FLAG1_RPLIDAR,GET_INFO_REQUEST_RPLIDAR};

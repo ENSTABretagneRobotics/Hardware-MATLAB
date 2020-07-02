@@ -104,11 +104,11 @@ HARDWAREX_API void DestroySBGDatax(SBGDATA* pSBGData)
 
 HARDWAREX_API int GetLatestDataSBGx(SBG* pSBG, SBGDATA* pSBGData)
 {
-#ifdef ENABLE_SBG_SUPPORT
+#ifdef ENABLE_SBG_SDK_SUPPORT
 	return GetLatestDataSBG(pSBG, pSBGData);
 #else
 	return GetFrameSBG(pSBG, pSBGData);
-#endif // ENABLE_SBG_SUPPORT
+#endif // ENABLE_SBG_SDK_SUPPORT
 }
 
 HARDWAREX_API int ConnectSBGx(SBG* pSBG, char* szCfgFilePath)
@@ -128,15 +128,15 @@ THREAD_PROC_RETURN_VALUE SBGThread(void* pParam)
 
 	for (;;)
 	{
-#ifdef ENABLE_SBG_SUPPORT
+#ifdef ENABLE_SBG_SDK_SUPPORT
 		mSleep(pSBG->threadperiod);
-#endif // ENABLE_SBG_SUPPORT
+#endif // ENABLE_SBG_SDK_SUPPORT
 		memset(&sbgdata, 0, sizeof(SBGDATA));
-#ifdef ENABLE_SBG_SUPPORT
+#ifdef ENABLE_SBG_SDK_SUPPORT
 		GetLatestDataSBG(pSBG, &sbgdata);
 #else
 		GetFrameSBG(pSBG, &sbgdata);
-#endif // ENABLE_SBG_SUPPORT
+#endif // ENABLE_SBG_SDK_SUPPORT
 		EnterCriticalSection(&SBGCS);
 		sbgdataSBG = sbgdata;
 		LeaveCriticalSection(&SBGCS);
