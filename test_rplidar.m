@@ -4,6 +4,18 @@ pRPLIDAR = CreateRPLIDAR();
 [result] = ConnectRPLIDAR(pRPLIDAR, 'RPLIDAR0.txt')
 %pRPLIDAR.value
 
+%% If bStartScanModeAtStartup to 0 in RPLIDAR0.txt...
+%[result] = GetStartupMessageRPLIDAR(pRPLIDAR)
+%[result] = ResetRequestRPLIDAR(pRPLIDAR)
+%pause(2)
+%[result] = GetStartupMessageRPLIDAR(pRPLIDAR)
+%[result, ModelID, HardwareVersion, FirmwareMajor, FirmwareMinor, SerialNumber] = GetInfoRequestRPLIDAR(pRPLIDAR)
+%[result] = StopRequestRPLIDAR(pRPLIDAR)
+%[result] = SetMotorPWMRequestRPLIDAR(pRPLIDAR, 660)
+%[result] = StartScanRequestRPLIDAR(pRPLIDAR)
+%%[result] = StartExpressScanRequestRPLIDAR(pRPLIDAR)
+%pause(2)
+
 [result, distance, angle, bNewScan, quality] = GetScanDataResponseRPLIDAR(pRPLIDAR);
 str = sprintf('Distance at %f deg = %f m\n', angle*180.0/pi, distance);
 %[result, distances, angles, bNewScan] = GetExpressScanDataResponseRPLIDAR(pRPLIDAR);
@@ -31,7 +43,7 @@ while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
     %if count > 720/32
        clf; hold on; axis([-scale,scale,-scale,scale]);
        plot(alldistances.*cos(allangles), alldistances.*sin(allangles), '.');
-       pause(0.01); key = get(gcf,'CurrentCharacter');
+       pause(0.05); key = get(gcf,'CurrentCharacter');
        count = 0; alldistances = []; allangles = []; 
     end    
     count = count+1;

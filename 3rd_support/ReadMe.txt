@@ -22,18 +22,30 @@ Linux/Mac OS :
 	rm -Rf 0fc203298923f1d7c225cc6f43918d6663809e38.zip
 - Get SBG SDK :
 	wget "https://www.ensta-bretagne.fr/lebars/Share/SBG%20Systems.zip"
-	unzip "SBG Systems.zip"
+	unzip -q -o "SBG Systems.zip"
 	cd "SBG Systems/Inertial SDK/Software Development/sbgECom/projects/unix"
-- Add `set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")` option in `CMakeLists.txt` (e.g. in the `if (NOT MSVC)` condition) and build and install in `/usr/local/include` and  `/usr/local/lib` (or in `..`) :
+- If needed, add `set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")` in `CMakeLists.txt` (e.g. in the `if (NOT MSVC)` condition) and build and install in `/usr/local/include` and  `/usr/local/lib` (or in `..`) :
 	cmake .
 	make
 	sudo mkdir -p /usr/local/include/sbgECom
 	sudo mkdir -p /usr/local/lib
-	sudo mv ../../src/ /usr/local/include/sbgECom/src
-	sudo mv ../../common/ /usr/local/include/sbgECom/common
-	sudo mv ../../bin/libsbgECom.a /usr/local/lib/libsbgECom.a
+	sudo mv -f ../../src/ /usr/local/include/sbgECom/src
+	sudo mv -f ../../common/ /usr/local/include/sbgECom/common
+	sudo mv -f ../../bin/libsbgECom.a /usr/local/lib/libsbgECom.a
 	cd ../../../../../..
-	rm -Rf "SBG Systems"
-	rm -Rf "SBG Systems.zip"
-- Get, build, install RPLIDAR SDK : https://github.com/lebarsfa/rplidar_sdk
+	rm -Rf "SBG Systems" "SBG Systems.zip"
+- Get, build, install RPLIDAR SDK : 
+	wget https://www.ensta-bretagne.fr/lebars/Share/rplidar_sdk.zip
+	unzip -q -o rplidar_sdk.zip
+	cd rplidar_sdk/sdk
+	make
+	cd ../..
+	sudo rm -Rf /usr/local/include/rplidar_sdk /usr/local/lib/librplidar_sdk.a
+	sudo mkdir -p /usr/local/include/rplidar_sdk/sdk/sdk
+	sudo mv -f rplidar_sdk/sdk/sdk/include /usr/local/include/rplidar_sdk/sdk/sdk/
+	sudo mv -f rplidar_sdk/sdk/sdk/src /usr/local/include/rplidar_sdk/sdk/sdk/
+	sudo mv -f rplidar_sdk/sdk/output/Linux/Release/librplidar_sdk.a /usr/local/lib/librplidar_sdk.a
+	sudo mv -f rplidar_sdk/sdk/output/Linux/Release/ultra_simple /usr/local/bin/ultra_simple
+	sudo mv -f rplidar_sdk/sdk/output/Linux/Release/simple_grabber /usr/local/bin/simple_grabber
+	rm -Rf rplidar_sdk rplidar_sdk.zip
 - Follow `../ReadMe.txt`

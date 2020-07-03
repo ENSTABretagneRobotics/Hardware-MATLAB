@@ -120,9 +120,9 @@ struct RPLIDAR
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
 	RPlidarDriver* drv;
 #else
-	void* drv; // Kept as padding for MATLAB since it does not seem to support C++ types in the configuration used...
+	void* drv; // Kept as padding for MATLAB compatibility since it does not seem to support C++ types in the configuration used...
 #endif // ENABLE_RPLIDAR_SDK_SUPPORT
-	RS232PORT RS232Port; // Kept as padding for MATLAB since it does not seem to support C++ types in the configuration used...
+	RS232PORT RS232Port; // Kept as padding for MATLAB compatibility since it does not seem to support C++ types in the configuration used...
 	int model;
 	int hardware;
 	int firmware_major;
@@ -192,7 +192,7 @@ inline int StopRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
 	if (IS_FAIL(pRPLIDAR->drv->stop()))
 	{
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : stop() failed. \n");
 		return EXIT_FAILURE;
 	}
 #else
@@ -219,7 +219,7 @@ inline int ResetRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
 	if (IS_FAIL(pRPLIDAR->drv->reset()))
 	{
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : reset() failed. \n");
 		return EXIT_FAILURE;
 	}
 #else
@@ -249,7 +249,7 @@ inline int GetStartupMessageRPLIDAR(RPLIDAR* pRPLIDAR)
 	mSleep(100);
 	if (IS_FAIL(pRPLIDAR->drv->clearNetSerialRxCache()))
 	{
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : clearNetSerialRxCache() failed. \n");
 		return EXIT_FAILURE;
 	}
 #else
@@ -292,7 +292,7 @@ inline int GetHealthRequestRPLIDAR(RPLIDAR* pRPLIDAR, BOOL* pbProtectionStop)
 
 	if (IS_FAIL(pRPLIDAR->drv->getHealth(healthinfo)))
 	{
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : getHealth() failed. \n");
 		return EXIT_FAILURE;
 	}
 
@@ -321,7 +321,7 @@ inline int GetHealthRequestRPLIDAR(RPLIDAR* pRPLIDAR, BOOL* pbProtectionStop)
 	// Quick check of the response descriptor.
 	if ((descbuf[2] != 0x03)||(descbuf[6] != DEVHEALTH_RESPONSE_RPLIDAR))
 	{ 
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : Bad response descriptor. \n");
 		return EXIT_FAILURE;	
 	}
 
@@ -350,7 +350,7 @@ inline int GetInfoRequestRPLIDAR(RPLIDAR* pRPLIDAR, int* pModelID, int* pHardwar
 
 	if (IS_FAIL(pRPLIDAR->drv->getDeviceInfo(devinfo)))
 	{
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : getDeviceInfo() failed. \n");
 		return EXIT_FAILURE;
 	}
 
@@ -389,7 +389,7 @@ inline int GetInfoRequestRPLIDAR(RPLIDAR* pRPLIDAR, int* pModelID, int* pHardwar
 	// Quick check of the response descriptor.
 	if ((descbuf[2] != 0x14)||(descbuf[6] != DEVINFO_RESPONSE_RPLIDAR))
 	{ 
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : Bad response descriptor. \n");
 		return EXIT_FAILURE;	
 	}
 
@@ -425,6 +425,8 @@ inline int GetSampleRateRequestRPLIDAR(RPLIDAR* pRPLIDAR, int* pTstandard, int* 
 	UNREFERENCED_PARAMETER(pRPLIDAR);
 	UNREFERENCED_PARAMETER(pTstandard);
 	UNREFERENCED_PARAMETER(pTexpress);
+	printf("RPLIDAR : Not implemented. \n");
+	return EXIT_NOT_IMPLEMENTED;
 #else
 	unsigned char reqbuf[] = {START_FLAG1_RPLIDAR,GET_SAMPLERATE_REQUEST_RPLIDAR};
 	unsigned char descbuf[7];
@@ -448,7 +450,7 @@ inline int GetSampleRateRequestRPLIDAR(RPLIDAR* pRPLIDAR, int* pTstandard, int* 
 	// Quick check of the response descriptor.
 	if ((descbuf[2] != 0x04)||(descbuf[6] != SAMPLERATE_RESPONSE_RPLIDAR))
 	{ 
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : Bad response descriptor. \n");
 		return EXIT_FAILURE;	
 	}
 
@@ -463,9 +465,9 @@ inline int GetSampleRateRequestRPLIDAR(RPLIDAR* pRPLIDAR, int* pTstandard, int* 
 	// Analyze the data response.
 	*pTstandard = (unsigned short)((databuf[1]<<8)|databuf[0]);
 	*pTexpress = (unsigned short)((databuf[3]<<8)|databuf[2]);
-#endif // ENABLE_RPLIDAR_SDK_SUPPORT
 
 	return EXIT_SUCCESS;
+#endif // ENABLE_RPLIDAR_SDK_SUPPORT
 }
 
 // Undocumented...
@@ -475,7 +477,7 @@ inline int CheckMotorControlSupportRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 	bool support = false;
 	if (IS_FAIL(pRPLIDAR->drv->checkMotorCtrlSupport(support)))
 	{
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : checkMotorCtrlSupport() failed. \n");
 		return EXIT_FAILURE;
 	}
 #else
@@ -515,7 +517,7 @@ inline int SetMotorPWMRequestRPLIDAR(RPLIDAR* pRPLIDAR, int pwm)
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
 	if (IS_FAIL(pRPLIDAR->drv->setMotorPWM((_u16)pwm)))
 	{
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : setMotorPWM() failed. \n");
 		return EXIT_FAILURE;
 	}
 #else
@@ -543,7 +545,7 @@ inline int StartScanRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
 	if (IS_FAIL(pRPLIDAR->drv->startScan(false, false)))
 	{
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : startScan() failed. \n");
 		return EXIT_FAILURE;
 	}
 #else
@@ -568,7 +570,7 @@ inline int StartScanRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 	// Quick check of the response descriptor.
 	if ((descbuf[2] != 0x05)||(descbuf[5] != 0x40)||(descbuf[6] != MEASUREMENT_RESPONSE_RPLIDAR))
 	{ 
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : Bad response descriptor. \n");
 		return EXIT_FAILURE;	
 	}
 #endif // ENABLE_RPLIDAR_SDK_SUPPORT
@@ -581,7 +583,7 @@ inline int StartForceScanRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
 	if (IS_FAIL(pRPLIDAR->drv->startScan(true, false)))
 	{
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : startScan() failed. \n");
 		return EXIT_FAILURE;
 	}
 #else
@@ -606,7 +608,7 @@ inline int StartForceScanRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 	// Quick check of the response descriptor.
 	if ((descbuf[2] != 0x05)||(descbuf[5] != 0x40)||(descbuf[6] != MEASUREMENT_RESPONSE_RPLIDAR))
 	{ 
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : Bad response descriptor. \n");
 		return EXIT_FAILURE;	
 	}
 #endif // ENABLE_RPLIDAR_SDK_SUPPORT
@@ -622,7 +624,7 @@ inline int GetScanDataResponseRPLIDAR(RPLIDAR* pRPLIDAR, double* pDistance, doub
 
 	if (IS_FAIL(pRPLIDAR->drv->getScanDataWithIntervalHq(nodes, nodeCount)))
 	{
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : getScanDataWithIntervalHq() failed. \n");
 		return EXIT_FAILURE;
 	}
 
@@ -681,12 +683,12 @@ inline int StartExpressScanRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 
 	//if (IS_FAIL(pRPLIDAR->drv->getTypicalScanMode(scanMode)))
 	//{
-	//	printf("A RPLIDAR is not responding correctly. \n");
+	//	printf("A RPLIDAR is not responding correctly : getTypicalScanMode() failed. \n");
 	//	return EXIT_FAILURE;
 	//}
 	if (IS_FAIL(pRPLIDAR->drv->startScanExpress(false, RPLIDAR_CONF_SCAN_COMMAND_EXPRESS)))
 	{
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : startScanExpress() failed. \n");
 		return EXIT_FAILURE;
 	}
 #else
@@ -713,7 +715,7 @@ inline int StartExpressScanRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 	// Quick check of the response descriptor.
 	if ((descbuf[2] != 0x54)||(descbuf[5] != 0x40)||(descbuf[6] != MEASUREMENT_CAPSULED_RESPONSE_RPLIDAR))
 	{ 
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : Bad response descriptor. \n");
 		return EXIT_FAILURE;	
 	}
 
@@ -763,7 +765,7 @@ inline int GetExpressScanDataResponseRPLIDAR(RPLIDAR* pRPLIDAR, double* pDistanc
 
 	if (IS_FAIL(pRPLIDAR->drv->getScanDataWithIntervalHq(nodes, nodeCount)))
 	{
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : getScanDataWithIntervalHq() failed. \n");
 		return EXIT_FAILURE;
 	}
 
@@ -863,7 +865,7 @@ inline int StartOtherScanRequestRPLIDAR(RPLIDAR* pRPLIDAR, int scanmode)
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
 	if (IS_FAIL(pRPLIDAR->drv->startScanExpress(false, (_u16)scanmode)))
 	{
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : startScanExpress() failed. \n");
 		return EXIT_FAILURE;
 	}
 	return EXIT_SUCCESS;
@@ -885,7 +887,7 @@ inline int GetOtherScanDataResponseRPLIDAR(RPLIDAR* pRPLIDAR, double* pDistances
 
 	if (IS_FAIL(pRPLIDAR->drv->getScanDataWithIntervalHq(nodes, nodeCount)))
 	{
-		printf("A RPLIDAR is not responding correctly. \n");
+		printf("A RPLIDAR is not responding correctly : getScanDataWithIntervalHq() failed. \n");
 		return EXIT_FAILURE;
 	}
 

@@ -10,7 +10,7 @@ pModelID = libpointer('int32Ptr', modelID);
 pHardwareVersion = libpointer('int32Ptr', hardwareVersion);
 pFirmwareMajor = libpointer('int32Ptr', firmwareMajor);
 pFirmwareMinor = libpointer('int32Ptr', firmwareMinor);
-SerialNumber = libpointer('cstring', serialNumber);
+SerialNumber = libpointer('voidPtr', [int8(serialNumber) 0]);
 
 result = calllib('hardwarex', 'GetInfoRequestRPLIDARx', pRPLIDAR, pModelID, pHardwareVersion, pFirmwareMajor, pFirmwareMinor, SerialNumber);
 
@@ -18,4 +18,4 @@ modelID = pModelID.value;
 hardwareVersion = pHardwareVersion.value;
 firmwareMajor = pFirmwareMajor.value;
 firmwareMinor = pFirmwareMinor.value;
-serialNumber = SerialNumber.value;
+serialNumber = char(SerialNumber.value);

@@ -59,19 +59,25 @@ Debug macros specific to OSComputerRS232Port.
 
 #ifdef _WIN32
 #else 
-#include <termios.h>
 #ifndef DISABLE_SELECT_OSCOMPUTERRS232PORT
 #include <sys/select.h>
 #endif // !DISABLE_SELECT_OSCOMPUTERRS232PORT
-#if !defined(DISABLE_CUSTOM_BAUDRATE) || !defined(DISABLE_FORCE_CLEAR_DTR) || defined(ENABLE_DTR_FUNCTIONS)
+#if !defined(DISABLE_FORCE_CLEAR_DTR) || defined(ENABLE_DTR_FUNCTIONS)
+#include <sys/ioctl.h>
+#endif // !defined(DISABLE_FORCE_CLEAR_DTR) || defined(ENABLE_DTR_FUNCTIONS)
+#ifndef DISABLE_CUSTOM_BAUDRATE
 #include <sys/ioctl.h>
 #ifdef __APPLE__
 #include <IOKit/serial/ioss.h>
 #endif // __APPLE__
 #ifdef __linux__
 #include <linux/serial.h>
+#define termios termbits_termios
+#include <asm/termbits.h> // Not compatible with termios.h, see https://stackoverflow.com/questions/37710525/including-termios-h-and-asm-termios-h-in-the-same-project...
+#undef termios
 #endif // __linux__
-#endif // !defined(DISABLE_CUSTOM_BAUDRATE) || !defined(DISABLE_FORCE_CLEAR_DTR) || defined(ENABLE_DTR_FUNCTIONS)
+#endif // !DISABLE_CUSTOM_BAUDRATE
+#include <termios.h>
 #endif // _WIN32
 
 #ifndef _WIN32
@@ -414,7 +420,7 @@ inline int OpenComputerRS232Port(HANDLE* phDev, char* szDevice)
 	// the FNDELAY option:
 	if (fcntl(fd, F_SETFL, 0) == (-1))
 	{
-		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("OpenComputerRS232Port error (%s) : %s"
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("OpenComputerRS232Port error (%s) : (F_SETFL) %s"
 			"(szDevice=%s)\n", 
 			strtime_m(), 
 			GetLastErrorMsg(), 
@@ -426,7 +432,7 @@ inline int OpenComputerRS232Port(HANDLE* phDev, char* szDevice)
 #ifndef DISABLE_FORCE_CLEAR_DTR
 	if (ioctl(fd, TIOCMBIC, &dtr_bit) != EXIT_SUCCESS)
 	{
-		PRINT_DEBUG_WARNING_OSCOMPUTERRS232PORT(("OpenComputerRS232Port warning (%s) : %s"
+		PRINT_DEBUG_WARNING_OSCOMPUTERRS232PORT(("OpenComputerRS232Port warning (%s) : (TIOCMBIC) %s"
 			"(szDevice=%s)\n", 
 			strtime_m(), 
 			GetLastErrorMsg(), 
@@ -438,7 +444,7 @@ inline int OpenComputerRS232Port(HANDLE* phDev, char* szDevice)
 	// See https://stackoverflow.com/questions/17332646/server-dies-on-send-if-client-was-closed-with-ctrlc...
 	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
 	{
-		PRINT_DEBUG_WARNING_OSCOMPUTERRS232PORT(("OpenComputerRS232Port warning (%s) : %s"
+		PRINT_DEBUG_WARNING_OSCOMPUTERRS232PORT(("OpenComputerRS232Port warning (%s) : (SIGPIPE, SIG_IGN) %s"
 			"(szDevice=%s)\n",
 			strtime_m(),
 			"signal failed ",
@@ -606,6 +612,7 @@ inline int SetOptionsComputerRS232Port(HANDLE hDev, UINT BaudRate, BYTE ParityMo
 #else 
 	struct termios options;
 	speed_t speed = 0;
+	BOOL bCustomBaudrate = FALSE;
 
 	memset(&options, 0, sizeof(options));
 
@@ -659,103 +666,38 @@ inline int SetOptionsComputerRS232Port(HANDLE hDev, UINT BaudRate, BYTE ParityMo
 	if (speed == 0)
 	{
 		// Baud rate is probably non-standard...
-#ifndef DISABLE_CUSTOM_BAUDRATE
+		bCustomBaudrate = TRUE;
 
-		// From https://github.com/wjwwood/serial/blob/master/src/impl/unix.cc.
-		// See also https://developer.apple.com/library/archive/samplecode/SerialPortSample/Listings/SerialPortSample_SerialPortSample_c.html, 
-		// https://stackoverflow.com/questions/4968529/how-to-set-baud-rate-to-307200-on-linux/7152671, 
-		// https://stackoverflow.com/questions/37710525/including-termios-h-and-asm-termios-h-in-the-same-project.
+		// See https://stackoverflow.com/questions/19440268/how-to-set-a-non-standard-baudrate-on-a-serial-port-device-on-linux.
 
-#if defined(__APPLE__) && defined(IOSSIOSPEED)
-		// Starting with Tiger, the IOSSIOSPEED ioctl can be used to set arbitrary baud rates
-		// other than those specified by POSIX. The driver for the underlying serial hardware
-		// ultimately determines which baud rates can be used. This ioctl sets both the input
-		// and output speed.
-		speed_t new_baud = (speed_t)BaudRate;
+		speed = _BaudRate2Constant(38400);
 
-		if (ioctl((intptr_t)hDev, IOSSIOSPEED, &new_baud) == -1)
-		{
-			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
-				"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
-				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
-				strtime_m(),
-				GetLastErrorMsg(),
-				hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
-			return EXIT_FAILURE;
-		}
-#elif defined(__linux__) && defined(TIOCSSERIAL)
-		struct serial_struct ser;
-
-		memset(&ser, 0, sizeof(struct serial_struct));
-		if (ioctl((intptr_t)hDev, TIOCGSERIAL, &ser) == -1)
-		{
-			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
-				"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
-				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
-				strtime_m(),
-				GetLastErrorMsg(),
-				hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
-			return EXIT_FAILURE;
-		}
-
-		// Set custom divisor.
-		if (BaudRate != 0) ser.custom_divisor = ser.baud_base/(int)BaudRate;
-		// Update flags.
-		ser.flags &= ~ASYNC_SPD_MASK;
-		ser.flags |= ASYNC_SPD_CUST;
-
-		if (ioctl((intptr_t)hDev, TIOCSSERIAL, &ser) == -1)
-		{
-			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
-				"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
-				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
-				strtime_m(),
-				GetLastErrorMsg(),
-				hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
-			return EXIT_FAILURE;
-		}
-#else
-		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
-			"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
-			"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
-			strtime_m(),
-			"Invalid BaudRate. ",
-			hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
-		return EXIT_FAILURE;
-#endif 
-#else
-		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
-			"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
-			"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
-			strtime_m(),
-			"Invalid BaudRate. ",
-			hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
-		return EXIT_FAILURE;
-#endif // !DISABLE_CUSTOM_BAUDRATE
+		// Linux-only, not compatible with all devices...?
+		//options.c_cflag &= ~(CBAUD | CBAUDEX);
+		//options.c_cflag |= speed;
+		//tty.alt_speed = BaudRate; // ???
 	}
-	else
-	{
-		if (cfsetospeed(&options, speed) != EXIT_SUCCESS)
-		{
-			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
-				"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
-				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
-				strtime_m(),
-				GetLastErrorMsg(),
-				hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
-			return EXIT_FAILURE;
-		}
 
-		if (cfsetispeed(&options, speed) != EXIT_SUCCESS)
-		{
-			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
-				"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
-				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
-				strtime_m(),
-				GetLastErrorMsg(),
-				hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
-			return EXIT_FAILURE;
-		}
+	if (cfsetospeed(&options, speed) != EXIT_SUCCESS)
+	{
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
+			"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
+			"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+			strtime_m(),
+			GetLastErrorMsg(),
+			hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
+		return EXIT_FAILURE;
+	}
+
+	if (cfsetispeed(&options, speed) != EXIT_SUCCESS)
+	{
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
+			"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
+			"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+			strtime_m(),
+			GetLastErrorMsg(),
+			hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
+		return EXIT_FAILURE;
 	}
 
 	// An even parity bit will be set to "1" if the number of 1's + 1 is even, and an odd 
@@ -898,6 +840,120 @@ inline int SetOptionsComputerRS232Port(HANDLE hDev, UINT BaudRate, BYTE ParityMo
 			hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
 		return EXIT_FAILURE;
 	}
+
+	if (bCustomBaudrate)
+	{
+#ifndef DISABLE_CUSTOM_BAUDRATE
+
+		// See https://github.com/wjwwood/serial/blob/master/src/impl/unix.cc,
+		// https://stackoverflow.com/questions/4968529/how-to-set-baud-rate-to-307200-on-linux/7152671, 
+		// https://stackoverflow.com/questions/23492088/c-code-for-non-standard-baud-rate-on-debian-raspberry-pi.
+
+#if defined(__APPLE__) && defined(IOSSIOSPEED)
+		
+		// See https://developer.apple.com/library/archive/samplecode/SerialPortSample/Listings/SerialPortSample_SerialPortSample_c.html.
+
+		// Starting with Tiger, the IOSSIOSPEED ioctl can be used to set arbitrary baud rates
+		// other than those specified by POSIX. The driver for the underlying serial hardware
+		// ultimately determines which baud rates can be used. This ioctl sets both the input
+		// and output speed.
+		speed_t new_baud = (speed_t)BaudRate;
+
+		if (ioctl((intptr_t)hDev, IOSSIOSPEED, &new_baud) == -1)
+		{
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : (IOSSIOSPEED) %s"
+				"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
+				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+				strtime_m(),
+				GetLastErrorMsg(),
+				hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
+			return EXIT_FAILURE;
+		}
+#elif defined(__linux__) && defined(TCSETS2)
+
+		// See https://stackoverflow.com/questions/12646324/how-can-i-set-a-custom-baud-rate-on-linux.
+
+		struct termios2 options2;
+
+		memset(&options2, 0, sizeof(struct termios2));
+		if (ioctl((intptr_t)hDev, TCGETS2, &options2) == -1)
+		{
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : (TCGETS2) %s"
+				"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
+				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+				strtime_m(),
+				GetLastErrorMsg(),
+				hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
+			return EXIT_FAILURE;
+		}
+
+		options2.c_cflag &= ~CBAUD; // Remove current BAUD rate.
+		options2.c_cflag |= BOTHER; // Allow custom BAUD rate using int input.
+		options2.c_ispeed = BaudRate; // Set the input BAUD rate.
+		options2.c_ospeed = BaudRate; // Set the output BAUD rate.
+
+		if (ioctl((intptr_t)hDev, TCSETS2, &options2) == -1)
+		{
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : (TCSETS2) %s"
+				"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
+				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+				strtime_m(),
+				GetLastErrorMsg(),
+				hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
+			return EXIT_FAILURE;
+		}
+#elif defined(__linux__) && defined(TIOCSSERIAL)
+		struct serial_struct ser;
+
+		memset(&ser, 0, sizeof(struct serial_struct));
+		if (ioctl((intptr_t)hDev, TIOCGSERIAL, &ser) == -1)
+		{
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : (TIOCGSERIAL) %s"
+				"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
+				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+				strtime_m(),
+				GetLastErrorMsg(),
+				hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
+			return EXIT_FAILURE;
+		}
+
+		// Set custom divisor.
+		if (BaudRate != 0) ser.custom_divisor = ser.baud_base/(int)BaudRate;
+		// Update flags.
+		ser.flags &= ~ASYNC_SPD_MASK;
+		ser.flags |= ASYNC_SPD_CUST;
+
+		if (ioctl((intptr_t)hDev, TIOCSSERIAL, &ser) == -1)
+		{
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : (TIOCSSERIAL) %s"
+				"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
+				"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+				strtime_m(),
+				GetLastErrorMsg(),
+				hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
+			return EXIT_FAILURE;
+		}
+#else
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
+			"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
+			"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+			strtime_m(),
+			"Invalid BaudRate. ",
+			hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
+		return EXIT_FAILURE;
+#endif 
+#else
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetOptionsComputerRS232Port error (%s) : %s"
+			"(hDev=%#x, BaudRate=%u, ParityMode=%u, bCheckParity=%u, "
+			"nbDataBits=%u, StopBitsMode=%u, timeout=%u)\n",
+			strtime_m(),
+			"Invalid BaudRate. ",
+			hDev, BaudRate, (UINT)ParityMode, (UINT)bCheckParity, (UINT)nbDataBits, (UINT)StopBitsMode, timeout));
+		return EXIT_FAILURE;
+#endif // !DISABLE_CUSTOM_BAUDRATE
+	}
+	
+
 #endif // _WIN32
 
 	return EXIT_SUCCESS;
@@ -991,12 +1047,24 @@ inline int GetOptionsComputerRS232Port(HANDLE hDev, UINT* pBaudRate, BYTE* pPari
 			strtime_m(),
 			"Invalid BaudRate. ",
 			hDev));
+#elif defined(__linux__) && defined(TCSETS2)
+		struct termios2 options2;
+		memset(&options2, 0, sizeof(struct termios2));
+		if (ioctl((intptr_t)hDev, TCGETS2, &options2) == -1)
+		{
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("GetOptionsComputerRS232Port error (%s) : (TCGETS2) %s(hDev=%#x)\n",
+				strtime_m(),
+				GetLastErrorMsg(),
+				hDev));
+			return EXIT_FAILURE;
+		}
+		*pBaudRate = options2.c_ospeed;
 #elif defined(__linux__) && defined(TIOCSSERIAL)
 		struct serial_struct ser;
 		memset(&ser, 0, sizeof(struct serial_struct));
 		if (ioctl((intptr_t)hDev, TIOCGSERIAL, &ser) == -1)
 		{
-			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("GetOptionsComputerRS232Port error (%s) : %s(hDev=%#x)\n",
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("GetOptionsComputerRS232Port error (%s) : (TIOCGSERIAL) %s(hDev=%#x)\n",
 				strtime_m(),
 				GetLastErrorMsg(),
 				hDev));
@@ -1167,7 +1235,7 @@ inline int SetDTRState(HANDLE hDev, BOOL bClear)
 	int cmd = bClear? TIOCMBIC: TIOCMBIS;
 	if (ioctl((intptr_t)hDev, cmd, &dtr_bit) != EXIT_SUCCESS)
 	{
-		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetDTRState error (%s) : %s(hDev=%#x)\n", 
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("SetDTRState error (%s) : (TIOCMBIC/TIOCMBIS) %s(hDev=%#x)\n", 
 			strtime_m(), 
 			GetLastErrorMsg(), 
 			hDev));
@@ -1190,7 +1258,7 @@ inline int GetDTRState(HANDLE hDev, BOOL* pbClear)
 	int bits = 0;
 	if (ioctl((intptr_t)hDev, TIOCMGET, &bits) != EXIT_SUCCESS)
 	{
-		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("GetDTRState error (%s) : %s(hDev=%#x)\n", 
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("GetDTRState error (%s) : (TIOCMGET) %s(hDev=%#x)\n", 
 			strtime_m(), 
 			GetLastErrorMsg(), 
 			hDev));
@@ -1234,7 +1302,7 @@ inline int CheckAvailableBytesComputerRS232Port(HANDLE hDev)
 
 	if (ioctl((intptr_t)hDev, FIONREAD, &bytes_avail) != EXIT_SUCCESS)
 	{
-		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("CheckAvailableBytesComputerRS232Port error (%s) : %s(hDev=%#x)\n", 
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("CheckAvailableBytesComputerRS232Port error (%s) : (FIONREAD) %s(hDev=%#x)\n", 
 			strtime_m(), 
 			GetLastErrorMsg(), 
 			hDev));
@@ -1309,7 +1377,7 @@ inline int WaitForComputerRS232Port(HANDLE hDev, int timeout, int checkingperiod
 		else
 		{
 			StopChronoQuick(&chrono);
-			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("WaitForComputerRS232Port error (%s) : %s"
+			PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("WaitForComputerRS232Port error (%s) : (FIONREAD) %s"
 				"(hDev=%#x, timeout=%d, checkingperiod=%d)\n",
 				strtime_m(),
 				GetLastErrorMsg(),

@@ -4,10 +4,12 @@
 # For Linux, run in a terminal something similar to : 
 # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/Hardware-MATLAB-master
 # to enable MATLAB to find the library, and launch MATLAB from the same terminal.
-# In some cases (MATLAB before 2013?) you might have to launch MATLAB using something similar to this : 
-# LD_PRELOAD=/usr/lib64/libstdc++.so.6 matlab
+# In some cases you might have to launch MATLAB using something similar to this : 
+# LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6:/lib/x86_64-linux-gnu/libgcc_s.so.1 matlab
 # or 
 # LD_PRELOAD=/usr/lib64/libstdc++.so.6:/lib64/libgcc_s.so.1 matlab
+# or 
+# LD_PRELOAD=/usr/lib64/libstdc++.so.6 matlab
 # to force it to run using the system default version of the C++ Standard Library (otherwise MATLAB might use its 
 # own version, which is likely to be different from the one used when you built the shared library)...
 #
@@ -17,10 +19,10 @@
 # If needed (Mac OS or MATLAB before 2018?), run in a terminal something similar to : 
 # export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:~/Hardware-MATLAB-master
 # to enable MATLAB to find the library, and launch MATLAB from the same terminal.
-# In some cases (MATLAB before 2013?) you might have to launch MATLAB using something similar to this : 
-# DYLD_INSERT_LIBRARIES=/usr/lib/libstdc++.6.dylib /Applications/MATLAB_R2012a.app/bin/matlab
-# or 
+# In some cases you might have to launch MATLAB using something similar to this : 
 # DYLD_INSERT_LIBRARIES=/usr/lib/libstdc++.6.dylib:/usr/lib/libgcc_s.1.dylib /Applications/MATLAB_R2012a.app/bin/matlab
+# or 
+# DYLD_INSERT_LIBRARIES=/usr/lib/libstdc++.6.dylib /Applications/MATLAB_R2012a.app/bin/matlab
 # to force it to run using the system default version of the C++ Standard Library (otherwise MATLAB might use its 
 # own version, which is likely to be different from the one used when you built the shared library)...
 #
@@ -45,6 +47,8 @@ CFLAGS += -I. -I..
 CFLAGS += -IMAVLinkSDK
 CFLAGS += -IsbgECom/src -IsbgECom/common 
 CFLAGS += -I/usr/local/include/sbgECom/src -I/usr/local/include/sbgECom/common 
+CFLAGS += -Irplidar_sdk/sdk/sdk/include -Irplidar_sdk/sdk/sdk/src 
+CFLAGS += -I/usr/local/include/rplidar_sdk/sdk/sdk/include -I/usr/local/include/rplidar_sdk/sdk/sdk/src 
 
 # Depending on your OS (old Linux or Mac OS)...
 #CFLAGS += -DUSE_OLD_CHRONO
@@ -52,8 +56,12 @@ CFLAGS += -I/usr/local/include/sbgECom/src -I/usr/local/include/sbgECom/common
 CXXFLAGS += $(CFLAGS) -fpermissive
 
 # sbgECom needs to be built with -fPIC...
-#LDFLAGS += -LsbgECom/lib
+#LDFLAGS += -LsbgECom/bin
 #LDFLAGS += -lsbgECom
+
+#LDFLAGS += -Lrplidar_sdk/sdk/output/Linux/Release
+#LDFLAGS += -Lrplidar_sdk/sdk/output/Darwin/Release
+#LDFLAGS += -lrplidar_sdk
 
 # Might need to remove -lrt for Mac OS...
 LDFLAGS += -lpthread -lrt -lm

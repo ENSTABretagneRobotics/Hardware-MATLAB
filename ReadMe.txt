@@ -11,7 +11,7 @@ Change the device path (e.g. `COM9`) and other parameters in the configuration f
 
 Sample : http://www.ensta-bretagne.fr/lebars/Share/buggy_real_gps.zip for the buggy based on an Android smartphone described on http://www.ensta-bretagne.fr/lebars/buggy_android_full.pdf .
 
-Tested on Windows 10 64 bit using MATLAB R2017b 64 bit and MATLAB R2015b 32 bit, Ubuntu 16.04 64 bit using MATLAB R2017b 64 bit.
+Tested on Windows 10 64 bit using MATLAB R2017b 64 bit and MATLAB R2015b 32 bit, Ubuntu 18.04 64 bit using MATLAB R2017b 64 bit.
 
 Hardware support : 
 - Hokuyo : Hokuyo URG-04LX-UG01 laser telemeter.
