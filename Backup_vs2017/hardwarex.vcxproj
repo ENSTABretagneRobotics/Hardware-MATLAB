@@ -228,6 +228,7 @@
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="CMakeLists.txt" />
     <Text Include="Hokuyo0.txt" />
     <Text Include="IM483I0.txt" />
     <Text Include="MAVLinkDevice0.txt" />

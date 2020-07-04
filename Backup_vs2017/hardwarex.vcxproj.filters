@@ -165,5 +165,6 @@
     <Text Include="MDM0.txt">
       <Filter>Input Files</Filter>
     </Text>
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
 </Project>

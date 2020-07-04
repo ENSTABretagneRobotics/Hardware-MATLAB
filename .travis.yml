@@ -1,0 +1,85 @@
+language: cpp
+
+if: tag IS blank
+
+env:
+    - TRAVIS_TAG="autotagname"
+
+deploy: &deploy_base
+    provider: releases
+    tag_name: ${TRAVIS_TAG}
+    api_key:
+        secure: 6gUlhpu5ScEZPGO8hpGFu/FXPtPezA3OoQxC6G5NktXOnfoKv8nN1+DcG3si4YcFjvt3DZ4WlfLHC40xbr8TCjGrN2FOTMYtTvREUlIyoyUmgERj7YvYq5FyAkn8k5bgWb0Xsb3xswCarV7NARQ0sr8GBCv0p7AiOnr4RWMvH2NB7p42tlyFQvGFRKnF6nk+4iavo8k7r8pw+BQm3UiF2FxqV68thTsODdapS8nRfj3WurevqH2gsOBZAWj9VMYSkg3a9qDXdX678wk7ieHGKzqlL7AjuUFa1kMEOvLEd2/aJO0n1sOLetj/de0P8WayfIT9W+8Ski+3YAiZBrfgUmrcsQespbfS70VwNobK8DLxnrclHrb4vqdTZpmXKRrY0tL5TfktyTQoWgb8aTDlLUY8FrP4Q41mPUeOEiM8mED5v2OSTUO1+Hi9tVn2St6r/MzdBglQFjJtGJ1yVizBJrmu3zodwqgi4Oqk4PvXMgIQ6+PeRQAYWT3YjnJLbwwnwZFsNL22ny/Xfhv1n5y7tryZy/0dzpJAM+kO8ZakxAyAQ560whH4cV5VErjSeHhhNQHbXdsDij6qoiKHTuK5T648HQ0WFiMmOd8pIsR3DnUxcE1gxWnHWAVXUl9NFlgCK8CfeApBZPvrUKBUiEsgdy1SYZBAobS8eYBpxYyL9NE=
+    skip_cleanup: true
+    overwrite: true
+    draft: true
+    prerelease: true
+
+jobs:
+  include:
+   - name: "Ubuntu 18.04"
+     os: linux
+     dist: bionic
+     compiler: gcc
+     script: cmake . && cmake --build . && cp ./libhardwarex.so ./libhardwarex_compat.so
+     deploy:
+       <<: *deploy_base
+       file: libhardwarex_compat.so
+
+   - name: "Mac OS"
+     os: osx
+     osx_image: xcode10.1
+     script: cmake . && cmake --build . && cp ./libhardwarex.dylib ./libhardwarex_compat.dylib
+     deploy:
+       <<: *deploy_base
+       file: libhardwarex_compat.dylib
+ 
+   - name: "Windows Visual Studio 2017 x64 static"
+     os: windows
+     script: 
+       - cmd //c "cmake -G "Visual Studio 15" -A x64 -D ENABLE_STATIC=ON . & cmake --build . --config Release --target hardwarex & copy .\Release\hardwarex.dll .\Release\hardwarex_x64_compat.dll"
+     deploy:
+       <<: *deploy_base
+       file: Release\hardwarex_x64_compat.dll
+ 
+   - name: "Windows Visual Studio 2017 x86 static"
+     os: windows
+     before_install: 
+     script: 
+       - cmd //c "cmake -G "Visual Studio 15" -A Win32 -D ENABLE_STATIC=ON . & cmake --build . --config Release --target hardwarex & copy .\Release\hardwarex.dll .\Release\hardwarex_x86_compat.dll"
+     deploy:
+       <<: *deploy_base
+       file: Release\hardwarex_x86_compat.dll
+
+   - name: "Ubuntu 18.04 full"
+     os: linux
+     dist: bionic
+     compiler: gcc
+     script: cmake -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON . && cmake --build .
+     deploy:
+       <<: *deploy_base
+       file: libhardwarex.so
+
+   - name: "Mac OS full"
+     os: osx
+     osx_image: xcode10.1
+     script: cmake -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON . && cmake --build . 
+     deploy:
+       <<: *deploy_base
+       file: libhardwarex.dylib
+ 
+   - name: "Windows Visual Studio 2017 x64 static full"
+     os: windows
+     script: 
+       - cmd //c "cmake -G "Visual Studio 15" -A x64 -D ENABLE_STATIC=ON -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON . & cmake --build . --config Release --target hardwarex & copy .\Release\hardwarex.dll .\Release\hardwarex_x64.dll"
+     deploy:
+       <<: *deploy_base
+       file: Release\hardwarex_x64.dll
+ 
+   - name: "Windows Visual Studio 2017 x86 static full"
+     os: windows
+     script: 
+       - cmd //c "cmake -G "Visual Studio 15" -A Win32 -D ENABLE_STATIC=ON -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON . & cmake --build . --config Release --target hardwarex & copy .\Release\hardwarex.dll .\Release\hardwarex_x86.dll"
+     deploy:
+       <<: *deploy_base
+       file: Release\hardwarex_x86.dll

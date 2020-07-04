@@ -18,7 +18,8 @@ Linux/Mac OS :
 - Copy the headers from https://github.com/mavlink/c_library_v1/archive/0fc203298923f1d7c225cc6f43918d6663809e38.zip in `/usr/local/include/mavlink` (or `../MAVLinkSDK/mavlink`) :
 	wget https://github.com/mavlink/c_library_v1/archive/0fc203298923f1d7c225cc6f43918d6663809e38.zip
 	unzip 0fc203298923f1d7c225cc6f43918d6663809e38.zip
-	sudo mv c_library_v1-0fc203298923f1d7c225cc6f43918d6663809e38/ /usr/local/include/mavlink
+	sudo mkdir -p /usr/local/include
+	sudo mv -f c_library_v1-0fc203298923f1d7c225cc6f43918d6663809e38/ /usr/local/include/mavlink
 	rm -Rf 0fc203298923f1d7c225cc6f43918d6663809e38.zip
 - Get SBG SDK :
 	wget "https://www.ensta-bretagne.fr/lebars/Share/SBG%20Systems.zip"
@@ -39,13 +40,14 @@ Linux/Mac OS :
 	unzip -q -o rplidar_sdk.zip
 	cd rplidar_sdk/sdk
 	make
-	cd ../..
-	sudo rm -Rf /usr/local/include/rplidar_sdk /usr/local/lib/librplidar_sdk.a
 	sudo mkdir -p /usr/local/include/rplidar_sdk/sdk/sdk
-	sudo mv -f rplidar_sdk/sdk/sdk/include /usr/local/include/rplidar_sdk/sdk/sdk/
-	sudo mv -f rplidar_sdk/sdk/sdk/src /usr/local/include/rplidar_sdk/sdk/sdk/
-	sudo mv -f rplidar_sdk/sdk/output/Linux/Release/librplidar_sdk.a /usr/local/lib/librplidar_sdk.a
-	sudo mv -f rplidar_sdk/sdk/output/Linux/Release/ultra_simple /usr/local/bin/ultra_simple
-	sudo mv -f rplidar_sdk/sdk/output/Linux/Release/simple_grabber /usr/local/bin/simple_grabber
+	sudo mkdir -p /usr/local/lib
+	sudo mkdir -p /usr/local/bin
+	sudo mv -f ../../sdk/include /usr/local/include/rplidar_sdk/sdk/sdk/
+	sudo mv -f ../../sdk/src /usr/local/include/rplidar_sdk/sdk/sdk/
+	sudo mv -f ../../output/Linux/Release/librplidar_sdk.a /usr/local/lib/librplidar_sdk.a
+	sudo mv -f ../../output/Linux/Release/ultra_simple /usr/local/bin/ultra_simple
+	sudo mv -f ../../output/Linux/Release/simple_grabber /usr/local/bin/simple_grabber
+	cd ../..
 	rm -Rf rplidar_sdk rplidar_sdk.zip
 - Follow `../ReadMe.txt`

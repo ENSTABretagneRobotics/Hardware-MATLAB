@@ -36,10 +36,10 @@ CC = gcc
 CXX = g++
 
 CFLAGS += -fPIC
-CFLAGS += -g
-#CFLAGS += -O3
-CFLAGS += -Wall -Wno-unknown-pragmas
-#CFLAGS += -Wextra -Winline
+#CFLAGS += -g
+CFLAGS += -O3
+CFLAGS += -Wall -Wno-unknown-pragmas -Wextra
+#CFLAGS += -Winline
 
 CFLAGS += -DDISABLE_AIS_SUPPORT
 
