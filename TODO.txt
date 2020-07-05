@@ -6,8 +6,6 @@ RPLIDAR : Ne marche pas avec appli du fabricant parfois, on peut pas renommer le
 Crash matlab when exiting getotherscan...?
 BSOD?
 
-cmake?
-
 For rebuild, always check defines (to reset after build), mavlink version, update proto.m...
 
 Problème parsing UBXProtocol.h (bitfields?) : éditer manuellement hardwarex_proto.m, faire un ifdef spécial cas MATLAB...?
@@ -19,6 +17,8 @@ Simplify by gathering Create, Connect...?
 
 
 OLD
+
+libhardwarex.so vs hardwarex.so...?
 
 hardwarex_setup->error rplidar sdk C++->tweak rplidar struct (add padding when not using sdk?) so that size corresponds...?
 
