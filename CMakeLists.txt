@@ -439,4 +439,6 @@ else()
 	else()
 		target_link_libraries(hardwarex pthread rt m)
 	endif()
+	# Remove lib prefix to get the same name as for Windows, this is better for MATLAB, but for python lib needs to be added back...
+	set_target_properties(hardwarex PROPERTIES PREFIX "")
 endif()

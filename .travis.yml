@@ -21,18 +21,18 @@ jobs:
      os: linux
      dist: bionic
      compiler: gcc
-     script: cmake . && cmake --build . && cp ./libhardwarex.so ./libhardwarex_compat.so
+     script: cmake . && cmake --build . && cp ./hardwarex.so ./hardwarex_compat.so
      deploy:
        <<: *deploy_base
-       file: libhardwarex_compat.so
+       file: hardwarex_compat.so
 
    - name: "Mac OS"
      os: osx
      osx_image: xcode10.1
-     script: cmake . && cmake --build . && cp ./libhardwarex.dylib ./libhardwarex_compat.dylib
+     script: cmake . && cmake --build . && cp ./hardwarex.dylib ./hardwarex_compat.dylib
      deploy:
        <<: *deploy_base
-       file: libhardwarex_compat.dylib
+       file: hardwarex_compat.dylib
  
    - name: "Windows Visual Studio 2017 x64 static"
      os: windows
@@ -58,7 +58,7 @@ jobs:
      script: cmake -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON . && cmake --build .
      deploy:
        <<: *deploy_base
-       file: libhardwarex.so
+       file: hardwarex.so
 
    - name: "Mac OS full"
      os: osx
@@ -66,7 +66,7 @@ jobs:
      script: cmake -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON . && cmake --build . 
      deploy:
        <<: *deploy_base
-       file: libhardwarex.dylib
+       file: hardwarex.dylib
  
    - name: "Windows Visual Studio 2017 x64 static full"
      os: windows
