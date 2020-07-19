@@ -50,7 +50,7 @@ jobs:
        <<: *deploy_base
        file: Release\hardwarex_x86_compat.dll
 
-   - name: "Ubuntu 18.04 full"
+   - name: "Ubuntu 18.04 with 3rd support"
      os: linux
      dist: bionic
      compiler: gcc
@@ -59,7 +59,7 @@ jobs:
        <<: *deploy_base
        file: hardwarex.so
 
-   - name: "Mac OS full"
+   - name: "Mac OS with 3rd support"
      os: osx
      osx_image: xcode10.1
      script: cmake -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON . && cmake --build . 
@@ -67,7 +67,7 @@ jobs:
        <<: *deploy_base
        file: hardwarex.dylib
  
-   - name: "Windows Visual Studio 2017 x64 static full"
+   - name: "Windows Visual Studio 2017 x64 static with 3rd support"
      os: windows
      script: 
        - cmd //c "cmake -G "Visual Studio 15" -A x64 -D ENABLE_STATIC=ON -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON . & cmake --build . --config Release --target hardwarex & copy .\Release\hardwarex.dll .\Release\hardwarex_x64.dll"
@@ -75,7 +75,7 @@ jobs:
        <<: *deploy_base
        file: Release\hardwarex_x64.dll
  
-   - name: "Windows Visual Studio 2017 x86 static full"
+   - name: "Windows Visual Studio 2017 x86 static with 3rd support"
      os: windows
      script: 
        - cmd //c "cmake -G "Visual Studio 15" -A Win32 -D ENABLE_STATIC=ON -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON . & cmake --build . --config Release --target hardwarex & copy .\Release\hardwarex.dll .\Release\hardwarex_x86.dll"
