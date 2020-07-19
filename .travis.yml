@@ -44,7 +44,6 @@ jobs:
  
    - name: "Windows Visual Studio 2017 x86 static"
      os: windows
-     before_install: 
      script: 
        - cmd //c "cmake -G "Visual Studio 15" -A Win32 -D ENABLE_STATIC=ON . & cmake --build . --config Release --target hardwarex & copy .\Release\hardwarex.dll .\Release\hardwarex_x86_compat.dll"
      deploy:

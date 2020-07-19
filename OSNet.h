@@ -2690,7 +2690,8 @@ inline int GetAddrPortTypeFromDevPath(char* szDevPath, char* address, size_t add
 		if ((addresslen < tmplen+1)||(portlen < strlen(ptr+1)+1)) return EXIT_FAILURE;
 		memcpy(address, szDevPath, tmplen);
 		address[tmplen+1] = 0;
-		strcpy(port, ptr+1);
+		//strcpy(port, ptr+1);
+		sprintf(port, "%d", atoi(ptr+1)); // Other non-digit characters may follow the port...
 		*pDevType = TCP_CLIENT_DEV_TYPE_OSNET;
 	}
 

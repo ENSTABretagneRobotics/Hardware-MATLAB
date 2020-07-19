@@ -51,7 +51,7 @@ CFLAGS += -Irplidar_sdk/sdk/sdk/include -Irplidar_sdk/sdk/sdk/src
 CFLAGS += -I/usr/local/include/rplidar_sdk/sdk/sdk/include -I/usr/local/include/rplidar_sdk/sdk/sdk/src 
 
 # Depending on your OS (old Linux or Mac OS)...
-#CFLAGS += -DUSE_OLD_CHRONO
+#CFLAGS += -D USE_OLD_CHRONO
 
 CXXFLAGS += $(CFLAGS) -fpermissive
 

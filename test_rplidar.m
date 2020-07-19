@@ -5,12 +5,11 @@ pRPLIDAR = CreateRPLIDAR();
 %pRPLIDAR.value
 
 %% If bStartScanModeAtStartup to 0 in RPLIDAR0.txt...
-%[result] = GetStartupMessageRPLIDAR(pRPLIDAR)
 %[result] = ResetRequestRPLIDAR(pRPLIDAR)
 %pause(2)
 %[result] = GetStartupMessageRPLIDAR(pRPLIDAR)
-%[result, ModelID, HardwareVersion, FirmwareMajor, FirmwareMinor, SerialNumber] = GetInfoRequestRPLIDAR(pRPLIDAR)
 %[result] = StopRequestRPLIDAR(pRPLIDAR)
+%[result, ModelID, HardwareVersion, FirmwareMajor, FirmwareMinor, SerialNumber] = GetInfoRequestRPLIDAR(pRPLIDAR)
 %[result] = SetMotorPWMRequestRPLIDAR(pRPLIDAR, 660)
 %[result] = StartScanRequestRPLIDAR(pRPLIDAR)
 %%[result] = StartExpressScanRequestRPLIDAR(pRPLIDAR)
