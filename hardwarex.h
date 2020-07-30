@@ -230,13 +230,15 @@ extern "C" {
 	HARDWAREX_API int GetStartupMessageRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int GetHealthRequestRPLIDARx(RPLIDAR* pRPLIDAR, BOOL* pbProtectionStop);
 	HARDWAREX_API int GetInfoRequestRPLIDARx(RPLIDAR* pRPLIDAR, int* pModelID, int* pHardwareVersion, int* pFirmwareMajor, int* pFirmwareMinor, char* SerialNumber);
+	HARDWAREX_API int GetTypicalScanModeRPLIDARx(RPLIDAR* pRPLIDAR, int* pScanModeID);
+	HARDWAREX_API int GetAllSupportedScanModesRPLIDARx(RPLIDAR* pRPLIDAR, int* pScanModeIDs, double* pusPerSamples, double* pMaxDistances, int* pAnsTypes, char** pScanModeNames);
 	HARDWAREX_API int SetMotorPWMRequestRPLIDARx(RPLIDAR* pRPLIDAR, int pwm);
 	HARDWAREX_API int StartScanRequestRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int StartForceScanRequestRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int GetScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistance, double* pAngle, BOOL* pbNewScan, int* pQuality);
 	HARDWAREX_API int StartExpressScanRequestRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int GetExpressScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan);
-	HARDWAREX_API int StartOtherScanRequestRPLIDARx(RPLIDAR* pRPLIDAR, int scanmode);
+	HARDWAREX_API int StartOtherScanRequestRPLIDARx(RPLIDAR* pRPLIDAR, int scanmodeid);
 	HARDWAREX_API int GetOtherScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan);
 	HARDWAREX_API int ConnectRPLIDARx(RPLIDAR* pRPLIDAR, char* szCfgFilePath);
 	HARDWAREX_API int DisconnectRPLIDARx(RPLIDAR* pRPLIDAR);
@@ -246,6 +248,8 @@ extern "C" {
 	HARDWAREX_API int StopScanThreadRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int StartExpressScanThreadRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int StopExpressScanThreadRPLIDARx(RPLIDAR* pRPLIDAR);
+	HARDWAREX_API int StartOtherScanThreadRPLIDARx(RPLIDAR* pRPLIDAR);
+	HARDWAREX_API int StopOtherScanThreadRPLIDARx(RPLIDAR* pRPLIDAR);
 
 #ifdef ENABLE_MAVLINK_SUPPORT
 	HARDWAREX_API MAVLINKDEVICE* CreateMAVLinkDevicex(void);

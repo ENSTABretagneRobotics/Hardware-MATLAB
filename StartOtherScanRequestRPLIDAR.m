@@ -1,2 +1,2 @@
-function [result] = StartOtherScanRequestRPLIDAR(pRPLIDAR, scanmode)
-result = calllib('hardwarex', 'StartOtherScanRequestRPLIDARx', pRPLIDAR, scanmode);
+function [result] = StartOtherScanRequestRPLIDAR(pRPLIDAR, scanmodeid)
+result = calllib('hardwarex', 'StartOtherScanRequestRPLIDARx', pRPLIDAR, scanmodeid);

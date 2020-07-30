@@ -62,6 +62,7 @@ BOOL bExitHokuyo = FALSE;
 
 THREAD_IDENTIFIER RPLIDARScanThreadId;
 THREAD_IDENTIFIER RPLIDARExpressScanThreadId;
+THREAD_IDENTIFIER RPLIDAROtherScanThreadId;
 CRITICAL_SECTION RPLIDARCS;
 double angleRPLIDAR = 0;
 double distanceRPLIDAR = 0;
@@ -71,6 +72,7 @@ BOOL bNewScanRPLIDAR = FALSE;
 int qualityRPLIDAR = FALSE;
 BOOL bExitScanRPLIDAR = FALSE;
 BOOL bExitExpressScanRPLIDAR = FALSE;
+BOOL bExitOtherScanRPLIDAR = FALSE;
 
 #ifdef ENABLE_MAVLINK_SUPPORT
 THREAD_IDENTIFIER MAVLinkDeviceThreadId;
@@ -1224,6 +1226,27 @@ HARDWAREX_API int GetInfoRequestRPLIDARx(RPLIDAR* pRPLIDAR, int* pModelID, int* 
 	return GetInfoRequestRPLIDAR(pRPLIDAR, pModelID, pHardwareVersion, pFirmwareMajor, pFirmwareMinor, SerialNumber);
 }
 
+HARDWAREX_API int GetTypicalScanModeRPLIDARx(RPLIDAR* pRPLIDAR, int* pScanModeID)
+{
+	return GetTypicalScanModeRPLIDAR(pRPLIDAR, pScanModeID);
+}
+
+HARDWAREX_API int GetAllSupportedScanModesRPLIDARx(RPLIDAR* pRPLIDAR, int* pScanModeIDs, double* pusPerSamples, double* pMaxDistances, int* pAnsTypes, char** pScanModeNames)
+{
+	RPLIDARSCANMODE scanmodes[MAX_NB_SCAN_MODES_RPLIDAR];
+	int i = 0;
+	int res = GetAllSupportedScanModesRPLIDAR(pRPLIDAR, scanmodes);
+	for (i = 0; i < MAX_NB_SCAN_MODES_RPLIDAR; i++)
+	{
+		pScanModeIDs[i] = scanmodes[i].id;
+		pusPerSamples[i] = scanmodes[i].us_per_sample;
+		pMaxDistances[i] = scanmodes[i].max_distance;
+		pAnsTypes[i] = scanmodes[i].ans_type;
+		memcpy(pScanModeNames[i], scanmodes[i].scan_mode, 64);
+	}
+	return res;
+}
+
 HARDWAREX_API int SetMotorPWMRequestRPLIDARx(RPLIDAR* pRPLIDAR, int pwm)
 {
 	return SetMotorPWMRequestRPLIDAR(pRPLIDAR, pwm);
@@ -1254,9 +1277,9 @@ HARDWAREX_API int GetExpressScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* 
 	return GetExpressScanDataResponseRPLIDAR(pRPLIDAR, pDistances, pAngles, pbNewScan);
 }
 
-HARDWAREX_API int StartOtherScanRequestRPLIDARx(RPLIDAR* pRPLIDAR, int scanmode)
+HARDWAREX_API int StartOtherScanRequestRPLIDARx(RPLIDAR* pRPLIDAR, int scanmodeid)
 {
-	return StartOtherScanRequestRPLIDAR(pRPLIDAR, scanmode);
+	return StartOtherScanRequestRPLIDAR(pRPLIDAR, scanmodeid);
 }
 
 HARDWAREX_API int GetOtherScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan)
@@ -1324,6 +1347,30 @@ THREAD_PROC_RETURN_VALUE RPLIDARExpressScanThread(void* pParam)
 	return 0;
 }
 
+THREAD_PROC_RETURN_VALUE RPLIDAROtherScanThread(void* pParam)
+{
+	RPLIDAR* pRPLIDAR = (RPLIDAR*)pParam;
+	double angles[NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR];
+	double distances[NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR];
+	BOOL bNewScan = FALSE;
+
+	for (;;)
+	{
+		//mSleep(pRPLIDAR->threadperiod);
+		memset(distances, 0, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+		memset(angles, 0, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+		GetOtherScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan);
+		EnterCriticalSection(&RPLIDARCS);
+		memcpy(distancesRPLIDAR, distances, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+		memcpy(anglesRPLIDAR, angles, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+		bNewScanRPLIDAR = bNewScan;
+		LeaveCriticalSection(&RPLIDARCS);
+		if (bExitOtherScanRPLIDAR) break;
+	}
+
+	return 0;
+}
+
 HARDWAREX_API int GetScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistance, double* pAngle, BOOL* pbNewScan, int *pQuality)
 {
 	UNREFERENCED_PARAMETER(pRPLIDAR);
@@ -1341,6 +1388,21 @@ HARDWAREX_API int GetScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, doubl
 }
 
 HARDWAREX_API int GetExpressScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan)
+{
+	UNREFERENCED_PARAMETER(pRPLIDAR);
+
+	// id[pRPLIDAR->szCfgFile] to be able to handle several devices...
+
+	EnterCriticalSection(&RPLIDARCS);
+	memcpy(pDistances, distancesRPLIDAR, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+	memcpy(pAngles, anglesRPLIDAR, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+	*pbNewScan = bNewScanRPLIDAR;
+	LeaveCriticalSection(&RPLIDARCS);
+
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int GetOtherScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan)
 {
 	UNREFERENCED_PARAMETER(pRPLIDAR);
 
@@ -1385,6 +1447,23 @@ HARDWAREX_API int StopExpressScanThreadRPLIDARx(RPLIDAR* pRPLIDAR)
 
 	bExitExpressScanRPLIDAR = TRUE;
 	WaitForThread(RPLIDARExpressScanThreadId);
+	DeleteCriticalSection(&RPLIDARCS);
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int StartOtherScanThreadRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	bExitOtherScanRPLIDAR = FALSE;
+	InitCriticalSection(&RPLIDARCS);
+	return CreateDefaultThread(RPLIDAROtherScanThread, (void*)pRPLIDAR, &RPLIDAROtherScanThreadId);
+}
+
+HARDWAREX_API int StopOtherScanThreadRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	UNREFERENCED_PARAMETER(pRPLIDAR);
+
+	bExitOtherScanRPLIDAR = TRUE;
+	WaitForThread(RPLIDAROtherScanThreadId);
 	DeleteCriticalSection(&RPLIDARCS);
 	return EXIT_SUCCESS;
 }

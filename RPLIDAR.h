@@ -100,6 +100,7 @@ using namespace rp::standalone::rplidar;
 #define MEASUREMENT_CAPSULED_RESPONSE_RPLIDAR 0x82 // Added in FW ver 1.17.
 #define SAMPLERATE_RESPONSE_RPLIDAR 0x15 // Added in FW ver 1.17.
 #define ACC_BOARD_FLAG_RESPONSE_RPLIDAR 0xFF
+#else
 #endif // !ENABLE_RPLIDAR_SDK_SUPPORT
 
 #define NB_BYTES_SERIAL_NUMBER_RPLIDAR 16
@@ -130,6 +131,18 @@ using namespace rp::standalone::rplidar;
 #define NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR
 
 #define MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR 8192
+
+#define MAX_NB_SCAN_MODES_RPLIDAR 16
+
+struct RPLIDARSCANMODE
+{
+	int id;
+	double us_per_sample;
+	double max_distance;
+	int ans_type;
+	char scan_mode[64];
+};
+typedef struct RPLIDARSCANMODE RPLIDARSCANMODE;
 
 #pragma endregion
 struct RPLIDAR
@@ -842,6 +855,57 @@ inline int GetSampleRateRequestRPLIDAR(RPLIDAR* pRPLIDAR, int* pTstandard, int* 
 #endif // ENABLE_RPLIDAR_SDK_SUPPORT
 }
 
+inline int GetTypicalScanModeRPLIDAR(RPLIDAR* pRPLIDAR, int* pScanModeID)
+{
+#ifdef ENABLE_RPLIDAR_SDK_SUPPORT
+	_u16 scanmodeid = 0;
+
+	if (IS_FAIL(pRPLIDAR->drv->getTypicalScanMode(scanmodeid)))
+	{
+		printf("A RPLIDAR is not responding correctly : getTypicalScanMode() failed. \n");
+		return EXIT_FAILURE;
+	}
+	*pScanModeID = (int)scanmodeid;
+	return EXIT_SUCCESS;
+#else
+	UNREFERENCED_PARAMETER(pRPLIDAR);
+	UNREFERENCED_PARAMETER(pScanModeID);
+	printf("RPLIDAR : Not implemented. \n");
+	return EXIT_NOT_IMPLEMENTED;
+#endif // ENABLE_RPLIDAR_SDK_SUPPORT
+}
+
+// MAX_NB_SCAN_MODES_RPLIDAR scanmodes...
+inline int GetAllSupportedScanModesRPLIDAR(RPLIDAR* pRPLIDAR, RPLIDARSCANMODE* pScanModes)
+{
+#ifdef ENABLE_RPLIDAR_SDK_SUPPORT
+	std::vector<RplidarScanMode> outModes;
+	unsigned int i = 0;
+
+	if (IS_FAIL(pRPLIDAR->drv->getAllSupportedScanModes(outModes)))
+	{
+		printf("A RPLIDAR is not responding correctly : getAllSupportedScanModes() failed. \n");
+		return EXIT_FAILURE;
+	}
+	if (outModes.size() > MAX_NB_SCAN_MODES_RPLIDAR) printf("Warning : RPLIDAR unsupported scanmodes. \n");
+	memset(pScanModes, 0, sizeof(RPLIDARSCANMODE)*MAX_NB_SCAN_MODES_RPLIDAR);
+	for (i = 0; i < min(outModes.size(), MAX_NB_SCAN_MODES_RPLIDAR); i++)
+	{
+		pScanModes[i].id = (int)outModes[i].id;
+		pScanModes[i].us_per_sample = (double)outModes[i].us_per_sample;
+		pScanModes[i].max_distance = (double)outModes[i].max_distance;
+		pScanModes[i].ans_type = (int)outModes[i].ans_type;
+		memcpy(pScanModes[i].scan_mode, outModes[i].scan_mode, sizeof(pScanModes[i].scan_mode));
+	}
+	return EXIT_SUCCESS;
+#else
+	UNREFERENCED_PARAMETER(pRPLIDAR);
+	UNREFERENCED_PARAMETER(pScanModes);
+	printf("RPLIDAR : Not implemented. \n");
+	return EXIT_NOT_IMPLEMENTED;
+#endif // ENABLE_RPLIDAR_SDK_SUPPORT
+}
+
 // Undocumented...
 inline int CheckMotorControlSupportRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 {
@@ -1241,20 +1305,19 @@ inline int GetExpressScanDataResponseRPLIDAR(RPLIDAR* pRPLIDAR, double* pDistanc
 	return EXIT_SUCCESS;
 }
 
-inline int StartOtherScanRequestRPLIDAR(RPLIDAR* pRPLIDAR, int scanmode)
+inline int StartOtherScanRequestRPLIDAR(RPLIDAR* pRPLIDAR, int scanmodeid)
 {
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
-	if (IS_FAIL(pRPLIDAR->drv->startScanExpress(false, (_u16)scanmode)))
+	if (IS_FAIL(pRPLIDAR->drv->startScanExpress(false, (_u16)scanmodeid)))
 	{
 		printf("A RPLIDAR is not responding correctly : startScanExpress() failed. \n");
 		return EXIT_FAILURE;
 	}
 	return EXIT_SUCCESS;
 #else
-	UNREFERENCED_PARAMETER(pRPLIDAR);
-	UNREFERENCED_PARAMETER(scanmode);
-	printf("RPLIDAR : Not implemented. \n");
-	return EXIT_NOT_IMPLEMENTED;
+	UNREFERENCED_PARAMETER(scanmodeid);
+	printf("RPLIDAR : Not implemented, defaulting to SCAN. \n");
+	return StartScanRequestRPLIDAR(pRPLIDAR);
 #endif // ENABLE_RPLIDAR_SDK_SUPPORT
 }
 
@@ -1302,12 +1365,24 @@ inline int GetOtherScanDataResponseRPLIDAR(RPLIDAR* pRPLIDAR, double* pDistances
 
 	return EXIT_SUCCESS;
 #else
-	UNREFERENCED_PARAMETER(pRPLIDAR);
-	UNREFERENCED_PARAMETER(pDistances);
-	UNREFERENCED_PARAMETER(pAngles);
-	UNREFERENCED_PARAMETER(pbNewScan);
-	printf("RPLIDAR : Not implemented. \n");
-	return EXIT_NOT_IMPLEMENTED;
+	int j = 0;
+
+	for (j = 0; j < NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR; j++)
+	{
+		double distance = 0, angle = 0;
+		BOOL bNewScan = FALSE;
+		int quality = 0;
+
+		if (GetScanDataResponseRPLIDAR(pRPLIDAR, &distance, &angle, &bNewScan, &quality) != EXIT_SUCCESS)
+		{
+			return EXIT_FAILURE;
+		}
+		*pbNewScan = (*pbNewScan) | (bNewScan);
+		pAngles[j] = angle;
+		pDistances[j] = distance;
+	}
+
+	return EXIT_SUCCESS;
 #endif // ENABLE_RPLIDAR_SDK_SUPPORT
 }
 
@@ -1549,18 +1624,7 @@ inline int ConnectRPLIDAR(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
 		//	return EXIT_FAILURE;
 		//}
 
-		if (SetMotorPWMRequestRPLIDAR(pRPLIDAR, DEFAULT_MOTOR_PWM_RPLIDAR) != EXIT_SUCCESS)
-		{
-			printf("Unable to connect to a RPLIDAR : SET_MOTOR_PWM failure.\n");
-#ifdef ENABLE_RPLIDAR_SDK_SUPPORT
-			pRPLIDAR->drv->stopMotor();
-			pRPLIDAR->drv->disconnect();
-			RPlidarDriver::DisposeDriver(pRPLIDAR->drv); pRPLIDAR->drv = NULL;
-#else
-			CloseRS232Port(&pRPLIDAR->RS232Port);
-#endif // ENABLE_RPLIDAR_SDK_SUPPORT
-			return EXIT_FAILURE;
-		}
+		SetMotorPWMRequestRPLIDAR(pRPLIDAR, DEFAULT_MOTOR_PWM_RPLIDAR);
 
 		memset(pRPLIDAR->esdata_prev, 0, sizeof(pRPLIDAR->esdata_prev));
 		switch (pRPLIDAR->ScanMode)
@@ -1652,18 +1716,7 @@ inline int DisconnectRPLIDAR(RPLIDAR* pRPLIDAR)
 		return EXIT_FAILURE;
 	}
 
-	if (SetMotorPWMRequestRPLIDAR(pRPLIDAR, 0) != EXIT_SUCCESS)
-	{
-		printf("Error while disconnecting a RPLIDAR.\n");
-#ifdef ENABLE_RPLIDAR_SDK_SUPPORT
-		pRPLIDAR->drv->stopMotor();
-		pRPLIDAR->drv->disconnect();
-		RPlidarDriver::DisposeDriver(pRPLIDAR->drv); pRPLIDAR->drv = NULL;
-#else
-		CloseRS232Port(&pRPLIDAR->RS232Port);
-#endif // ENABLE_RPLIDAR_SDK_SUPPORT
-		return EXIT_FAILURE;
-	}
+	SetMotorPWMRequestRPLIDAR(pRPLIDAR, 0);
 
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
 	pRPLIDAR->drv->stopMotor();
