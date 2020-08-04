@@ -266,7 +266,6 @@ $RECYCLE.BIN/
 *.asv
 TODO/
 !*ReadMe.txt
-UpgradeOSUtils.bat
-UpgradeHardware.bat
-UpgradeDLL*
+Upgrade*
 genproto*
+hardwarex_with_3rd_support.bat

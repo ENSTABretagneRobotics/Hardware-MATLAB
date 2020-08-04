@@ -21,7 +21,16 @@ jobs:
      os: linux
      dist: bionic
      compiler: gcc
-     script: cmake . && cmake --build . && cp ./hardwarex.so ./hardwarex_compat.so
+     language: python
+     python: 3.8
+     script: 
+       - cmake . && cmake --build . && cp ./hardwarex.so ./hardwarex_compat.so
+       - mv ./hardwarex.so ./libhardwarex.so
+       - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
+       - git clone https://github.com/ENSTABretagneRobotics/Hardware-Python
+       - cp -Rf Hardware-Python/*.py ./
+       - python -c "from hardwarex import * ; "
+       - mv ./libhardwarex.so ./hardwarex.so
      deploy:
        <<: *deploy_base
        file: hardwarex_compat.so
@@ -29,23 +38,40 @@ jobs:
    - name: "Mac OS"
      os: osx
      osx_image: xcode10.1
-     script: cmake . && cmake --build . && cp ./hardwarex.dylib ./hardwarex_compat.dylib
+     script: 
+       - cmake . && cmake --build . && cp ./hardwarex.dylib ./hardwarex_compat.dylib
      deploy:
        <<: *deploy_base
        file: hardwarex_compat.dylib
  
    - name: "Windows Visual Studio 2017 x64 static"
      os: windows
+     before_install: 
+       - cmd //c "choco install -y python --version=3.5.4.20200110 & refreshenv.cmd"
+       - export PATH=/c/Python35:/c/Python35/Scripts:$PATH
      script: 
        - cmd //c "cmake -G "Visual Studio 15" -A x64 -D ENABLE_STATIC=ON . & cmake --build . --config Release --target hardwarex & copy .\Release\hardwarex.dll .\Release\hardwarex_x64_compat.dll"
+       - mkdir -p x64
+       - cp -Rf ./Release/hardwarex.dll ./x64/hardwarex.dll
+       - git clone https://github.com/ENSTABretagneRobotics/Hardware-Python
+       - cp -Rf Hardware-Python/*.py ./
+       - python -c "from hardwarex import * ; "
      deploy:
        <<: *deploy_base
        file: Release\hardwarex_x64_compat.dll
  
    - name: "Windows Visual Studio 2017 x86 static"
      os: windows
+     before_install: 
+       - cmd //c "choco install -y python --version=3.5.4.20200110 --x86 & refreshenv.cmd"
+       - export PATH=/c/Python35:/c/Python35/Scripts:$PATH
      script: 
        - cmd //c "cmake -G "Visual Studio 15" -A Win32 -D ENABLE_STATIC=ON . & cmake --build . --config Release --target hardwarex & copy .\Release\hardwarex.dll .\Release\hardwarex_x86_compat.dll"
+       - mkdir -p x86
+       - cp -Rf ./Release/hardwarex.dll ./x86/hardwarex.dll
+       - git clone https://github.com/ENSTABretagneRobotics/Hardware-Python
+       - cp -Rf Hardware-Python/*.py ./
+       - python -c "from hardwarex import * ; "
      deploy:
        <<: *deploy_base
        file: Release\hardwarex_x86_compat.dll
@@ -54,7 +80,16 @@ jobs:
      os: linux
      dist: bionic
      compiler: gcc
-     script: cmake -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON . && cmake --build .
+     language: python
+     python: 3.8
+     script: 
+       - cmake -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON . && cmake --build .
+       - mv ./hardwarex.so ./libhardwarex.so
+       - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
+       - git clone https://github.com/ENSTABretagneRobotics/Hardware-Python
+       - cp -Rf Hardware-Python/*.py ./
+       - python -c "from hardwarex import * ; "
+       - mv ./libhardwarex.so ./hardwarex.so
      deploy:
        <<: *deploy_base
        file: hardwarex.so
@@ -62,23 +97,42 @@ jobs:
    - name: "Mac OS with 3rd support"
      os: osx
      osx_image: xcode10.1
-     script: cmake -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON . && cmake --build . 
+     script: 
+       - cmake -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON . && cmake --build . 
      deploy:
        <<: *deploy_base
        file: hardwarex.dylib
  
    - name: "Windows Visual Studio 2017 x64 static with 3rd support"
      os: windows
+     before_install: 
+       - cmd //c "choco install -y python --version=3.5.4.20200110 & refreshenv.cmd"
+       - export PATH=/c/Python35:/c/Python35/Scripts:$PATH
      script: 
        - cmd //c "cmake -G "Visual Studio 15" -A x64 -D ENABLE_STATIC=ON -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON . & cmake --build . --config Release --target hardwarex & copy .\Release\hardwarex.dll .\Release\hardwarex_x64.dll"
+       - mkdir -p x64
+       - cp -Rf ./Release/hardwarex.dll ./x64/hardwarex.dll
+       - git clone https://github.com/ENSTABretagneRobotics/Hardware-Python
+       - cp -Rf Hardware-Python/*.py ./
+       - python -c "from hardwarex import * ; "
      deploy:
        <<: *deploy_base
        file: Release\hardwarex_x64.dll
  
    - name: "Windows Visual Studio 2017 x86 static with 3rd support"
      os: windows
+     before_install: 
+       - cmd //c "choco install -y python --version=3.5.4.20200110 --x86 & refreshenv.cmd"
+       - export PATH=/c/Python35:/c/Python35/Scripts:$PATH
      script: 
        - cmd //c "cmake -G "Visual Studio 15" -A Win32 -D ENABLE_STATIC=ON -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON . & cmake --build . --config Release --target hardwarex & copy .\Release\hardwarex.dll .\Release\hardwarex_x86.dll"
+       - mkdir -p x86
+       - cp -Rf ./Release/hardwarex.dll ./x86/hardwarex.dll
+       - git clone https://github.com/ENSTABretagneRobotics/Hardware-Python
+       - cp -Rf Hardware-Python/*.py ./
+#       - wget https://github.com/ENSTABretagneRobotics/UxVCtrl/releases/download/Summer2020/UxVCtrl-Summer2020.zip
+#       - sh -c "cd UxVCtrl-Summer2020/BUGGY_SIMULATOR_WORKSPACE ; ./UxVCtrl &"
+       - python -c "from hardwarex import * ; "
      deploy:
        <<: *deploy_base
        file: Release\hardwarex_x86.dll

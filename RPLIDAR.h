@@ -85,6 +85,9 @@ using namespace rp::standalone::rplidar;
 #define GET_HEALTH_REQUEST_RPLIDAR 0x52
 #define GET_SAMPLERATE_REQUEST_RPLIDAR 0x59 // Added in FW ver 1.17.
 
+// Commands with payload and without response
+#define SET_MOTOR_SPEED_CTRL_REQUEST_RPLIDAR 0xA8
+
 // Commands with payload and have response
 #define EXPRESS_SCAN_REQUEST_RPLIDAR 0x82 // Added in FW ver 1.17.
 
@@ -173,6 +176,7 @@ struct RPLIDAR
 	BOOL bStartScanModeAtStartup;
 	int ScanMode;
 	int motordelay;
+	int motorPWM;
 	int maxhist;
 	double alpha_max_err;
 	double d_max_err;
@@ -899,6 +903,12 @@ inline int GetAllSupportedScanModesRPLIDAR(RPLIDAR* pRPLIDAR, RPLIDARSCANMODE* p
 	}
 	return EXIT_SUCCESS;
 #else
+
+	// GET_LIDAR_CONF
+	// Request Packet: A5 84 S Request Data C
+	// Response Descriptor: A5 5A S 00 00 00 20
+	// Response Mode: Single Data Response Length: Variable
+
 	UNREFERENCED_PARAMETER(pRPLIDAR);
 	UNREFERENCED_PARAMETER(pScanModes);
 	printf("RPLIDAR : Not implemented. \n");
@@ -971,6 +981,32 @@ inline int SetMotorPWMRequestRPLIDAR(RPLIDAR* pRPLIDAR, int pwm)
 	}
 
 	mSleep(500);
+#endif // ENABLE_RPLIDAR_SDK_SUPPORT
+
+	return EXIT_SUCCESS;
+}
+
+inline int SetLidarSpinSpeedRequestRPLIDAR(RPLIDAR* pRPLIDAR, int rpm)
+{
+#ifdef ENABLE_RPLIDAR_SDK_SUPPORT
+	if (IS_FAIL(pRPLIDAR->drv->setLidarSpinSpeed((_u16)rpm)))
+	{
+		printf("A RPLIDAR is not responding correctly : setLidarSpinSpeed() failed. \n");
+		return EXIT_FAILURE;
+	}
+#else
+	unsigned char reqbuf[] = {START_FLAG1_RPLIDAR,SET_MOTOR_SPEED_CTRL_REQUEST_RPLIDAR,0x02,0,0,0};
+
+	reqbuf[3] = (unsigned char)rpm;
+	reqbuf[4] = (unsigned char)(rpm>>8);
+	reqbuf[5] = ComputeChecksumRPLIDAR(reqbuf, sizeof(reqbuf));
+
+	// Send request.
+	if (WriteAllRS232Port(&pRPLIDAR->RS232Port, reqbuf, sizeof(reqbuf)) != EXIT_SUCCESS)
+	{
+		printf("Error writing data to a RPLIDAR. \n");
+		return EXIT_FAILURE;
+	}
 #endif // ENABLE_RPLIDAR_SDK_SUPPORT
 
 	return EXIT_SUCCESS;
@@ -1412,6 +1448,7 @@ inline int ConnectRPLIDAR(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
 		pRPLIDAR->bStartScanModeAtStartup = 1;
 		pRPLIDAR->ScanMode = SCAN_MODE_RPLIDAR;
 		pRPLIDAR->motordelay = 500;
+		pRPLIDAR->motorPWM = DEFAULT_MOTOR_PWM_RPLIDAR;
 		pRPLIDAR->maxhist = 1024;
 		pRPLIDAR->alpha_max_err = 0.01;
 		pRPLIDAR->d_max_err = 0.1;
@@ -1436,6 +1473,8 @@ inline int ConnectRPLIDAR(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
 			if (sscanf(line, "%d", &pRPLIDAR->ScanMode) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pRPLIDAR->motordelay) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &pRPLIDAR->motorPWM) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &pRPLIDAR->maxhist) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
@@ -1624,7 +1663,7 @@ inline int ConnectRPLIDAR(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
 		//	return EXIT_FAILURE;
 		//}
 
-		SetMotorPWMRequestRPLIDAR(pRPLIDAR, DEFAULT_MOTOR_PWM_RPLIDAR);
+		SetMotorPWMRequestRPLIDAR(pRPLIDAR, pRPLIDAR->motorPWM);
 
 		memset(pRPLIDAR->esdata_prev, 0, sizeof(pRPLIDAR->esdata_prev));
 		switch (pRPLIDAR->ScanMode)

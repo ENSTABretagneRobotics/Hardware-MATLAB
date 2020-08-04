@@ -18,6 +18,8 @@ COM9
 0
 % motordelay (in ms)
 2000
+% motorPWM (in [0..1023], 660 : default)
+660
 % maxhist (0 : try to automatically remove old data, around 180 : advised for SCAN mode, around 360 : advised for EXPRESS_SCAN mode, require associated thread)
 0
 % alpha_max_err (in rad)

@@ -7,6 +7,7 @@ Windows :
 - Rebuild using Visual Studio 2012 or later and put the resulting hardwarex.dll in the corresponding `..\x86` and `..\x64` folders.
 - In MATLAB, run `mex -setup` and `mex -setup C++` and choose Visual Studio 2013 or later.
 - Run `hardwarex_setup.m` and put the resulting `hardwarex_proto.m` and `hardwarex_thunk_pcwin64.dll` in the corresponding `..\x86` and `..\x64` folders.
+- Optional : If you have the `sed` command, you can try to correct some warnings/errors in `hardwarex_proto.m` by checking patchproto.bat...
 - Follow `..\ReadMe.txt`
 
 Linux/Mac OS : 
