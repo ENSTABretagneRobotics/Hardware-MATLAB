@@ -73,9 +73,12 @@ Debug macros specific to OSMisc.
 #else 
 #ifndef DISABLE_CUSTOM_BAUDRATE
 #ifdef __linux__
+#pragma push_macro("termios")
+#undef termios
 #define termios termbits_termios
 #include <asm/termbits.h> // Not compatible with termios.h, see https://stackoverflow.com/questions/37710525/including-termios-h-and-asm-termios-h-in-the-same-project...
 #undef termios
+#pragma pop_macro("termios")
 #endif // __linux__
 #endif // !DISABLE_CUSTOM_BAUDRATE
 #include <termios.h>
@@ -170,6 +173,28 @@ inline double sign(double x, double epsilon)
 }
 #endif // !sign
 #endif // !SIGN_DEFINED
+
+#ifndef HYSTERESIS_DEFINED
+#define HYSTERESIS_DEFINED
+//#ifndef hysteresis
+/*
+Hysteresis.
+
+double in : (IN) Input value.
+double out : (IN) Current output value, should be -1 or 1.
+double epsilon : (IN) Current output value should be kept if input value is in 
+[-epsilon;epsilon[.
+
+Return : +1, -1 or out.
+*/
+inline double hysteresis(double in, double out, double epsilon)
+{
+	if (in >= epsilon) out = 1;
+	else if (in < -epsilon) out = -1;
+	return out;
+}
+//#endif // !hysteresis
+#endif // !HYSTERESIS_DEFINED
 
 #ifndef constrain
 #define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
@@ -1177,8 +1202,10 @@ inline double LineFollowing_integral(double phi, double phi_prev, double e, doub
 	double psi_star = 0;
 	double integral = *pie;
 	if (phi != phi_prev) integral = 0;
-	if (fabs(Ki*integral) > integral_max) psi_star = phi-(2.0*gamma_infinite/M_PI)*atan2((e+sign(Ki*integral, 0)*integral_max),r);
-	else psi_star = phi-(2.0*gamma_infinite/M_PI)*atan2((e+Ki*integral),r); 
+	//if (fabs(Ki*integral) > integral_max) psi_star = phi-(2.0*gamma_infinite/M_PI)*atan2((e+sign(Ki*integral, 0)*integral_max),r);
+	//else psi_star = phi-(2.0*gamma_infinite/M_PI)*atan2((e+Ki*integral),r); 
+	if (fabs(Ki*integral) > integral_max) psi_star = phi-gamma_infinite*sign((e+sign(Ki*integral, 0)*integral_max),r);
+	else psi_star = phi-gamma_infinite*sign((e+Ki*integral),r); 
 	integral = integral+e*dt;
 	*pie = integral;
 	return psi_star;
@@ -1191,7 +1218,8 @@ inline double LineFollowing(double phi, double e, double gamma_infinite, double 
 	//printf("theta_star = %f deg\n", fmod_2PI(phi-(2.0*gamma_infinite/M_PI)*atan2(e,r))*180.0/M_PI);
 
 	//return phi-(2.0*gamma_infinite/M_PI)*atan(e/r);
-	return phi-(2.0*gamma_infinite/M_PI)*atan2(e,r);
+	//return phi-(2.0*gamma_infinite/M_PI)*atan2(e,r);
+	return phi-gamma_infinite*sign(e,r);
 }
 
 /*

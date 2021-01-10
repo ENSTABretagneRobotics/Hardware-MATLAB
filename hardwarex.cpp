@@ -723,14 +723,19 @@ HARDWAREX_API void DestroyIM483Ix(IM483I* pIM483I)
 	return free(pIM483I);
 }
 
-HARDWAREX_API int SetMotorTorqueIM483Ix(IM483I* pIM483I, int percent)
+HARDWAREX_API int SetMotorTorqueIM483Ix(IM483I* pIM483I, int holdpercent, int runpercent)
 {
-	return SetMotorTorqueIM483I(pIM483I, percent);
+	return SetMotorTorqueIM483I(pIM483I, holdpercent, runpercent);
 }
 
 HARDWAREX_API int SetMotorSpeedIM483Ix(IM483I* pIM483I, int val)
 {
 	return SetMotorSpeedIM483I(pIM483I, val);
+}
+
+HARDWAREX_API int SetMotorRelativeIM483Ix(IM483I* pIM483I, int val, BOOL bForce)
+{
+	return SetMotorRelativeIM483I(pIM483I, val, bForce);
 }
 
 HARDWAREX_API int SetMotorOriginIM483Ix(IM483I* pIM483I)

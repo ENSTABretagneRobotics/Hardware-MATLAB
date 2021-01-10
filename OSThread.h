@@ -86,13 +86,13 @@ typedef DWORD THREAD_IDENTIFIER;
 #define THREAD_PROC_RETURN_VALUE DWORD WINAPI
 typedef LPTHREAD_START_ROUTINE PTHREAD_PROC;
 #else
-#if defined(__cplusplus) && defined(_M_CEE)
-#define THREAD_PROC_RETURN_VALUE unsigned __clrcall
-typedef unsigned (__clrcall *PTHREAD_PROC)(void*);
-#else
+//#if defined(__cplusplus) && defined(_M_CEE)
+//#define THREAD_PROC_RETURN_VALUE unsigned __clrcall
+//typedef unsigned (__clrcall *PTHREAD_PROC)(void*);
+//#else
 #define THREAD_PROC_RETURN_VALUE unsigned __stdcall
 typedef unsigned (__stdcall *PTHREAD_PROC)(void*);
-#endif // defined(__cplusplus) && defined(_M_CEE)
+//#endif // defined(__cplusplus) && defined(_M_CEE)
 #endif // USE_CREATE_THREAD
 #else
 typedef pthread_t THREAD_IDENTIFIER;

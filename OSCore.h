@@ -99,7 +99,7 @@ _ Windows CE : WINCE
 //#		define _CRT_NONSTDC_NO_WARNINGS
 //#	endif // _CRT_NONSTDC_NO_WARNINGS
 
-// To avoid compiler warnings about functions compiled as native code (if CLR).
+// To avoid compiler warnings about functions compiled as native code (if /clr).
 #	if defined(__cplusplus) && defined(_M_CEE)
 #		pragma warning(disable : 4793)
 #	endif // defined(__cplusplus) && defined(_M_CEE)
