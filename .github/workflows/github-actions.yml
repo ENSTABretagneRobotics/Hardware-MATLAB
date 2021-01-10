@@ -1,0 +1,89 @@
+on: [push, pull_request]
+jobs:
+ # This job can be removed if a new release should not be created...
+ deploy:
+    runs-on: ubuntu-latest
+    steps: 
+    - uses: actions/create-release@v1
+      id: create_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        draft: true
+        tag_name: autotagname
+        release_name: autotagname    
+
+ matrix:
+    runs-on: ${{ matrix.cfg.os }}
+    defaults:
+        run:
+            shell: ${{ matrix.cfg.shell }}
+    strategy:
+        matrix:
+            cfg:
+            - { os: ubuntu-18.04, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 6, cmake_out: './hardwarex.so', deploy-file: './hardwarex_compat.so', desc: 'Ubuntu 18.04' }
+            - { os: macos-10.15, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 9, cmake_out: './hardwarex.dylib', deploy-file: './hardwarex_compat.dylib', desc: 'macOS 10.15' }
+            - { os: windows-2016, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 8, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x64_compat.dll', cmake_params_1: '-G "Visual Studio 15" -A x64 -D ENABLE_STATIC=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2017 x64 static' }
+            - { os: windows-2016, shell: bash, arch: x86, py_v_maj: 3, py_v_min: 8, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x86_compat.dll', cmake_params_1: '-G "Visual Studio 15" -A Win32 -D ENABLE_STATIC=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2017 x86 static' }
+            - { os: ubuntu-18.04, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 6, cmake_out: './hardwarex.so', deploy-file: './hardwarex.so', cmake_params_1: '-D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', desc: 'Ubuntu 18.04 with 3rd support' }
+            - { os: macos-10.15, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 9, cmake_out: './hardwarex.dylib', deploy-file: './hardwarex.dylib', cmake_params_1: '-D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', desc: 'macOS 10.15 with 3rd support' }
+            - { os: windows-2016, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 8, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x64.dll', cmake_params_1: '-G "Visual Studio 15" -A x64 -D ENABLE_STATIC=ON -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2017 x64 static with 3rd support' }
+            - { os: windows-2016, shell: bash, arch: x86, py_v_maj: 3, py_v_min: 8, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x86.dll', cmake_params_1: '-G "Visual Studio 15" -A Win32 -D ENABLE_STATIC=ON -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2017 x86 static with 3rd support' }
+    name: ${{ matrix.cfg.desc }}
+    steps: 
+
+    # Prerequisites
+    - uses: actions/checkout@v2
+#    - run: choco install -y -r --no-progress wget
+    - run: | 
+        (New-Object System.Net.WebClient).DownloadFile("http://www.ensta-bretagne.fr/lebars/Share/windows_extra_tools.zip", "C:\Windows\Temp\windows_extra_tools.zip") 
+        7z x C:\Windows\Temp\windows_extra_tools.zip -o"C:\Windows" -y
+      shell: pwsh
+      if: runner.os == 'Windows'
+    - uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.cfg.py_v_maj }}.${{ matrix.cfg.py_v_min }}
+        architecture: ${{ matrix.cfg.arch }}
+    - run: python -c "import sys; print(sys.version)"
+
+    # Build
+    - run: |
+        cmake ${{ matrix.cfg.cmake_params_1 }} . && cmake --build . ${{ matrix.cfg.cmake_params_2 }} 
+        if [ ! "${{ matrix.cfg.cmake_out }}" = "${{ matrix.cfg.deploy-file }}" ]; then cp -Rf ${{ matrix.cfg.cmake_out }} ${{ matrix.cfg.deploy-file }} ; fi
+    - run: mv ${{ matrix.cfg.cmake_out }} ./libhardwarex.so        
+      if: runner.os == 'Linux'
+    - run: mkdir -p ${{ matrix.cfg.arch }} && cp -Rf ${{ matrix.cfg.cmake_out }} ./${{ matrix.cfg.arch }}/hardwarex.dll
+      if: runner.os == 'Windows'
+
+    # Python tests
+    - run: git clone https://github.com/ENSTABretagneRobotics/Hardware-Python && cp -Rf Hardware-Python/*.py ./
+      if: runner.os == 'Linux' || runner.os == 'Windows'
+    - run: |
+        LD_LIBRARY_PATH=$LD_LIBRARY_PATH:. python -c "from hardwarex import * ; "
+        mv ./libhardwarex.so ${{ matrix.cfg.cmake_out }}
+      if: runner.os == 'Linux'
+    - run: |
+        wget http://www.ensta-bretagne.fr/lebars/Share/windows_server_core_prereq.zip --no-check-certificate -nv
+        7z x windows_server_core_prereq.zip -o"/c/Windows" -y || true # ksuser.dll already on windows-2016...?
+        wget https://github.com/ENSTABretagneRobotics/UxVCtrl/releases/download/Fall2020/UxVCtrl-Fall2020.zip --no-check-certificate -nv
+        unzip -q -o UxVCtrl-Fall2020.zip
+        cp -Rf "UxVCtrl-Fall2020/Compatibility mode/Windows/UxVCtrl_compat.exe" UxVCtrl-Fall2020/BUGGY_SIMULATOR_WORKSPACE/
+        cp -Rf "UxVCtrl-Fall2020/Compatibility mode/Windows/"*.dll UxVCtrl-Fall2020/BUGGY_SIMULATOR_WORKSPACE/
+        perl -i -p0e 's/% bCommandPrompt\r\n1/% bCommandPrompt\r\n0/' UxVCtrl-Fall2020/BUGGY_SIMULATOR_WORKSPACE/UxVCtrl.txt
+        sh -c "cd UxVCtrl-Fall2020/BUGGY_SIMULATOR_WORKSPACE; ./UxVCtrl_compat.exe &"
+        sed -i 's/COM6/127.0.0.1:5004/' SSC320.txt
+        python -c "from hardwarex import *; import time; pSSC32 = CreateSSC32(); ConnectSSC32(pSSC32, 'SSC320.txt'); time.sleep(0.1); result = SetPWMSSC32(pSSC32, 0, 1400); result; time.sleep(0.1); result = SetPWMSSC32(pSSC32, 2, 2000); result; time.sleep(0.5); DisconnectSSC32(pSSC32); DestroySSC32(pSSC32)"
+        sed -i 's/COM5/127.0.0.1:5007/' RazorAHRS0.txt
+        python -c "from hardwarex import *; import time; pRazorAHRS = CreateRazorAHRS(); ConnectRazorAHRS(pRazorAHRS, 'RazorAHRS0.txt'); result = GetLatestDataRazorAHRS(pRazorAHRS); razorahrsdata = result[1]; print('Yaw =',razorahrsdata.Yaw*180.0/3.14,', Pitch =',razorahrsdata.Pitch*180.0/3.14,', Roll =',razorahrsdata.Roll*180.0/3.14,'\n'); time.sleep(1); result = GetLatestDataRazorAHRS(pRazorAHRS); razorahrsdata = result[1]; print('Yaw =',razorahrsdata.Yaw*180.0/3.14,', Pitch =',razorahrsdata.Pitch*180.0/3.14,', Roll =',razorahrsdata.Roll*180.0/3.14,'\n'); DisconnectRazorAHRS(pRazorAHRS); DestroyRazorAHRS(pRazorAHRS)"
+        sed -i 's/COM14/127.0.0.1:5001/' ublox0.txt
+        python -c "from hardwarex import *; import time; publox = Createublox(); Connectublox(publox, 'ublox0.txt'); result = GetNMEASentenceublox(publox); nmeadata = result[1]; print('(LAT,LON) = (',nmeadata.Latitude,',',nmeadata.Longitude,')\n'); Disconnectublox(publox); Destroyublox(publox)"
+      if: runner.os == 'Windows'
+
+    # Deployment
+    - uses: xresloader/upload-to-github-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        file: '${{ matrix.cfg.deploy-file }}'
+        overwrite: true
+        tag_name: autotagname
