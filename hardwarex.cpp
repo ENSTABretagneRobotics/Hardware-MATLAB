@@ -1262,6 +1262,16 @@ HARDWAREX_API int SetLidarSpinSpeedRequestRPLIDARx(RPLIDAR* pRPLIDAR, int rpm)
 	return SetLidarSpinSpeedRequestRPLIDAR(pRPLIDAR, rpm);
 }
 
+HARDWAREX_API int StartMotorRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	return StartMotorRPLIDAR(pRPLIDAR);
+}
+
+HARDWAREX_API int StopMotorRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	return StopMotorRPLIDAR(pRPLIDAR);
+}
+
 HARDWAREX_API int StartScanRequestRPLIDARx(RPLIDAR* pRPLIDAR)
 {
 	return StartScanRequestRPLIDAR(pRPLIDAR);

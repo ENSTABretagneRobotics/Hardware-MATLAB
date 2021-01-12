@@ -235,6 +235,8 @@ extern "C" {
 	HARDWAREX_API int GetAllSupportedScanModesRPLIDARx(RPLIDAR* pRPLIDAR, int* pScanModeIDs, double* pusPerSamples, double* pMaxDistances, int* pAnsTypes, char** pScanModeNames);
 	HARDWAREX_API int SetMotorPWMRequestRPLIDARx(RPLIDAR* pRPLIDAR, int pwm);
 	HARDWAREX_API int SetLidarSpinSpeedRequestRPLIDARx(RPLIDAR* pRPLIDAR, int rpm);
+	HARDWAREX_API int StartMotorRPLIDARx(RPLIDAR* pRPLIDAR);
+	HARDWAREX_API int StopMotorRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int StartScanRequestRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int StartForceScanRequestRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int GetScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistance, double* pAngle, BOOL* pbNewScan, int* pQuality);

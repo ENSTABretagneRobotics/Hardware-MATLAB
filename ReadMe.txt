@@ -5,7 +5,7 @@ Windows :
 - Check `test_razorahrs.m`, `test_rplidar.m`, etc. files for usage information.
 
 Linux/macOS : 
-- Follow the instructions in the `Makefile`, note that a CMakeLists.txt is also provided for cmake.
+- Follow the instructions in the `Makefile`, note that a `CMakeLists.txt` is also provided for cmake.
 
 Change the device path (e.g. `COM9`) and other parameters in the configuration files (`RazorAHRS0.txt`, `RPLIDAR0.txt`, etc.) if necessary. Mind the line endings in the configuration files depending on the OS (use e.g. the command `dos2unix *.txt` to convert line endings for Linux)! Ensure that you closed any other application that might use the devices (reboot if unsure). Note that you need to press the ESC key to exit cleanly the test script, if you interrupt the script by `CTRL+C`, MATLAB might crash or you might not be able to launch successfully again the test script...
 

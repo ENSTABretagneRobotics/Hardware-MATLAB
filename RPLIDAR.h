@@ -1012,6 +1012,38 @@ inline int SetLidarSpinSpeedRequestRPLIDAR(RPLIDAR* pRPLIDAR, int rpm)
 	return EXIT_SUCCESS;
 }
 
+inline int StartMotorRPLIDAR(RPLIDAR* pRPLIDAR)
+{
+#ifdef ENABLE_RPLIDAR_SDK_SUPPORT
+	if (IS_FAIL(pRPLIDAR->drv->startMotor()))
+	{
+		printf("A RPLIDAR is not responding correctly : startMotor() failed. \n");
+		return EXIT_FAILURE;
+	}
+	return EXIT_SUCCESS;
+#else
+	UNREFERENCED_PARAMETER(pRPLIDAR);
+	printf("RPLIDAR : Not implemented. \n");
+	return EXIT_NOT_IMPLEMENTED;
+#endif // ENABLE_RPLIDAR_SDK_SUPPORT
+}
+
+inline int StopMotorRPLIDAR(RPLIDAR* pRPLIDAR)
+{
+#ifdef ENABLE_RPLIDAR_SDK_SUPPORT
+	if (IS_FAIL(pRPLIDAR->drv->stopMotor()))
+	{
+		printf("A RPLIDAR is not responding correctly : stopMotor() failed. \n");
+		return EXIT_FAILURE;
+	}
+	return EXIT_SUCCESS;
+#else
+	UNREFERENCED_PARAMETER(pRPLIDAR);
+	printf("RPLIDAR : Not implemented. \n");
+	return EXIT_NOT_IMPLEMENTED;
+#endif // ENABLE_RPLIDAR_SDK_SUPPORT
+}
+
 inline int StartScanRequestRPLIDAR(RPLIDAR* pRPLIDAR)
 {
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
