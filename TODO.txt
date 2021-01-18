@@ -1,4 +1,4 @@
-Default release : disable 3rd_support defines, rebuild all, UpgradeDLL.bat, UpgradeDLLConfigPython.bat, genprotox86/x64.bat, patchproto.bat, git sync, download, copy and rename auto draft release for linux_x64 and mac (compat versions)
+Default release : disable 3rd_support defines, rebuild all, run UpgradeDLL.bat and UpgradeDLLConfigPython.bat, git sync, download auto draft release, run hardwarex.bat (need MATLAB R2017b 64 bit and R2015b 32 bit,...), git sync
 3rd_support release : download auto draft release, prepare %USERPROFILE%\Downloads\hardwarex_with_3rd_support\, run hardwarex_with_3rd_support.bat (need MATLAB R2017b 64 bit and R2015b 32 bit, mavlink versions,...), upload hardwarex_with_3rd_support.zip
 
 Update Hardware-CPP, MATLAB, Python (check structures), in particular mavlink messages...
@@ -7,7 +7,6 @@ char/array of char parameters : see GetInfoRequestRPLIDAR(), GetAllSupportedScan
 
 
 auto test with UxVCtrl/UxVSim, SITL...
-vm/docker with MATLAB 32 and 64...?
 Fix latest mavlink MAVPACKED mavlink_types.h (check if it is also a problem for Linux)...
 patchproto for linux and mac?->propose to run manually hardwarex_setup to generate a hardwarex_proto.m to be able to patch it, and change manually hardwarex_init.m to use the proto...?
 

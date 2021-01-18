@@ -35,7 +35,7 @@ jobs:
     # Prerequisites
     - uses: actions/checkout@v2
 #    - run: choco install -y -r --no-progress wget
-    - run: | 
+    - run: |
         (New-Object System.Net.WebClient).DownloadFile("http://www.ensta-bretagne.fr/lebars/Share/windows_extra_tools.zip", "C:\Windows\Temp\windows_extra_tools.zip") 
         7z x C:\Windows\Temp\windows_extra_tools.zip -o"C:\Windows" -y
       shell: pwsh

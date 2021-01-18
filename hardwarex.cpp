@@ -133,15 +133,19 @@ THREAD_PROC_RETURN_VALUE SBGThread(void* pParam)
 #ifdef ENABLE_SBG_SDK_SUPPORT
 		mSleep(pSBG->threadperiod);
 #endif // ENABLE_SBG_SDK_SUPPORT
-		memset(&sbgdata, 0, sizeof(SBGDATA));
+		//memset(&sbgdata, 0, sizeof(SBGDATA));
 #ifdef ENABLE_SBG_SDK_SUPPORT
 		GetLatestDataSBG(pSBG, &sbgdata);
+		//if (GetLatestDataSBG(pSBG, &sbgdata) == EXIT_SUCCESS)
 #else
 		GetFrameSBG(pSBG, &sbgdata);
+		//if (GetFrameSBG(pSBG, &sbgdata) == EXIT_SUCCESS)
 #endif // ENABLE_SBG_SDK_SUPPORT
-		EnterCriticalSection(&SBGCS);
-		sbgdataSBG = sbgdata;
-		LeaveCriticalSection(&SBGCS);
+		{
+			EnterCriticalSection(&SBGCS);
+			sbgdataSBG = sbgdata;
+			LeaveCriticalSection(&SBGCS);
+		}
 		if (bExitSBG) break;
 	}
 
@@ -164,6 +168,7 @@ HARDWAREX_API int GetLatestDataFromThreadSBGx(SBG* pSBG, SBGDATA* pSBGData)
 HARDWAREX_API int StartThreadSBGx(SBG* pSBG)
 {
 	bExitSBG = FALSE;
+	memset(&sbgdataSBG, 0, sizeof(SBGDATA));
 	InitCriticalSection(&SBGCS);
 	return CreateDefaultThread(SBGThread, (void*)pSBG, &SBGThreadId);
 }
@@ -223,11 +228,14 @@ THREAD_PROC_RETURN_VALUE MTThread(void* pParam)
 	for (;;)
 	{
 		mSleep(pMT->threadperiod);
-		memset(&mtdata, 0, sizeof(MTDATA));
+		//memset(&mtdata, 0, sizeof(MTDATA));
 		GetLatestDataMT(pMT, &mtdata);
-		EnterCriticalSection(&MTCS);
-		mtdataMT = mtdata;
-		LeaveCriticalSection(&MTCS);
+		//if (GetLatestDataMT(pMT, &mtdata) == EXIT_SUCCESS)
+		{
+			EnterCriticalSection(&MTCS);
+			mtdataMT = mtdata;
+			LeaveCriticalSection(&MTCS);
+		}
 		if (bExitMT) break;
 	}
 
@@ -250,6 +258,7 @@ HARDWAREX_API int GetLatestDataFromThreadMTx(MT* pMT, MTDATA* pMTData)
 HARDWAREX_API int StartThreadMTx(MT* pMT)
 {
 	bExitMT = FALSE;
+	memset(&mtdataMT, 0, sizeof(MTDATA));
 	InitCriticalSection(&MTCS);
 	return CreateDefaultThread(MTThread, (void*)pMT, &MTThreadId);
 }
@@ -309,11 +318,14 @@ THREAD_PROC_RETURN_VALUE RazorAHRSThread(void* pParam)
 	for (;;)
 	{
 		mSleep(pRazorAHRS->threadperiod);
-		memset(&razorahrsdata, 0, sizeof(RAZORAHRSDATA));
+		//memset(&razorahrsdata, 0, sizeof(RAZORAHRSDATA));
 		GetLatestDataRazorAHRS(pRazorAHRS, &razorahrsdata);
-		EnterCriticalSection(&RazorAHRSCS);
-		razorahrsdataRazorAHRS = razorahrsdata;
-		LeaveCriticalSection(&RazorAHRSCS);
+		//if (GetLatestDataRazorAHRS(pRazorAHRS, &razorahrsdata) == EXIT_SUCCESS)
+		{
+			EnterCriticalSection(&RazorAHRSCS);
+			razorahrsdataRazorAHRS = razorahrsdata;
+			LeaveCriticalSection(&RazorAHRSCS);
+		}
 		if (bExitRazorAHRS) break;
 	}
 
@@ -336,6 +348,7 @@ HARDWAREX_API int GetLatestDataFromThreadRazorAHRSx(RAZORAHRS* pRazorAHRS, RAZOR
 HARDWAREX_API int StartThreadRazorAHRSx(RAZORAHRS* pRazorAHRS)
 {
 	bExitRazorAHRS = FALSE;
+	memset(&razorahrsdataRazorAHRS, 0, sizeof(RAZORAHRSDATA));
 	InitCriticalSection(&RazorAHRSCS);
 	return CreateDefaultThread(RazorAHRSThread, (void*)pRazorAHRS, &RazorAHRSThreadId);
 }
@@ -621,11 +634,14 @@ THREAD_PROC_RETURN_VALUE ubloxNMEAThread(void* pParam)
 	for (;;)
 	{
 		//mSleep(publox->threadperiod);
-		memset(&nmeadata, 0, sizeof(NMEADATA));
+		//memset(&nmeadata, 0, sizeof(NMEADATA));
 		GetNMEASentenceublox(publox, &nmeadata);
-		EnterCriticalSection(&ubloxCS);
-		nmeadataublox = nmeadata;
-		LeaveCriticalSection(&ubloxCS);
+		//if (GetNMEASentenceublox(publox, &nmeadata) == EXIT_SUCCESS)
+		{
+			EnterCriticalSection(&ubloxCS);
+			nmeadataublox = nmeadata;
+			LeaveCriticalSection(&ubloxCS);
+		}
 		if (bExitNMEAublox) break;
 	}
 
@@ -640,11 +656,14 @@ THREAD_PROC_RETURN_VALUE ubloxUBXThread(void* pParam)
 	for (;;)
 	{
 		//mSleep(publox->threadperiod);
-		memset(&ubxdata, 0, sizeof(UBXDATA));
+		//memset(&ubxdata, 0, sizeof(UBXDATA));
 		GetUBXPacketublox(publox, &ubxdata);
-		EnterCriticalSection(&ubloxCS);
-		ubxdataublox = ubxdata;
-		LeaveCriticalSection(&ubloxCS);
+		//if (GetUBXPacketublox(publox, &ubxdata) == EXIT_SUCCESS)
+		{
+			EnterCriticalSection(&ubloxCS);
+			ubxdataublox = ubxdata;
+			LeaveCriticalSection(&ubloxCS);
+		}
 		if (bExitUBXublox) break;
 	}
 
@@ -680,6 +699,7 @@ HARDWAREX_API int GetUBXPacketFromThreadubloxx(UBLOX* publox, UBXDATA* pUBXData)
 HARDWAREX_API int StartNMEAThreadubloxx(UBLOX* publox)
 {
 	bExitNMEAublox = FALSE;
+	memset(&nmeadataublox, 0, sizeof(NMEADATA));
 	InitCriticalSection(&ubloxCS);
 	return CreateDefaultThread(ubloxNMEAThread, (void*)publox, &ubloxNMEAThreadId);
 }
@@ -697,6 +717,7 @@ HARDWAREX_API int StopNMEAThreadubloxx(UBLOX* publox)
 HARDWAREX_API int StartUBXThreadubloxx(UBLOX* publox)
 {
 	bExitUBXublox = FALSE;
+	memset(&ubxdataublox, 0, sizeof(UBXDATA));
 	InitCriticalSection(&ubloxCS);
 	return CreateDefaultThread(ubloxUBXThread, (void*)publox, &ubloxUBXThreadId);
 }
@@ -1153,10 +1174,13 @@ THREAD_PROC_RETURN_VALUE HokuyoThread(void* pParam)
 		memset(distances, 0, MAX_SLITDIVISION_HOKUYO*sizeof(double));
 		memset(angles, 0, MAX_SLITDIVISION_HOKUYO*sizeof(double));
 		GetLatestDataHokuyo(pHokuyo, distances, angles);
-		EnterCriticalSection(&HokuyoCS);
-		memcpy(distancesHokuyo, distances, MAX_SLITDIVISION_HOKUYO*sizeof(double));
-		memcpy(anglesHokuyo, angles, MAX_SLITDIVISION_HOKUYO*sizeof(double));
-		LeaveCriticalSection(&HokuyoCS);
+		// if (GetLatestDataHokuyo(pHokuyo, distances, angles) == EXIT8SUCCESS)
+		{
+			EnterCriticalSection(&HokuyoCS);
+			memcpy(distancesHokuyo, distances, MAX_SLITDIVISION_HOKUYO*sizeof(double));
+			memcpy(anglesHokuyo, angles, MAX_SLITDIVISION_HOKUYO*sizeof(double));
+			LeaveCriticalSection(&HokuyoCS);
+		}
 		if (bExitHokuyo) break;
 	}
 
@@ -1331,12 +1355,15 @@ THREAD_PROC_RETURN_VALUE RPLIDARScanThread(void* pParam)
 		angle = 0;
 		distance = 0;
 		GetScanDataResponseRPLIDAR(pRPLIDAR, &distance, &angle, &bNewScan, &quality);
-		EnterCriticalSection(&RPLIDARCS);
-		distanceRPLIDAR = distance;
-		angleRPLIDAR = angle;
-		bNewScanRPLIDAR = bNewScan;
-		qualityRPLIDAR = quality;
-		LeaveCriticalSection(&RPLIDARCS);
+		//if (GetScanDataResponseRPLIDAR(pRPLIDAR, &distance, &angle, &bNewScan, &quality) == EXIT_SUCCESS)
+		{
+			EnterCriticalSection(&RPLIDARCS);
+			distanceRPLIDAR = distance;
+			angleRPLIDAR = angle;
+			bNewScanRPLIDAR = bNewScan;
+			qualityRPLIDAR = quality;
+			LeaveCriticalSection(&RPLIDARCS);
+		}
 		if (bExitScanRPLIDAR) break;
 	}
 
@@ -1356,11 +1383,14 @@ THREAD_PROC_RETURN_VALUE RPLIDARExpressScanThread(void* pParam)
 		memset(distances, 0, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
 		memset(angles, 0, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
 		GetExpressScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan);
-		EnterCriticalSection(&RPLIDARCS);
-		memcpy(distancesRPLIDAR, distances, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
-		memcpy(anglesRPLIDAR, angles, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
-		bNewScanRPLIDAR = bNewScan;
-		LeaveCriticalSection(&RPLIDARCS);
+		//if (GetExpressScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan) == EXIT_SUCCESS)
+		{
+			EnterCriticalSection(&RPLIDARCS);
+			memcpy(distancesRPLIDAR, distances, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+			memcpy(anglesRPLIDAR, angles, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+			bNewScanRPLIDAR = bNewScan;
+			LeaveCriticalSection(&RPLIDARCS);
+		}
 		if (bExitExpressScanRPLIDAR) break;
 	}
 
@@ -1380,11 +1410,14 @@ THREAD_PROC_RETURN_VALUE RPLIDAROtherScanThread(void* pParam)
 		memset(distances, 0, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
 		memset(angles, 0, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
 		GetOtherScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan);
-		EnterCriticalSection(&RPLIDARCS);
-		memcpy(distancesRPLIDAR, distances, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
-		memcpy(anglesRPLIDAR, angles, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
-		bNewScanRPLIDAR = bNewScan;
-		LeaveCriticalSection(&RPLIDARCS);
+		//if (GetOtherScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan) == EXIT_SUCCESS)
+		{
+			EnterCriticalSection(&RPLIDARCS);
+			memcpy(distancesRPLIDAR, distances, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+			memcpy(anglesRPLIDAR, angles, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+			bNewScanRPLIDAR = bNewScan;
+			LeaveCriticalSection(&RPLIDARCS);
+		}
 		if (bExitOtherScanRPLIDAR) break;
 	}
 
@@ -1547,11 +1580,14 @@ THREAD_PROC_RETURN_VALUE MAVLinkDeviceThread(void* pParam)
 		LeaveCriticalSection(&MAVLinkDeviceCS);
 		SetAllPWMsMAVLinkDevice(pMAVLinkDevice, selectedchannels, pws);
 		uSleep(1000*pMAVLinkDevice->threadperiod/2);
-		memset(&mavlinkdata, 0, sizeof(MAVLINKDATA));
+		//memset(&mavlinkdata, 0, sizeof(MAVLINKDATA));
 		GetLatestDataMAVLinkDevice(pMAVLinkDevice, &mavlinkdata);
-		EnterCriticalSection(&MAVLinkDeviceCS);
-		mavlinkdataMAVLinkDevice = mavlinkdata;
-		LeaveCriticalSection(&MAVLinkDeviceCS);
+		//if (GetLatestDataMAVLinkDevice(pMAVLinkDevice, &mavlinkdata) == EXIT_SUCCESS)
+		{
+			EnterCriticalSection(&MAVLinkDeviceCS);
+			mavlinkdataMAVLinkDevice = mavlinkdata;
+			LeaveCriticalSection(&MAVLinkDeviceCS);
+		}
 		if (bExitMAVLinkDevice) break;
 	}
 
@@ -1588,6 +1624,7 @@ HARDWAREX_API int GetLatestDataFromThreadMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkD
 HARDWAREX_API int StartThreadMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice)
 {
 	bExitMAVLinkDevice = FALSE;
+	memset(&mavlinkdataMAVLinkDevice, 0, sizeof(MAVLINKDATA));
 	InitCriticalSection(&MAVLinkDeviceCS);
 	return CreateDefaultThread(MAVLinkDeviceThread, (void*)pMAVLinkDevice, &MAVLinkDeviceThreadId);
 }
