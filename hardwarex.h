@@ -229,6 +229,7 @@ extern "C" {
 	HARDWAREX_API int StopRequestRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int ResetRequestRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int GetStartupMessageRPLIDARx(RPLIDAR* pRPLIDAR);
+	HARDWAREX_API int ClearCacheRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int GetHealthRequestRPLIDARx(RPLIDAR* pRPLIDAR, BOOL* pbProtectionStop);
 	HARDWAREX_API int GetInfoRequestRPLIDARx(RPLIDAR* pRPLIDAR, int* pModelID, int* pHardwareVersion, int* pFirmwareMajor, int* pFirmwareMinor, char* SerialNumber);
 	HARDWAREX_API int GetTypicalScanModeRPLIDARx(RPLIDAR* pRPLIDAR, int* pScanModeID);

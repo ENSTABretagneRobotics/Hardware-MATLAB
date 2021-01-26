@@ -1245,6 +1245,11 @@ HARDWAREX_API int GetStartupMessageRPLIDARx(RPLIDAR* pRPLIDAR)
 	return GetStartupMessageRPLIDAR(pRPLIDAR);
 }
 
+HARDWAREX_API int ClearCacheRPLIDARx(RPLIDAR* pRPLIDAR)
+{
+	return ClearCacheRPLIDAR(pRPLIDAR);
+}
+
 HARDWAREX_API int GetHealthRequestRPLIDARx(RPLIDAR* pRPLIDAR, BOOL* pbProtectionStop)
 {
 	return GetHealthRequestRPLIDAR(pRPLIDAR, pbProtectionStop);

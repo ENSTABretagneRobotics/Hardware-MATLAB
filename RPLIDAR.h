@@ -666,18 +666,37 @@ inline int GetStartupMessageRPLIDAR(RPLIDAR* pRPLIDAR)
 
 	if (PurgeRS232Port(&pRPLIDAR->RS232Port) != EXIT_SUCCESS)
 	{
-		printf("Warning : A RPLIDAR might not be responding correctly. \n");
+		printf("Error purging data from a RPLIDAR. \n");
 		return EXIT_FAILURE;
 	}
 	// Need to purge twice on Mac OS otherwise next read() would fail...?
 	if (PurgeRS232Port(&pRPLIDAR->RS232Port) != EXIT_SUCCESS)
 	{
-		printf("Warning : A RPLIDAR might not be responding correctly. \n");
+		printf("Error purging data from a RPLIDAR. \n");
 		return EXIT_FAILURE;
 	}
 #endif // ENABLE_RPLIDAR_SDK_SUPPORT
 
 	return EXIT_SUCCESS;
+}
+
+inline int ClearCacheRPLIDAR(RPLIDAR* pRPLIDAR)
+{
+#ifdef ENABLE_RPLIDAR_SDK_SUPPORT
+	if (IS_FAIL(pRPLIDAR->drv->clearNetSerialRxCache()))
+	{
+		printf("A RPLIDAR is not responding correctly : clearNetSerialRxCache() failed. \n");
+		return EXIT_FAILURE;
+	}
+	return EXIT_SUCCESS;
+#else
+	if (PurgeRS232Port(&pRPLIDAR->RS232Port) != EXIT_SUCCESS)
+	{
+		printf("Error purging data from a RPLIDAR. \n");
+		return EXIT_FAILURE;
+	}
+	return EXIT_SUCCESS;
+#endif // ENABLE_RPLIDAR_SDK_SUPPORT
 }
 
 inline int GetHealthRequestRPLIDAR(RPLIDAR* pRPLIDAR, BOOL* pbProtectionStop)
