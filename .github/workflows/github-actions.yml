@@ -1,10 +1,10 @@
-on: 
+on:
     push:
         branches: '**'
         tags: '' # Restrict to blank tags
     pull_request:
 jobs:
- # This job can be removed if a new release should not be created...
+ # This job may be commented if a new release should not be created...
  deploy:
     runs-on: ubuntu-latest
     steps: 
@@ -14,8 +14,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         draft: true
-        tag_name: autotagname
-        release_name: autotagname    
+        tag_name: autotagname-${{ github.sha }}
+        release_name: autotagname-${{ github.sha }}
+      if: github.event_name != 'pull_request'
 
  matrix:
     runs-on: ${{ matrix.cfg.os }}
@@ -25,11 +26,11 @@ jobs:
     strategy:
         matrix:
             cfg:
-            - { os: ubuntu-18.04, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 6, cmake_out: './hardwarex.so', deploy-file: './hardwarex_compat.so', desc: 'Ubuntu 18.04' }
-            - { os: macos-10.15, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 9, cmake_out: './hardwarex.dylib', deploy-file: './hardwarex_compat.dylib', desc: 'macOS 10.15' }
+            - { os: ubuntu-20.04, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 8, cmake_out: './hardwarex.so', deploy-file: './hardwarex_compat.so', desc: 'Ubuntu 20.04' }
+            - { os: macos-10.15, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 9, cmake_out: './hardwarex.dylib', deploy-file: './hardwarex_compat.dylib', desc: 'macOS Catalina 10.15' }
             - { os: windows-2016, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 8, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x64_compat.dll', cmake_params_1: '-G "Visual Studio 15" -A x64 -D ENABLE_STATIC=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2017 x64 static' }
             - { os: windows-2016, shell: bash, arch: x86, py_v_maj: 3, py_v_min: 8, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x86_compat.dll', cmake_params_1: '-G "Visual Studio 15" -A Win32 -D ENABLE_STATIC=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2017 x86 static' }
-            - { os: ubuntu-18.04, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 6, cmake_out: './hardwarex.so', deploy-file: './hardwarex.so', cmake_params_1: '-D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', desc: 'Ubuntu 18.04 with 3rd support' }
+            - { os: ubuntu-20.04, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 8, cmake_out: './hardwarex.so', deploy-file: './hardwarex.so', cmake_params_1: '-D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', desc: 'Ubuntu 20.04 with 3rd support' }
             - { os: macos-10.15, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 9, cmake_out: './hardwarex.dylib', deploy-file: './hardwarex.dylib', cmake_params_1: '-D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', desc: 'macOS 10.15 with 3rd support' }
             - { os: windows-2016, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 8, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x64.dll', cmake_params_1: '-G "Visual Studio 15" -A x64 -D ENABLE_STATIC=ON -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2017 x64 static with 3rd support' }
             - { os: windows-2016, shell: bash, arch: x86, py_v_maj: 3, py_v_min: 8, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x86.dll', cmake_params_1: '-G "Visual Studio 15" -A Win32 -D ENABLE_STATIC=ON -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2017 x86 static with 3rd support' }
@@ -38,7 +39,6 @@ jobs:
 
     # Prerequisites
     - uses: actions/checkout@v2
-#    - run: choco install -y -r --no-progress wget
     - run: |
         (New-Object System.Net.WebClient).DownloadFile("http://www.ensta-bretagne.fr/lebars/Share/windows_extra_tools.zip", "C:\Windows\Temp\windows_extra_tools.zip") 
         7z x C:\Windows\Temp\windows_extra_tools.zip -o"C:\Windows" -y
@@ -90,4 +90,5 @@ jobs:
       with:
         file: '${{ matrix.cfg.deploy-file }}'
         overwrite: true
-        tag_name: autotagname
+        tag_name: autotagname-${{ github.sha }}
+      if: github.event_name != 'pull_request'

@@ -20,15 +20,13 @@
 #include "MAVLinkProtocol.h"
 
 // Need to be undefined at the end of the file...
-// min and max might cause incompatibilities with GCC...
-#ifndef _MSC_VER
+// min and max might cause incompatibilities...
 #ifndef max
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 #endif // !max
 #ifndef min
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #endif // !min
-#endif // !_MSC_VER
 
 #define TIMEOUT_MESSAGE_MAVLINKDEVICE 4.0 // In s.
 // Should be at least 2 * number of bytes to be sure to contain entirely the biggest desired message (or group of messages) + 1.
@@ -324,7 +322,7 @@ inline int ArmMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, BOOL bArm)
 	return EXIT_SUCCESS;
 }
 
-// See enum control_mode_t in https://github.com/ArduPilot/ardupilot/blob/master/ArduCopter/defines.h
+// See enum control_mode_t in https://github.com/ArduPilot/ardupilot/blob/master/ArduCopter/mode.h (e.g. 0 : Stabilize, 2 : AltHold, 3: Auto, 4 : Guided, 5 : Loiter, 6 : RTL, 9 : Land, 15 : Autotune, 16 : PosHold, 20 : Guided_NoGPS, 21 : Smart_RTL, 23 : Follow), https://github.com/ArduPilot/ardupilot/blob/master/Rover/mode.h (e.g. 0 : Manual, 4 : Hold, 5 : Loiter, 10 : Auto, 11 : RTL, 12 : Smart_RTL, 15 : Guided), https://github.com/ArduPilot/ardupilot/blob/master/ArduSub/defines.h (e.g. 0 : Stabilize, 2 : AltHold, 3: Auto, 4 : Guided, 9 : Surface, 16 : PosHold, 19 : Manual).
 inline int SetModeMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, int custom_mode)
 {
 	unsigned char sendbuf[256];
@@ -335,15 +333,14 @@ inline int SetModeMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, int custom_mode)
 
 	// https://discuss.ardupilot.org/t/setting-guided-mode-and-waypoint-by-mavlink/17363/4
 	// Regarding changing mode, I see you are using a MAV_MODE enum value in the first parameter, but that doesn't apply to ArduPilot. 
-	// You need to be using param 2 (custom mode), with the value matching the mode number in Copter: https://github.com/ArduPilot/ardupilot/blob/master/ArduCopter/defines.h#L88-L105
+	// You need to be using param 2 (custom mode), with the value matching the mode number in Copter: https://github.com/ArduPilot/ardupilot/blob/master/ArduCopter/mode.h
 	// Regarding changing mode, Ardupilot supports SET_MODE and not command_long message
-	// https://github.com/ArduPilot/ardupilot/blob/master/ArduCopter/defines.h#L88-L105
 
 	// Try to force mode using deprecated command...
 	memset(&set_mode, 0, sizeof(set_mode));
 	set_mode.target_system = (uint8_t)pMAVLinkDevice->target_system;
 	set_mode.base_mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;//MAV_MODE_MANUAL_ARMED;//MAV_MODE_STABILIZE_ARMED; // See https://groups.google.com/forum/#!topic/mavlink/tOpXBGBGfyk
-	set_mode.custom_mode = custom_mode; // See enum control_mode_t in https://github.com/ArduPilot/ardupilot/blob/master/ArduCopter/defines.h
+	set_mode.custom_mode = custom_mode; // See enum control_mode_t in https://github.com/ArduPilot/ardupilot/blob/master/ArduCopter/mode.h, https://github.com/ArduPilot/ardupilot/blob/master/Rover/mode.h, https://github.com/ArduPilot/ardupilot/blob/master/ArduSub/defines.h.
 	mavlink_msg_set_mode_encode((uint8_t)pMAVLinkDevice->system_id, (uint8_t)pMAVLinkDevice->component_id, &msg, &set_mode);
 
 	memset(sendbuf, 0, sizeof(sendbuf));
@@ -361,7 +358,7 @@ inline int SetModeMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, int custom_mode)
 	mode_command.command = MAV_CMD_DO_SET_MODE;
 	mode_command.confirmation = 0;
 	mode_command.param1 = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;//MAV_MODE_MANUAL_ARMED;//MAV_MODE_STABILIZE_ARMED; // See https://groups.google.com/forum/#!topic/mavlink/tOpXBGBGfyk
-	mode_command.param2 = (float)custom_mode; // See enum control_mode_t in https://github.com/ArduPilot/ardupilot/blob/master/ArduCopter/defines.h
+	mode_command.param2 = (float)custom_mode; // See enum control_mode_t in https://github.com/ArduPilot/ardupilot/blob/master/ArduCopter/mode.h, https://github.com/ArduPilot/ardupilot/blob/master/Rover/mode.h, https://github.com/ArduPilot/ardupilot/blob/master/ArduSub/defines.h.
 	mavlink_msg_command_long_encode((uint8_t)pMAVLinkDevice->system_id, (uint8_t)pMAVLinkDevice->component_id, &msg, &mode_command);
 
 	memset(sendbuf, 0, sizeof(sendbuf));
@@ -660,6 +657,46 @@ inline int SetAllPWMsMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, int* selectedc
 
 		// Update last known value.
 		pMAVLinkDevice->LastPWs[channel] = pws_tmp[channel];
+	}
+
+	return EXIT_SUCCESS;
+}
+
+inline int GPSInputMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, double gps_lat, double gps_lon, double gps_alt, double yaw)
+{
+	unsigned char sendbuf[256];
+	int sendbuflen = 0;
+	mavlink_message_t msg;
+	mavlink_gps_input_t gps_input;
+
+	memset(&gps_input, 0, sizeof(gps_input));
+	gps_input.ignore_flags = (uint16_t)(0);
+	gps_input.fix_type = 5;
+	gps_input.lat = (int32_t)(gps_lat*10000000.0);
+	gps_input.lon = (int32_t)(gps_lon*10000000.0);
+	gps_input.alt = (float)gps_alt;
+	gps_input.hdop = (float)1.0;
+	gps_input.vdop = (float)1.0;
+	gps_input.vn = (float)0;
+	gps_input.ve = (float)0;
+	gps_input.vd = (float)0;
+	gps_input.speed_accuracy = (float)0.2;
+	gps_input.horiz_accuracy = (float)1.0;
+	gps_input.vert_accuracy = (float)1.0;
+	gps_input.satellites_visible = (uint8_t)15;
+	// MAVLINK_STATUS_FLAG_IN_MAVLINK1 should not be defined if using MAVLink v1 headers...
+#ifdef MAVLINK_STATUS_FLAG_IN_MAVLINK1
+	gps_input.yaw = (uint16_t)(((fmod_360_pos(yaw) == 0)? 360: fmod_360_pos(yaw))*100);
+#else
+	UNREFERENCED_PARAMETER(yaw);
+#endif // MAVLINK_STATUS_FLAG_IN_MAVLINK1
+	mavlink_msg_gps_input_encode((uint8_t)pMAVLinkDevice->system_id, (uint8_t)pMAVLinkDevice->component_id, &msg, &gps_input);
+
+	memset(sendbuf, 0, sizeof(sendbuf));
+	sendbuflen = mavlink_msg_to_send_buffer(sendbuf, &msg);
+	if (WriteAllRS232Port(&pMAVLinkDevice->RS232Port, sendbuf, sendbuflen) != EXIT_SUCCESS)
+	{
+		return EXIT_FAILURE;
 	}
 
 	return EXIT_SUCCESS;
@@ -1293,7 +1330,7 @@ inline int ConnectMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, char* szCfgFilePa
 		set_mode.target_system = (uint8_t)pMAVLinkDevice->target_system;
 		//set_mode.base_mode = MAV_MODE_FLAG_STABILIZE_ENABLED; // Not sure it is correct...
 		set_mode.base_mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;//MAV_MODE_MANUAL_ARMED;//MAV_MODE_STABILIZE_ARMED; // See https://groups.google.com/forum/#!topic/mavlink/tOpXBGBGfyk
-		set_mode.custom_mode = 0; // See enum control_mode_t in https://github.com/ArduPilot/ardupilot/blob/master/ArduCopter/defines.h
+		set_mode.custom_mode = 0; // See enum control_mode_t in https://github.com/ArduPilot/ardupilot/blob/master/ArduCopter/mode.h, https://github.com/ArduPilot/ardupilot/blob/master/Rover/mode.h, https://github.com/ArduPilot/ardupilot/blob/master/ArduSub/defines.h.
 		mavlink_msg_set_mode_encode((uint8_t)pMAVLinkDevice->system_id, (uint8_t)pMAVLinkDevice->component_id, &msg, &set_mode);
 
 		memset(sendbuf, 0, sizeof(sendbuf));
@@ -1313,7 +1350,7 @@ inline int ConnectMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice, char* szCfgFilePa
 		mode_command.command = MAV_CMD_DO_SET_MODE;
 		mode_command.confirmation = 0;
 		mode_command.param1 = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;//MAV_MODE_MANUAL_ARMED;//MAV_MODE_STABILIZE_ARMED; // See https://groups.google.com/forum/#!topic/mavlink/tOpXBGBGfyk
-		mode_command.param2 = 0; // See enum control_mode_t in https://github.com/ArduPilot/ardupilot/blob/master/ArduCopter/defines.h
+		mode_command.param2 = 0; // See enum control_mode_t in https://github.com/ArduPilot/ardupilot/blob/master/ArduCopter/mode.h, https://github.com/ArduPilot/ardupilot/blob/master/Rover/mode.h, https://github.com/ArduPilot/ardupilot/blob/master/ArduSub/defines.h.
 		mavlink_msg_command_long_encode((uint8_t)pMAVLinkDevice->system_id, (uint8_t)pMAVLinkDevice->component_id, &msg, &mode_command);
 
 		memset(sendbuf, 0, sizeof(sendbuf));
@@ -1374,14 +1411,12 @@ inline int DisconnectMAVLinkDevice(MAVLINKDEVICE* pMAVLinkDevice)
 THREAD_PROC_RETURN_VALUE MAVLinkDeviceThread(void* pParam);
 #endif // !DISABLE_MAVLINKDEVICETHREAD
 
-// min and max might cause incompatibilities with GCC...
-#ifndef _MSC_VER
+// min and max might cause incompatibilities...
 #ifdef max
 #undef max
 #endif // max
 #ifdef min
 #undef min
 #endif // min
-#endif // !_MSC_VER
 
 #endif // !MAVLINKDEVICE_H

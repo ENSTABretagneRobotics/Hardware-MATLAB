@@ -1559,6 +1559,11 @@ HARDWAREX_API int SetAllPWMsMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, int* s
 	return SetAllPWMsMAVLinkDevice(pMAVLinkDevice, selectedchannels, pws);
 }
 
+HARDWAREX_API int GPSInputMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, double gps_lat, double gps_lon, double gps_alt, double yaw)
+{
+	return GPSInputMAVLinkDevice(pMAVLinkDevice, gps_lat, gps_lon, gps_alt, yaw);
+}
+
 HARDWAREX_API int ConnectMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, char* szCfgFilePath)
 {
 	return ConnectMAVLinkDevice(pMAVLinkDevice, szCfgFilePath);

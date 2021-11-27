@@ -102,14 +102,26 @@ inline UINT _BaudRate2Constant(UINT BaudRate)
 #ifdef _WIN32
 	switch (BaudRate)
 	{
+	case 50:
+		return 50;
+	case 75:
+		return 75;
 	case 110:
 		return CBR_110;
+	case 134:
+		return 134;
+	case 150:
+		return 150;
+	case 200:
+		return 200;
 	case 300:
 		return CBR_300;
 	case 600:
 		return CBR_600;
 	case 1200:
 		return CBR_1200;
+	case 1800:
+		return 1800;
 	case 2400:
 		return CBR_2400;
 	case 4800:
@@ -126,12 +138,40 @@ inline UINT _BaudRate2Constant(UINT BaudRate)
 		return CBR_56000;
 	case 57600:
 		return CBR_57600;
+	case 111100:
+		return 111100;
 	case 115200:
 		return CBR_115200;
 	case 128000:
 		return CBR_128000;
+	case 230400:
+		return 230400;
 	case 256000:
 		return CBR_256000;
+	case 460800:
+		return 460800;
+	case 500000:
+		return 500000;
+	case 576000:
+		return 576000;
+	case 921600:
+		return 921600;
+	case 1000000:
+		return 1000000;
+	case 1152000:
+		return 1152000;
+	case 1500000:
+		return 1500000;
+	case 2000000:
+		return 2000000;
+	case 2500000:
+		return 2500000;
+	case 3000000:
+		return 3000000;
+	case 3500000:
+		return 3500000;
+	case 4000000:
+		return 4000000;
 	default:
 		return 0;
 	}
@@ -211,14 +251,26 @@ inline UINT _Constant2BaudRate(UINT Constant)
 #ifdef _WIN32
 	switch (Constant)
 	{
+	case 50:
+		return 50;
+	case 75:
+		return 75;
 	case CBR_110:
 		return 110;
+	case 134:
+		return 134;
+	case 150:
+		return 150;
+	case 200:
+		return 200;
 	case CBR_300:
 		return 300;
 	case CBR_600:
 		return 600;
 	case CBR_1200:
 		return 1200;
+	case 1800:
+		return 1800;
 	case CBR_2400:
 		return 2400;
 	case CBR_4800:
@@ -235,12 +287,40 @@ inline UINT _Constant2BaudRate(UINT Constant)
 		return 56000;
 	case CBR_57600:
 		return 57600;
+	case 111100:
+		return 111100;
 	case CBR_115200:
 		return 115200;
 	case CBR_128000:
 		return 128000;
+	case 230400:
+		return 230400;
 	case CBR_256000:
 		return 256000;
+	case 460800:
+		return 460800;
+	case 500000:
+		return 500000;
+	case 576000:
+		return 576000;
+	case 921600:
+		return 921600;
+	case 1000000:
+		return 1000000;
+	case 1152000:
+		return 1152000;
+	case 1500000:
+		return 1500000;
+	case 2000000:
+		return 2000000;
+	case 2500000:
+		return 2500000;
+	case 3000000:
+		return 3000000;
+	case 3500000:
+		return 3500000;
+	case 4000000:
+		return 4000000;
 	default:
 		return 0;
 	}
@@ -1281,10 +1361,47 @@ inline int GetDTRState(HANDLE hDev, BOOL* pbClear)
 Check for any data available to read on a computer RS232 port.
 
 HANDLE hDev : (IN) Identifier of the computer RS232 port.
+int* pNbBytesAvail : (INOUT) Valid pointer that will receive the number of bytes currently 
+available. Ignored if NULL.
 
 Return : EXIT_SUCCESS if there is data to read, EXIT_TIMEOUT if there is currently no data
  available or EXIT_FAILURE if there is an error.
 */
+inline int CheckAvailBytesComputerRS232Port(HANDLE hDev, int* pNbBytesAvail)
+{
+#ifdef _WIN32
+	COMSTAT stats;
+
+	memset(&stats, 0, sizeof(COMSTAT));
+	if (!ClearCommError(hDev, NULL, &stats))
+	{
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("CheckAvailableBytesComputerRS232Port error (%s) : %s(hDev=%#x)\n", 
+			strtime_m(), 
+			GetLastErrorMsg(), 
+			hDev));
+		return EXIT_FAILURE;
+	}
+	if (stats.cbInQue <= 0) return EXIT_TIMEOUT;
+	if (pNbBytesAvail) *pNbBytesAvail = (int)stats.cbInQue;
+#else
+	int bytes_avail = 0;
+
+	if (ioctl((intptr_t)hDev, FIONREAD, &bytes_avail) != EXIT_SUCCESS)
+	{
+		PRINT_DEBUG_ERROR_OSCOMPUTERRS232PORT(("CheckAvailableBytesComputerRS232Port error (%s) : (FIONREAD) %s(hDev=%#x)\n", 
+			strtime_m(), 
+			GetLastErrorMsg(), 
+			hDev));
+		return EXIT_FAILURE;
+	}
+	if (bytes_avail <= 0) return EXIT_TIMEOUT;
+	if (pNbBytesAvail) *pNbBytesAvail = (int)bytes_avail;
+#endif // _WIN32
+
+	return EXIT_SUCCESS;
+}
+
+// Deprecated, kept for compatibility...
 inline int CheckAvailableBytesComputerRS232Port(HANDLE hDev)
 {
 #ifdef _WIN32
@@ -1324,8 +1441,8 @@ HANDLE hDev : (IN) Identifier of the computer RS232 port.
 int timeout : (IN) Max time to wait before returning in ms.
 int checkingperiod : (IN) Checking period in ms.
 
-Return : EXIT_SUCCESS if there is data to read, EXIT_TIMEOUT if there is currently no data
- available or EXIT_FAILURE if there is an error.
+Return : EXIT_SUCCESS if there is data to read, EXIT_TIMEOUT if a timeout occurs or 
+EXIT_FAILURE if there is an error.
 */
 inline int WaitForComputerRS232Port(HANDLE hDev, int timeout, int checkingperiod)
 {

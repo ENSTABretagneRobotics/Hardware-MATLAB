@@ -18,15 +18,13 @@
 #endif // !DISABLE_IM483ITHREAD
 
 // Need to be undefined at the end of the file...
-// min and max might cause incompatibilities with GCC...
-#ifndef _MSC_VER
+// min and max might cause incompatibilities...
 #ifndef max
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 #endif // !max
 #ifndef min
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #endif // !min
-#endif // !_MSC_VER
 
 //#define TIMEOUT_MESSAGE_IM483I 4.0 // In s.
 // Should be at least 2 * number of bytes to be sure to contain entirely the biggest desired message (or group of messages) + 1.
@@ -93,7 +91,7 @@ inline int StepsIM483I(IM483I* pIM483I, double val)
 
 	// Prepare data to send to device.
 	memset(sendbuf, 0, sizeof(sendbuf));
-	sprintf(sendbuf, "+%.2f\r", val);
+	sprintf(sendbuf, "%+.2f\r", val);
 	sendbuflen = (int)strlen(sendbuf);
 
 	if (WriteDataIM483I(pIM483I, (unsigned char*)sendbuf, sendbuflen, pIM483I->bytedelayus) != EXIT_SUCCESS)
@@ -636,14 +634,12 @@ inline int DisconnectIM483I(IM483I* pIM483I)
 THREAD_PROC_RETURN_VALUE IM483IThread(void* pParam);
 #endif // !DISABLE_IM483ITHREAD
 
-// min and max might cause incompatibilities with GCC...
-#ifndef _MSC_VER
+// min and max might cause incompatibilities...
 #ifdef max
 #undef max
 #endif // max
 #ifdef min
 #undef min
 #endif // min
-#endif // !_MSC_VER
 
 #endif // !IM483I_H

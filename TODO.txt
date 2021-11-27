@@ -6,9 +6,63 @@ Update Hardware-CPP, MATLAB, Python (check structures), in particular mavlink me
 char/array of char parameters : see GetInfoRequestRPLIDAR(), GetAllSupportedScanModesRPLIDAR...
 
 
+rplidar sdk only works in C++ while Matlab is checking the headers in C...
+Linux : might need to put full path for includepath in hardwarex_init.m when using local folders for sbgECom, MAVLinkSDK...
 auto test with UxVCtrl/UxVSim, SITL...
 Fix latest mavlink MAVPACKED mavlink_types.h (check if it is also a problem for Linux)...
 patchproto for linux and mac?->propose to run manually hardwarex_setup to generate a hardwarex_proto.m to be able to patch it, and change manually hardwarex_init.m to use the proto...?
+
+Warning: The data type 's_IO_markerPtr' used by structure s_IO_FILE does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 's_IO_FILEPtr' used by structure s_IO_FILE does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 'int8#' used by structure s_IO_FILE does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 's_IO_markerPtr' used by structure s_IO_marker does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 'FcnPtr' used by structure s_SbgInterface does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 'FcnPtr' used by structure s_SbgInterface does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 'FcnPtr' used by structure s_SbgInterface does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 'FcnPtr' used by structure s_SbgInterface does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 'FcnPtr' used by structure s_SbgEComHandle does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 'error' used by structure SBG does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 'error' used by structure NAV_PVT_PL_UBX does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 'error' used by structure NAV_PVT_PL_UBX does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 'error' used by structure NAV_PVT_PL_UBX does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 'error' used by structure NAV_SOL_PL_UBX does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 'error' used by structure NAV_STATUS_PL_UBX does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 'error' used by structure NAV_STATUS_PL_UBX does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
+Warning: The data type 'error' used by structure NAV_STATUS_PL_UBX does not exist.  The structure may not be usable. 
+> In loadlibrary
+  In hardwarex_init (line 19) 
 
 RPLIDAR : faudrait que le code CPP récupère les données tout le temps dans un thread...
 

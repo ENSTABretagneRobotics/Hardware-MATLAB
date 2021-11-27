@@ -1722,10 +1722,35 @@ inline int LaunchMultiCliTCPSrv(char* port, int (*handlecli)(SOCKET, void*), voi
 Check for any data available to read on a socket.
 
 SOCKET sock : (IN) Socket.
+int* pNbBytesAvail : (INOUT) Valid pointer that will receive the number of bytes currently 
+available. Ignored if NULL.
 
-Return : EXIT_SUCCESS if there is data to read from the socket, EXIT_TIMEOUT if a timeout occurs or 
-EXIT_FAILURE if there is an error.
+Return : EXIT_SUCCESS if there is data to read, EXIT_TIMEOUT if there is currently no data
+ available or EXIT_FAILURE if there is an error.
 */
+inline int checkavailbytessocket(SOCKET sock, int* pNbBytesAvail)
+{
+//#ifdef _WIN32
+	unsigned long bytes_avail = 0;
+//#else
+//	int bytes_avail = 0;
+//#endif // _WIN32
+
+	if (ioctlsocket(sock, FIONREAD, &bytes_avail) != EXIT_SUCCESS)
+	{
+		PRINT_DEBUG_ERROR_OSNET(("checkavailablebytessocket error (%s) : (FIONREAD) %s(sock=%d)\n", 
+			strtime_m(), 
+			WSAGetLastErrorMsg(), 
+			(int)sock));
+		return EXIT_FAILURE;
+	}
+	if (bytes_avail <= 0) return EXIT_TIMEOUT;
+	if (pNbBytesAvail) *pNbBytesAvail = (int)bytes_avail;
+
+	return EXIT_SUCCESS;
+}
+
+// Deprecated, kept for compatibility...
 inline int checkavailablebytessocket(SOCKET sock)
 {
 //#ifdef _WIN32
@@ -2532,11 +2557,11 @@ Get address, port and type from a path.
 
 char* szDevPath : (IN) Server TCP port (e.g. :4001), client IP address and TCP port (e.g. 127.0.0.1:4001),
 server UDP port (udp:4001), client IP address and UDP port (e.g. udp://127.0.0.1:4001) or an other path.
-char* address : (OUT) IPv4 address found.
+char* address : (INOUT) Valid pointer that will receive the IPv4 address found.
 size_t addresslen : (IN) Number of bytes of the address buffer.
-char* port : (OUT) TCP or UDP port found.
+char* port : (INOUT) Valid pointer that will receive the TCP or UDP port found.
 size_t portlen : (IN) Number of bytes of the port buffer.
-int* pDevType: (OUT) OTHER_DEV_TYPE_OSNET, TCP_CLIENT_DEV_TYPE_OSNET, TCP_SERVER_DEV_TYPE_OSNET, UDP_CLIENT_DEV_TYPE_OSNET or UDP_SERVER_DEV_TYPE_OSNET.
+int* pDevType: (INOUT) Valid pointer that will receive OTHER_DEV_TYPE_OSNET, TCP_CLIENT_DEV_TYPE_OSNET, TCP_SERVER_DEV_TYPE_OSNET, UDP_CLIENT_DEV_TYPE_OSNET or UDP_SERVER_DEV_TYPE_OSNET.
 
 Return : EXIT_SUCCESS or EXIT_FAILURE if there is an error.
 */

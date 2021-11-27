@@ -22,15 +22,13 @@
 //#include "RTCM3Protocol.h"
 
 // Need to be undefined at the end of the file...
-// min and max might cause incompatibilities with GCC...
-#ifndef _MSC_VER
+// min and max might cause incompatibilities...
 #ifndef max
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 #endif // !max
 #ifndef min
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #endif // !min
-#endif // !_MSC_VER
 
 //#pragma pack(show)
 
@@ -92,8 +90,10 @@ struct UBLOX
 	BOOL bEnable_NMEA_PD6_BS;
 	BOOL bEnable_NMEA_PD6_BE;
 	BOOL bEnable_NMEA_PD6_BD;
+	BOOL bEnable_UBX_NAV_HPPOSLLH;
 	BOOL bEnable_UBX_NAV_POSLLH;
 	BOOL bEnable_UBX_NAV_PVT;
+	BOOL bEnable_UBX_NAV_RELPOSNED;
 	BOOL bEnable_UBX_NAV_SOL;
 	BOOL bEnable_UBX_NAV_STATUS;
 	BOOL bEnable_UBX_NAV_SVIN;
@@ -790,7 +790,22 @@ inline int SetBaseCfgublox(UBLOX* publox)
 	//EncodePacketUBX(packet, &packetlen, CFG_CLASS_UBX, CFG_MSG_ID_UBX, (unsigned char*)&cfg_msg_pl, sizeof(cfg_msg_pl));
 	memcpy(sendbuf+offset, packet, packetlen);
 	offset += packetlen;
+	cfg_msg_pl[1] = RTCM_1097_ID_UBX; // Not available for M8P...
+	EncodePacketUBX(packet, &packetlen, CFG_CLASS_UBX, CFG_MSG_ID_UBX, (unsigned char*)&cfg_msg_pl, LEN_CFG_MSG_PL_UBX);
+	//EncodePacketUBX(packet, &packetlen, CFG_CLASS_UBX, CFG_MSG_ID_UBX, (unsigned char*)&cfg_msg_pl, sizeof(cfg_msg_pl));
+	memcpy(sendbuf+offset, packet, packetlen);
+	offset += packetlen;
 	cfg_msg_pl[1] = RTCM_1127_ID_UBX;
+	EncodePacketUBX(packet, &packetlen, CFG_CLASS_UBX, CFG_MSG_ID_UBX, (unsigned char*)&cfg_msg_pl, LEN_CFG_MSG_PL_UBX);
+	//EncodePacketUBX(packet, &packetlen, CFG_CLASS_UBX, CFG_MSG_ID_UBX, (unsigned char*)&cfg_msg_pl, sizeof(cfg_msg_pl));
+	memcpy(sendbuf+offset, packet, packetlen);
+	offset += packetlen;
+	cfg_msg_pl[1] = RTCM_1230_ID_UBX; // Not available for M8P...
+	EncodePacketUBX(packet, &packetlen, CFG_CLASS_UBX, CFG_MSG_ID_UBX, (unsigned char*)&cfg_msg_pl, LEN_CFG_MSG_PL_UBX);
+	//EncodePacketUBX(packet, &packetlen, CFG_CLASS_UBX, CFG_MSG_ID_UBX, (unsigned char*)&cfg_msg_pl, sizeof(cfg_msg_pl));
+	memcpy(sendbuf+offset, packet, packetlen);
+	offset += packetlen;
+	cfg_msg_pl[1] = RTCM_4072_0_ID_UBX; // For moving base, not available for M8P...
 	EncodePacketUBX(packet, &packetlen, CFG_CLASS_UBX, CFG_MSG_ID_UBX, (unsigned char*)&cfg_msg_pl, LEN_CFG_MSG_PL_UBX);
 	//EncodePacketUBX(packet, &packetlen, CFG_CLASS_UBX, CFG_MSG_ID_UBX, (unsigned char*)&cfg_msg_pl, sizeof(cfg_msg_pl));
 	memcpy(sendbuf+offset, packet, packetlen);
@@ -1046,8 +1061,10 @@ inline int Connectublox(UBLOX* publox, char* szCfgFilePath)
 		publox->bEnable_NMEA_PD6_BS = 0;
 		publox->bEnable_NMEA_PD6_BE = 0;
 		publox->bEnable_NMEA_PD6_BD = 0;
+		publox->bEnable_UBX_NAV_HPPOSLLH = 0;
 		publox->bEnable_UBX_NAV_POSLLH = 1;
 		publox->bEnable_UBX_NAV_PVT = 1;
+		publox->bEnable_UBX_NAV_RELPOSNED = 0;
 		publox->bEnable_UBX_NAV_SOL = 0;
 		publox->bEnable_UBX_NAV_STATUS = 1;
 		publox->bEnable_UBX_NAV_SVIN = 0;
@@ -1136,9 +1153,13 @@ inline int Connectublox(UBLOX* publox, char* szCfgFilePath)
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &publox->bEnable_NMEA_PD6_BD) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &publox->bEnable_UBX_NAV_HPPOSLLH) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &publox->bEnable_UBX_NAV_POSLLH) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &publox->bEnable_UBX_NAV_PVT) != 1) printf("Invalid configuration file.\n");
+			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
+			if (sscanf(line, "%d", &publox->bEnable_UBX_NAV_RELPOSNED) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
 			if (sscanf(line, "%d", &publox->bEnable_UBX_NAV_SOL) != 1) printf("Invalid configuration file.\n");
 			if (fgets3(file, line, sizeof(line)) == NULL) printf("Invalid configuration file.\n");
@@ -1295,14 +1316,12 @@ THREAD_PROC_RETURN_VALUE ubloxThread(void* pParam);
 // Restore default alignment settings.
 #pragma pack(pop) 
 
-// min and max might cause incompatibilities with GCC...
-#ifndef _MSC_VER
+// min and max might cause incompatibilities...
 #ifdef max
 #undef max
 #endif // max
 #ifdef min
 #undef min
 #endif // min
-#endif // !_MSC_VER
 
 #endif // !UBLOX_H
