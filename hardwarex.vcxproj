@@ -225,6 +225,7 @@
     <ClInclude Include="UBXProtocol.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".github\workflows\github-actions.yml" />
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
