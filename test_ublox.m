@@ -19,9 +19,7 @@ key = 0;
 while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
     clf; hold on;
     [result, nmeadata] = GetNMEASentenceFromThreadublox(publox);
-    if ((abs(nmeadata.Latitude) > 0) && (abs(nmeadata.Longitude) > 0)) % Check if latitude and longitude are not 0, which means invalid.
-     str = sprintf('(LAT,LON) = (%f,%f)\n', nmeadata.Latitude, nmeadata.Longitude);
-    end
+    str = sprintf('(LAT,LON) = (%f,%f)\n', nmeadata.Latitude, nmeadata.Longitude);
     uicontrol('Style','text','String',str,'Units','normalized','Position',[0 0 1 1]);
     pause(0.1); key = get(gcf,'CurrentCharacter');
 end

@@ -987,6 +987,43 @@ inline void GetFileNameAndFilePathAndChangeExtension(char* szFileInPath, char* s
 	RemovePathInFilePath(szFileOutName);
 }
 
+inline void RemoveSurroundingWhiteSpacesInString(char** pszFilePath)
+{
+	char* szFilePath = *pszFilePath;
+	while ((szFilePath[strlen(szFilePath)-1] == ' ')||(szFilePath[strlen(szFilePath)-1] == '\t')||
+		(szFilePath[strlen(szFilePath)-1] == '\n')||(szFilePath[strlen(szFilePath)-1] == '\r'))
+	{
+		szFilePath[strlen(szFilePath)-1] = 0;
+	}
+	while ((szFilePath[0] == ' ')||(szFilePath[0] == '\t')||
+		(szFilePath[0] == '\n')||(szFilePath[0] == '\r'))
+	{
+		*pszFilePath = szFilePath+1;
+		szFilePath = *pszFilePath;
+	}
+}
+
+inline void RemoveSurroundingCommasInString(char** pszFilePath)
+{
+	char* szFilePath = *pszFilePath;
+
+	//if (((szFilePath[0] == '\'')&&(szFilePath[strlen(szFilePath)-1] == '\''))||
+	//	((szFilePath[0] == '\"')&&(szFilePath[strlen(szFilePath)-1] == '\"')))
+	//{
+	//	szFilePath[strlen(szFilePath)-1] = 0;
+	//	*pszFilePath = szFilePath+1;
+	//}
+	while ((szFilePath[strlen(szFilePath)-1] == '\'')||(szFilePath[strlen(szFilePath)-1] == '\"'))
+	{
+		szFilePath[strlen(szFilePath)-1] = 0;
+	}
+	while ((szFilePath[0] == '\'')||(szFilePath[0] == '\"'))
+	{
+		*pszFilePath = szFilePath+1;
+		szFilePath = *pszFilePath;
+	}
+}
+
 #ifndef STRISTR_DEFINED
 #define STRISTR_DEFINED
 // From the Snippets collection SNIP9707.ZIP...

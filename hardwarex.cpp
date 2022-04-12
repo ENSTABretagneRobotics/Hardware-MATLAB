@@ -128,6 +128,7 @@ THREAD_PROC_RETURN_VALUE SBGThread(void* pParam)
 	SBG* pSBG = (SBG*)pParam;
 	SBGDATA sbgdata;
 
+	memset(&sbgdata, 0, sizeof(SBGDATA));
 	for (;;)
 	{
 #ifdef ENABLE_SBG_SDK_SUPPORT
@@ -225,6 +226,7 @@ THREAD_PROC_RETURN_VALUE MTThread(void* pParam)
 	MT* pMT = (MT*)pParam;
 	MTDATA mtdata;
 
+	memset(&mtdata, 0, sizeof(MTDATA));
 	for (;;)
 	{
 		mSleep(pMT->threadperiod);
@@ -315,6 +317,7 @@ THREAD_PROC_RETURN_VALUE RazorAHRSThread(void* pParam)
 	RAZORAHRS* pRazorAHRS = (RAZORAHRS*)pParam;
 	RAZORAHRSDATA razorahrsdata;
 
+	memset(&razorahrsdata, 0, sizeof(RAZORAHRSDATA));
 	for (;;)
 	{
 		mSleep(pRazorAHRS->threadperiod);
@@ -540,6 +543,7 @@ THREAD_PROC_RETURN_VALUE NMEADeviceThread(void* pParam)
 	NMEADEVICE* pNMEADevice = (NMEADEVICE*)pParam;
 	NMEADATA nmeadata;
 
+	memset(&nmeadata, 0, sizeof(NMEADATA));
 	for (;;)
 	{
 		mSleep(pNMEADevice->threadperiod);
@@ -631,6 +635,7 @@ THREAD_PROC_RETURN_VALUE ubloxNMEAThread(void* pParam)
 	UBLOX* publox = (UBLOX*)pParam;
 	NMEADATA nmeadata;
 
+	memset(&nmeadata, 0, sizeof(NMEADATA));
 	for (;;)
 	{
 		//mSleep(publox->threadperiod);
@@ -653,6 +658,7 @@ THREAD_PROC_RETURN_VALUE ubloxUBXThread(void* pParam)
 	UBLOX* publox = (UBLOX*)pParam;
 	UBXDATA ubxdata;
 
+	memset(&ubxdata, 0, sizeof(UBXDATA));
 	for (;;)
 	{
 		//mSleep(publox->threadperiod);
@@ -1581,6 +1587,7 @@ THREAD_PROC_RETURN_VALUE MAVLinkDeviceThread(void* pParam)
 	int pws[NB_CHANNELS_PWM_MAVLINKDEVICE];
 	MAVLINKDATA mavlinkdata;
 
+	memset(&mavlinkdata, 0, sizeof(MAVLINKDATA));
 	for (;;)
 	{
 		uSleep(1000*pMAVLinkDevice->threadperiod/2);
