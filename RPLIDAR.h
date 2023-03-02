@@ -32,6 +32,18 @@
 
 #include "../include/rplidar.h"
 using namespace rp::standalone::rplidar;
+// Different depending on the SDK version...
+#ifdef SLAMTEC_LIDAR_SDK_VERSION
+#ifndef DRIVER_TYPE_SERIALPORT
+#define DRIVER_TYPE_SERIALPORT CHANNEL_TYPE_SERIALPORT
+#endif // DRIVER_TYPE_SERIALPORT
+#ifndef DRIVER_TYPE_TCP
+#define DRIVER_TYPE_TCP CHANNEL_TYPE_TCP
+#endif // DRIVER_TYPE_TCP
+#ifndef DRIVER_TYPE_UDP
+#define DRIVER_TYPE_UDP CHANNEL_TYPE_UDP
+#endif // DRIVER_TYPE_UDP
+#endif // SLAMTEC_LIDAR_SDK_VERSION
 
 #ifdef _MSC_VER
 // Restore the Visual Studio warnings previously disabled.
@@ -1006,11 +1018,19 @@ inline int SetMotorPWMRequestRPLIDAR(RPLIDAR* pRPLIDAR, int pwm)
 inline int SetLidarSpinSpeedRequestRPLIDAR(RPLIDAR* pRPLIDAR, int rpm)
 {
 #ifdef ENABLE_RPLIDAR_SDK_SUPPORT
+#ifdef SLAMTEC_LIDAR_SDK_VERSION
+	if (IS_FAIL(pRPLIDAR->drv->setMotorPWM((_u16)rpm)))
+	{
+		printf("A RPLIDAR is not responding correctly : setMotorPWM() failed. \n");
+		return EXIT_FAILURE;
+	}
+#else
 	if (IS_FAIL(pRPLIDAR->drv->setLidarSpinSpeed((_u16)rpm)))
 	{
 		printf("A RPLIDAR is not responding correctly : setLidarSpinSpeed() failed. \n");
 		return EXIT_FAILURE;
 	}
+#endif // SLAMTEC_LIDAR_SDK_VERSION
 #else
 	unsigned char reqbuf[] = {START_FLAG1_RPLIDAR,SET_MOTOR_SPEED_CTRL_REQUEST_RPLIDAR,0x02,0,0,0};
 

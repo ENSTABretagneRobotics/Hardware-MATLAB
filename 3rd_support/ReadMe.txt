@@ -3,7 +3,7 @@ MAVLink, SBG, RPLIDAR SDK support (if needed to rebuild)
 Windows : 
 - In `hardwarex.h`, check that `#define ENABLE_MAVLINK_SUPPORT`, `#define ENABLE_SBG_SDK_SUPPORT`, `#define ENABLE_RPLIDAR_SDK_SUPPORT` are uncommented.
 - Copy the headers from https://github.com/mavlink/c_library_v1/archive/a44ece42bc76b1f257f4f540d7283e0c874ac6d9.zip in `C:\Program Files (x86)\MAVLinkSDK\mavlink` for a 64 bit version of Windows or `C:\Program Files\MAVLinkSDK\mavlink` for a 32 bit version of Windows (or in `..\MAVLinkSDK\mavlink`).
-- Copy the files from https://www.ensta-bretagne.fr/lebars/Share/SBG%20Systems.zip and https://github.com/lebarsfa/rplidar_sdk (rebuild this one using Visual Studio 2010 or later or get a prebuilt version for Visual Studio 2017 on https://www.ensta-bretagne.fr/lebars/Share/rplidar_sdk.zip) in `C:\Program Files (x86)` for a 64 bit version of Windows or `C:\Program Files` for a 32 bit version of Windows (or in `..`).
+- Copy the files from https://www.ensta-bretagne.fr/lebars/Share/SBG%20Systems.zip and https://github.com/lebarsfa/rplidar_sdk/tree/v1.12.0-enstabre (rebuild this one using Visual Studio 2010 or later or get a prebuilt version for Visual Studio 2017 from https://www.ensta-bretagne.fr/lebars/Share/rplidar_sdk.zip) in `C:\Program Files (x86)` for a 64 bit version of Windows or `C:\Program Files` for a 32 bit version of Windows (or in `..`).
 - Rebuild using Visual Studio 2012 or later and put the resulting hardwarex.dll in the corresponding `..\x86` and `..\x64` folders.
 - In MATLAB, run `mex -setup` and `mex -setup C++` and choose Visual Studio 2013 or later.
 - Run `hardwarex_setup.m` and put the resulting `hardwarex_proto.m` and `hardwarex_thunk_pcwin64.dll` in the corresponding `..\x86` and `..\x64` folders.
@@ -13,7 +13,7 @@ Windows :
 Linux/macOS : 
 - In `hardwarex.h`, check that `#define ENABLE_MAVLINK_SUPPORT`, `#define ENABLE_SBG_SDK_SUPPORT`, `#define ENABLE_RPLIDAR_SDK_SUPPORT` are uncommented.
 - In the `Makefile`, check that `LDFLAGS += -lsbgECom -lrplidar_sdk` is uncommented.
-- For macOS, you might want to install Homebrew and wget : 
+- For macOS, you might want to install Homebrew and wget: 
 	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 	brew install wget
 - Copy the headers from https://github.com/mavlink/c_library_v1/archive/a44ece42bc76b1f257f4f540d7283e0c874ac6d9.zip in `/usr/local/include/mavlink` (or `../MAVLinkSDK/mavlink`) :
@@ -36,21 +36,24 @@ Linux/macOS :
 	sudo mv -f ../../bin/libsbgECom.a /usr/local/lib/libsbgECom.a
 	cd ../../../../../..
 	rm -Rf "SBG Systems" "SBG Systems.zip"
-- Get, build, install RPLIDAR SDK : 
-	wget https://www.ensta-bretagne.fr/lebars/Share/rplidar_sdk.zip
-	unzip -q -o rplidar_sdk.zip
-	cd rplidar_sdk/sdk
-	# On macOS, you might need to run somthing similar to
+- Get, build, install RPLIDAR SDK: 
+	wget https://github.com/lebarsfa/rplidar_sdk/archive/refs/heads/v1.12.0-enstabre.zip --no-check-certificate -nv
+	unzip -q -o v1.12.0-enstabre.zip
+	cd rplidar_sdk-v1.12.0-enstabre
+	# On macOS, you might need to run something similar to
 	#export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+	cd rplidar_sdk/sdk
 	make
+	sudo rm -Rf /usr/local/include/rplidar_sdk
 	sudo mkdir -p /usr/local/include/rplidar_sdk/sdk/sdk
 	sudo mkdir -p /usr/local/lib
 	sudo mkdir -p /usr/local/bin
 	sudo mv -f sdk/include /usr/local/include/rplidar_sdk/sdk/sdk/
 	sudo mv -f sdk/src /usr/local/include/rplidar_sdk/sdk/sdk/
+	# On macOS, replace Linux with Darwin
 	sudo mv -f output/Linux/Release/librplidar_sdk.a /usr/local/lib/librplidar_sdk.a
 	sudo mv -f output/Linux/Release/ultra_simple /usr/local/bin/ultra_simple
 	sudo mv -f output/Linux/Release/simple_grabber /usr/local/bin/simple_grabber
-	cd ../..
-	rm -Rf rplidar_sdk rplidar_sdk.zip
+	cd ..
+	rm -Rf rplidar_sdk-v1.12.0-enstabre v1.12.0-enstabre.zip
 - Follow `../ReadMe.txt`

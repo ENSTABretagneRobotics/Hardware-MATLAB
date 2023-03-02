@@ -47,6 +47,8 @@ CFLAGS += -I. -I..
 CFLAGS += -IMAVLinkSDK
 CFLAGS += -IsbgECom/src -IsbgECom/common 
 CFLAGS += -I/usr/local/include/sbgECom/src -I/usr/local/include/sbgECom/common 
+CFLAGS += -Irplidar_sdk/sdk/include -Irplidar_sdk/sdk/src 
+CFLAGS += -I/usr/local/include/rplidar_sdk/sdk/include -I/usr/local/include/rplidar_sdk/sdk/src 
 CFLAGS += -Irplidar_sdk/sdk/sdk/include -Irplidar_sdk/sdk/sdk/src 
 CFLAGS += -I/usr/local/include/rplidar_sdk/sdk/sdk/include -I/usr/local/include/rplidar_sdk/sdk/sdk/src 
 
@@ -59,6 +61,9 @@ CXXFLAGS += $(CFLAGS) -fpermissive
 #LDFLAGS += -LsbgECom/bin
 #LDFLAGS += -lsbgECom
 
+#LDFLAGS += -Lrplidar_sdk/output/Linux/Release
+#LDFLAGS += -Lrplidar_sdk/output/Darwin/Release
+#LDFLAGS += -lsl_lidar_sdk
 #LDFLAGS += -Lrplidar_sdk/sdk/output/Linux/Release
 #LDFLAGS += -Lrplidar_sdk/sdk/output/Darwin/Release
 #LDFLAGS += -lrplidar_sdk

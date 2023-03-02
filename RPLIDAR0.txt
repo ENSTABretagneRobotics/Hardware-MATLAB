@@ -6,6 +6,7 @@ COM9
 % BaudRate
 115200
 %256000
+%1000000
 % Timeout (in ms)
 2500
 % threadperiod (in ms, require associated thread)

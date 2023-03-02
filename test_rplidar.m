@@ -10,6 +10,7 @@ pRPLIDAR = CreateRPLIDAR();
 %[result] = GetStartupMessageRPLIDAR(pRPLIDAR)
 %[result] = StopRequestRPLIDAR(pRPLIDAR)
 %[result, ModelID, HardwareVersion, FirmwareMajor, FirmwareMinor, SerialNumber] = GetInfoRequestRPLIDAR(pRPLIDAR)
+% Not all the models support this function...
 %[result, typicalscanmodeid] = GetTypicalScanModeRPLIDAR(pRPLIDAR)
 %[result, scanmodeids, scanmodeuspersamples, scanmodemaxdistances, scanmodeanstypes, scanmodenames] = GetAllSupportedScanModesRPLIDAR(pRPLIDAR)
 %[result] = SetMotorPWMRequestRPLIDAR(pRPLIDAR, 660)
