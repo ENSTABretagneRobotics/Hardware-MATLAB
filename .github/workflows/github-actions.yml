@@ -8,14 +8,13 @@ jobs:
  deploy:
     runs-on: ubuntu-latest
     steps: 
-    - uses: actions/create-release@v1
+    - uses: softprops/action-gh-release@v1
       id: create_release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         draft: true
         tag_name: autotagname-${{ github.sha }}
-        release_name: autotagname-${{ github.sha }}
       if: github.event_name != 'pull_request'
 
  matrix:
@@ -24,6 +23,7 @@ jobs:
         run:
             shell: ${{ matrix.cfg.shell }}
     strategy:
+        fail-fast: false
         matrix:
             cfg:
             - { os: ubuntu-20.04, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 8, cmake_out: './hardwarex.so', deploy-file: './hardwarex_compat.so', desc: 'Ubuntu 20.04' }
@@ -38,13 +38,13 @@ jobs:
     steps: 
 
     # Prerequisites
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: |
         (New-Object System.Net.WebClient).DownloadFile("http://www.ensta-bretagne.fr/lebars/Share/windows_extra_tools.zip", "C:\Windows\Temp\windows_extra_tools.zip") 
         7z x C:\Windows\Temp\windows_extra_tools.zip -o"C:\Windows" -y
       shell: pwsh
       if: runner.os == 'Windows'
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.cfg.py_v_maj }}.${{ matrix.cfg.py_v_min }}
         architecture: ${{ matrix.cfg.arch }}

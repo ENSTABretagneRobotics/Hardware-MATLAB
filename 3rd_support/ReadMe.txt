@@ -14,7 +14,7 @@ Linux/macOS :
 - In `hardwarex.h`, check that `#define ENABLE_MAVLINK_SUPPORT`, `#define ENABLE_SBG_SDK_SUPPORT`, `#define ENABLE_RPLIDAR_SDK_SUPPORT` are uncommented.
 - In the `Makefile`, check that `LDFLAGS += -lsbgECom -lrplidar_sdk` is uncommented.
 - For macOS, you might want to install Homebrew and wget : 
-	/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 	brew install wget
 - Copy the headers from https://github.com/mavlink/c_library_v1/archive/a44ece42bc76b1f257f4f540d7283e0c874ac6d9.zip in `/usr/local/include/mavlink` (or `../MAVLinkSDK/mavlink`) :
 	wget https://github.com/mavlink/c_library_v1/archive/a44ece42bc76b1f257f4f540d7283e0c874ac6d9.zip

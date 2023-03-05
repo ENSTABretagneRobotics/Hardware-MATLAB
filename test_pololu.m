@@ -31,11 +31,10 @@ while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
     clf; hold on;
     if (mod(a, 2) == 0)
 		pws(1) = 1000; pws(2) = 2000; pws(3) = 1250;
-        [result] = SetAllPWMsFromThreadPololu(pPololu, selectedchannels, pws);
     else
 		pws(1) = 2000; pws(2) = 1000; pws(3) = 1750;
-        [result] = SetAllPWMsFromThreadPololu(pPololu, selectedchannels, pws);
     end
+    [result] = SetAllPWMsFromThreadPololu(pPololu, selectedchannels, pws);
     a = a+1;
     [result, value] = GetValueFromThreadPololu(pPololu, 11);
     str = sprintf('a = %d, value = %d\n', a, value);
