@@ -8,15 +8,51 @@ if not(libisloaded('hardwarex'))
     switch (computer)
         case 'PCWIN64'
             addpath('x64');
-            %loadlibrary('hardwarex', @hardwarex_proto);
-            [notfound,warnings]=loadlibrary('hardwarex', @hardwarex_proto);
+            try
+                %loadlibrary('hardwarex', @hardwarex_proto);
+                [notfound,warnings]=loadlibrary('hardwarex', @hardwarex_proto);
+            catch
+                [notfound,warnings]=loadlibrary('hardwarex', 'hardwarex.h', 'includepath', 'MAVLinkSDK', 'includepath', 'C:\Program Files\MAVLinkSDK', 'includepath', 'C:\Program Files (x86)\MAVLinkSDK', 'includepath', 'SBG Systems\Inertial SDK\Software Development\sbgECom\src', 'includepath', 'SBG Systems\Inertial SDK\Software Development\sbgECom\common', 'includepath', 'C:\Program Files\SBG Systems\Inertial SDK\Software Development\sbgECom\src', 'includepath', 'C:\Program Files\SBG Systems\Inertial SDK\Software Development\sbgECom\common', 'includepath', 'C:\Program Files (x86)\SBG Systems\Inertial SDK\Software Development\sbgECom\src', 'includepath', 'C:\Program Files (x86)\SBG Systems\Inertial SDK\Software Development\sbgECom\common', 'includepath', 'rplidar_sdk\sdk\include', 'includepath', 'rplidar_sdk\sdk\src', 'includepath', 'C:\Program Files\rplidar_sdk\sdk\include', 'includepath', 'C:\Program Files\rplidar_sdk\sdk\src', 'includepath', 'C:\Program Files (x86)\rplidar_sdk\sdk\include', 'includepath', 'C:\Program Files (x86)\rplidar_sdk\sdk\src', 'includepath', 'rplidar_sdk\sdk\sdk\include', 'includepath', 'rplidar_sdk\sdk\sdk\src', 'includepath', 'C:\Program Files\rplidar_sdk\sdk\sdk\include', 'includepath', 'C:\Program Files\rplidar_sdk\sdk\sdk\src', 'includepath', 'C:\Program Files (x86)\rplidar_sdk\sdk\sdk\include', 'includepath', 'C:\Program Files (x86)\rplidar_sdk\sdk\sdk\src', 'includepath', 'include');
+            end
         case 'PCWIN'
             addpath('x86');
-            %loadlibrary('hardwarex');
-            [notfound,warnings]=loadlibrary('hardwarex', @hardwarex_proto);
+            try
+                %loadlibrary('hardwarex');
+                [notfound,warnings]=loadlibrary('hardwarex', @hardwarex_proto);
+            catch
+                [notfound,warnings]=loadlibrary('hardwarex', 'hardwarex.h', 'includepath', 'MAVLinkSDK', 'includepath', 'C:\Program Files\MAVLinkSDK', 'includepath', 'C:\Program Files (x86)\MAVLinkSDK', 'includepath', 'SBG Systems\Inertial SDK\Software Development\sbgECom\src', 'includepath', 'SBG Systems\Inertial SDK\Software Development\sbgECom\common', 'includepath', 'C:\Program Files\SBG Systems\Inertial SDK\Software Development\sbgECom\src', 'includepath', 'C:\Program Files\SBG Systems\Inertial SDK\Software Development\sbgECom\common', 'includepath', 'C:\Program Files (x86)\SBG Systems\Inertial SDK\Software Development\sbgECom\src', 'includepath', 'C:\Program Files (x86)\SBG Systems\Inertial SDK\Software Development\sbgECom\common', 'includepath', 'rplidar_sdk\sdk\include', 'includepath', 'rplidar_sdk\sdk\src', 'includepath', 'C:\Program Files\rplidar_sdk\sdk\include', 'includepath', 'C:\Program Files\rplidar_sdk\sdk\src', 'includepath', 'C:\Program Files (x86)\rplidar_sdk\sdk\include', 'includepath', 'C:\Program Files (x86)\rplidar_sdk\sdk\src', 'includepath', 'rplidar_sdk\sdk\sdk\include', 'includepath', 'rplidar_sdk\sdk\sdk\src', 'includepath', 'C:\Program Files\rplidar_sdk\sdk\sdk\include', 'includepath', 'C:\Program Files\rplidar_sdk\sdk\sdk\src', 'includepath', 'C:\Program Files (x86)\rplidar_sdk\sdk\sdk\include', 'includepath', 'C:\Program Files (x86)\rplidar_sdk\sdk\sdk\src', 'includepath', 'include');
+            end
+        case 'MACI64'
+            addpath('mac');
+            try
+                %loadlibrary('hardwarex');
+                [notfound,warnings]=loadlibrary('hardwarex', @hardwarex_proto);
+            catch
+                [notfound,warnings]=loadlibrary('hardwarex', 'hardwarex.h', 'includepath', 'MAVLinkSDK', 'includepath', 'MAVLinkSDK/include', 'includepath', '/usr/local/include', 'includepath', 'sbgECom/src', 'includepath', 'sbgECom/common', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/src', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/common', 'includepath', '/usr/local/include/sbgECom/src', 'includepath', '/usr/local/include/sbgECom/common', 'includepath', 'rplidar_sdk/sdk/include', 'includepath', 'rplidar_sdk/sdk/src', 'includepath', '/usr/local/include/rplidar_sdk/sdk/include', 'includepath', '/usr/local/include/rplidar_sdk/sdk/src', 'includepath', 'rplidar_sdk/sdk/sdk/include', 'includepath', 'rplidar_sdk/sdk/sdk/src', 'includepath', '/usr/local/include/rplidar_sdk/sdk/sdk/include', 'includepath', '/usr/local/include/rplidar_sdk/sdk/sdk/src', 'includepath', 'include');
+            end
+        case 'MACA64'
+            addpath('mac');
+            try
+                %loadlibrary('hardwarex');
+                [notfound,warnings]=loadlibrary('hardwarex', @hardwarex_proto);
+            catch
+                [notfound,warnings]=loadlibrary('hardwarex', 'hardwarex.h', 'includepath', 'MAVLinkSDK', 'includepath', 'MAVLinkSDK/include', 'includepath', '/usr/local/include', 'includepath', 'sbgECom/src', 'includepath', 'sbgECom/common', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/src', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/common', 'includepath', '/usr/local/include/sbgECom/src', 'includepath', '/usr/local/include/sbgECom/common', 'includepath', 'rplidar_sdk/sdk/include', 'includepath', 'rplidar_sdk/sdk/src', 'includepath', '/usr/local/include/rplidar_sdk/sdk/include', 'includepath', '/usr/local/include/rplidar_sdk/sdk/src', 'includepath', 'rplidar_sdk/sdk/sdk/include', 'includepath', 'rplidar_sdk/sdk/sdk/src', 'includepath', '/usr/local/include/rplidar_sdk/sdk/sdk/include', 'includepath', '/usr/local/include/rplidar_sdk/sdk/sdk/src', 'includepath', 'include');
+            end
+        case 'GLNXA64'
+            addpath('linux_x64');
+            try
+                %loadlibrary('hardwarex');
+                [notfound,warnings]=loadlibrary('hardwarex', @hardwarex_proto);
+            catch
+                [notfound,warnings]=loadlibrary('hardwarex', 'hardwarex.h', 'includepath', 'MAVLinkSDK', 'includepath', 'MAVLinkSDK/include', 'includepath', '/usr/local/include', 'includepath', 'sbgECom/src', 'includepath', 'sbgECom/common', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/src', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/common', 'includepath', '/usr/local/include/sbgECom/src', 'includepath', '/usr/local/include/sbgECom/common', 'includepath', 'rplidar_sdk/sdk/include', 'includepath', 'rplidar_sdk/sdk/src', 'includepath', '/usr/local/include/rplidar_sdk/sdk/include', 'includepath', '/usr/local/include/rplidar_sdk/sdk/src', 'includepath', 'rplidar_sdk/sdk/sdk/include', 'includepath', 'rplidar_sdk/sdk/sdk/src', 'includepath', '/usr/local/include/rplidar_sdk/sdk/sdk/include', 'includepath', '/usr/local/include/rplidar_sdk/sdk/sdk/src', 'includepath', 'include');
+            end
         otherwise
-            %loadlibrary('hardwarex');
-            [notfound,warnings]=loadlibrary('hardwarex', 'hardwarex.h', 'includepath', 'MAVLinkSDK', 'includepath', '/usr/local/include', 'includepath', 'sbgECom/src', 'includepath', 'sbgECom/common', 'includepath', '/usr/local/include/sbgECom/src', 'includepath', '/usr/local/include/sbgECom/common', 'includepath', 'rplidar_sdk/sdk/include', 'includepath', 'rplidar_sdk/sdk/src', 'includepath', '/usr/local/include/rplidar_sdk/sdk/include', 'includepath', '/usr/local/include/rplidar_sdk/sdk/src', 'includepath', 'rplidar_sdk/sdk/sdk/include', 'includepath', 'rplidar_sdk/sdk/sdk/src', 'includepath', '/usr/local/include/rplidar_sdk/sdk/sdk/include', 'includepath', '/usr/local/include/rplidar_sdk/sdk/sdk/src');
+            try
+                %loadlibrary('hardwarex');
+                [notfound,warnings]=loadlibrary('hardwarex', @hardwarex_proto);
+            catch
+                [notfound,warnings]=loadlibrary('hardwarex', 'hardwarex.h', 'includepath', 'MAVLinkSDK', 'includepath', 'MAVLinkSDK/include', 'includepath', '/usr/local/include', 'includepath', 'sbgECom/src', 'includepath', 'sbgECom/common', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/src', 'includepath', 'SBG Systems/Inertial SDK/Software Development/sbgECom/common', 'includepath', '/usr/local/include/sbgECom/src', 'includepath', '/usr/local/include/sbgECom/common', 'includepath', 'rplidar_sdk/sdk/include', 'includepath', 'rplidar_sdk/sdk/src', 'includepath', '/usr/local/include/rplidar_sdk/sdk/include', 'includepath', '/usr/local/include/rplidar_sdk/sdk/src', 'includepath', 'rplidar_sdk/sdk/sdk/include', 'includepath', 'rplidar_sdk/sdk/sdk/src', 'includepath', '/usr/local/include/rplidar_sdk/sdk/sdk/include', 'includepath', '/usr/local/include/rplidar_sdk/sdk/sdk/src', 'includepath', 'include');
+            end
     end
     %libfunctions hardwarex -full
 end

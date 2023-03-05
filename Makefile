@@ -1,10 +1,11 @@
 # Check and modify the content of this Makefile to match your configuration if needed to build this library.
-# Put the built library (hardwarex.so/.dylib) in this folder (.so for Linux, .dylib for macOS).
+# Put the built library (hardwarex.so/.dylib) in this folder (.so for Linux, .dylib for macOS)
+# and remove any existing linux*/mac* subfolders.
 #
-# For Linux, run in a terminal something similar to : 
+# For Linux, run in a terminal something similar to: 
 # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/Hardware-MATLAB-master
 # to enable MATLAB to find the library, and launch MATLAB from the same terminal.
-# In some cases you might have to launch MATLAB using something similar to this : 
+# In some cases you might have to launch MATLAB using something similar to this: 
 # LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6:/lib/x86_64-linux-gnu/libgcc_s.so.1 matlab
 # or 
 # LD_PRELOAD=/usr/lib64/libstdc++.so.6:/lib64/libgcc_s.so.1 matlab
@@ -16,10 +17,10 @@
 # For macOS, MATLAB might display an error related to the licence of Xcode when only its command line tools are installed,
 # so in e.g. /Applications/MATLAB_R2018b.app/bin/maci64/mexopts remove or comment the <XCODE_AGREED_VERSION>...</XCODE_AGREED_VERSION>
 # block in the 3 files and relaunch MATLAB. 
-# If needed (macOS or MATLAB before 2018?), run in a terminal something similar to : 
+# If needed (macOS or MATLAB before 2018?), run in a terminal something similar to: 
 # export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:~/Hardware-MATLAB-master
 # to enable MATLAB to find the library, and launch MATLAB from the same terminal.
-# In some cases you might have to launch MATLAB using something similar to this : 
+# In some cases you might have to launch MATLAB using something similar to this: 
 # DYLD_INSERT_LIBRARIES=/usr/lib/libstdc++.6.dylib:/usr/lib/libgcc_s.1.dylib /Applications/MATLAB_R2012a.app/bin/matlab
 # or 
 # DYLD_INSERT_LIBRARIES=/usr/lib/libstdc++.6.dylib /Applications/MATLAB_R2012a.app/bin/matlab

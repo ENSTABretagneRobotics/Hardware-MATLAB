@@ -267,6 +267,6 @@ $RECYCLE.BIN/
 TODO/
 !*ReadMe.txt
 Upgrade*
-genproto*
+#genproto*
 hardwarex.bat
 hardwarex_with_3rd_support.bat

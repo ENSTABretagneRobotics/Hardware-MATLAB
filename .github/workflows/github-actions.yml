@@ -26,14 +26,16 @@ jobs:
         fail-fast: false
         matrix:
             cfg:
-            - { os: ubuntu-20.04, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 8, cmake_out: './hardwarex.so', deploy-file: './hardwarex_compat.so', desc: 'Ubuntu 20.04' }
-            - { os: macos-11, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 9, cmake_out: './hardwarex.dylib', deploy-file: './hardwarex_compat.dylib', desc: 'macOS Big Sur 11' }
-            - { os: windows-2019, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 8, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x64_compat.dll', cmake_params_1: '-G "Visual Studio 16" -A x64 -D ENABLE_STATIC=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2019 x64 static' }
-            - { os: windows-2019, shell: bash, arch: x86, py_v_maj: 3, py_v_min: 8, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x86_compat.dll', cmake_params_1: '-G "Visual Studio 16" -A Win32 -D ENABLE_STATIC=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2019 x86 static' }
-            - { os: ubuntu-20.04, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 8, cmake_out: './hardwarex.so', deploy-file: './hardwarex.so', cmake_params_1: '-D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', desc: 'Ubuntu 20.04 with 3rd support' }
-            - { os: macos-11, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 9, cmake_out: './hardwarex.dylib', deploy-file: './hardwarex.dylib', cmake_params_1: '-D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', desc: 'macOS Big Sur 11 with 3rd support' }
-            - { os: windows-2019, shell: bash, arch: x64, py_v_maj: 3, py_v_min: 8, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x64.dll', cmake_params_1: '-G "Visual Studio 16" -A x64 -D ENABLE_STATIC=ON -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2019 x64 static with 3rd support' }
-            - { os: windows-2019, shell: bash, arch: x86, py_v_maj: 3, py_v_min: 8, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x86.dll', cmake_params_1: '-G "Visual Studio 16" -A Win32 -D ENABLE_STATIC=ON -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2019 x86 static with 3rd support' }
+            - { os: ubuntu-22.04, shell: bash, arch: x64, py_arch: x64, py_v_maj: 3, py_v_min: 10, cmake_out: './hardwarex.so', deploy-file: './hardwarex_compat.so', desc: 'Ubuntu 22.04' }
+            - { os: macos-12, shell: bash, arch: arm64, py_arch: x64, py_v_maj: 3, py_v_min: 10, cmake_out: './hardwarex.dylib', deploy-file: './hardwarex_compat_arm64.dylib', cmake_params_1: '-D CMAKE_SYSTEM_NAME=Darwin -D CMAKE_OSX_ARCHITECTURES=arm64', desc: 'macOS Monterey arm64' }
+            - { os: macos-12, shell: bash, arch: x86_64, py_arch: x64, py_v_maj: 3, py_v_min: 10, cmake_out: './hardwarex.dylib', deploy-file: './hardwarex_compat.dylib', desc: 'macOS Monterey x86_64' }
+            - { os: windows-2019, shell: bash, arch: x64, py_arch: x64, py_v_maj: 3, py_v_min: 10, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x64_compat.dll', cmake_params_1: '-G "Visual Studio 16" -A x64 -D ENABLE_STATIC=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2019 x64 static' }
+            - { os: windows-2019, shell: bash, arch: x86, py_arch: x86, py_v_maj: 3, py_v_min: 10, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x86_compat.dll', cmake_params_1: '-G "Visual Studio 16" -A Win32 -D ENABLE_STATIC=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2019 x86 static' }
+            - { os: ubuntu-22.04, shell: bash, arch: x64, py_arch: x64, py_v_maj: 3, py_v_min: 10, cmake_out: './hardwarex.so', deploy-file: './hardwarex.so', cmake_params_1: '-D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', desc: 'Ubuntu 22.04 with 3rd support' }
+            #- { os: macos-12, shell: bash, arch: arm64, py_arch: x64, py_v_maj: 3, py_v_min: 10, cmake_out: './hardwarex.dylib', deploy-file: './hardwarex_arm64.dylib', cmake_params_1: '-D CMAKE_SYSTEM_NAME=Darwin -D CMAKE_OSX_ARCHITECTURES=arm64 -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', desc: 'macOS Monterey arm64 with 3rd support' }
+            - { os: macos-12, shell: bash, arch: x86_64, py_arch: x64, py_v_maj: 3, py_v_min: 10, cmake_out: './hardwarex.dylib', deploy-file: './hardwarex.dylib', cmake_params_1: '-D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', desc: 'macOS Monterey x86_64 with 3rd support' }
+            - { os: windows-2019, shell: bash, arch: x64, py_arch: x64, py_v_maj: 3, py_v_min: 10, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x64.dll', cmake_params_1: '-G "Visual Studio 16" -A x64 -D ENABLE_STATIC=ON -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2019 x64 static with 3rd support' }
+            - { os: windows-2019, shell: bash, arch: x86, py_arch: x86, py_v_maj: 3, py_v_min: 10, cmake_out: './Release/hardwarex.dll', deploy-file: './Release/hardwarex_x86.dll', cmake_params_1: '-G "Visual Studio 16" -A Win32 -D ENABLE_STATIC=ON -D ENABLE_MAVLINK_SUPPORT=ON -D ENABLE_SBG_SDK_SUPPORT=ON -D ENABLE_RPLIDAR_SDK_SUPPORT=ON', cmake_params_2: '--config Release --target hardwarex', desc: 'Windows Visual Studio 2019 x86 static with 3rd support' }
     name: ${{ matrix.cfg.desc }}
     steps: 
 
@@ -47,40 +49,60 @@ jobs:
     - uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.cfg.py_v_maj }}.${{ matrix.cfg.py_v_min }}
-        architecture: ${{ matrix.cfg.arch }}
+        architecture: ${{ matrix.cfg.py_arch }}
     - run: python -c "import sys; print(sys.version)"
 
     # Build
     - run: |
         cmake ${{ matrix.cfg.cmake_params_1 }} . && cmake --build . ${{ matrix.cfg.cmake_params_2 }} 
         if [ ! "${{ matrix.cfg.cmake_out }}" = "${{ matrix.cfg.deploy-file }}" ]; then cp -Rf ${{ matrix.cfg.cmake_out }} ${{ matrix.cfg.deploy-file }} ; fi
-    - run: mv ${{ matrix.cfg.cmake_out }} ./libhardwarex.so        
-      if: runner.os == 'Linux'
-    - run: mkdir -p ${{ matrix.cfg.arch }} && cp -Rf ${{ matrix.cfg.cmake_out }} ./${{ matrix.cfg.arch }}/hardwarex.dll
-      if: runner.os == 'Windows'
 
     # Python tests
-    - run: git clone https://github.com/ENSTABretagneRobotics/Hardware-Python && cp -Rf Hardware-Python/*.py ./
-      if: runner.os == 'Linux' || runner.os == 'Windows'
     - run: |
-        LD_LIBRARY_PATH=$LD_LIBRARY_PATH:. python -c "from hardwarex import * ; "
-        mv ./libhardwarex.so ${{ matrix.cfg.cmake_out }}
+        git clone https://github.com/ENSTABretagneRobotics/Hardware-Python && cp -Rf Hardware-Python/*.py ./
+        rm -Rf linux_x64 mac x86 x64
+        wget https://github.com/ENSTABretagneRobotics/UxVCtrl/releases/download/JD2022/UxVCtrl_JD2022.zip --no-check-certificate -nv
+        unzip -q -o UxVCtrl_JD2022.zip
+        perl -i -p0e 's/% bCommandPrompt\r\n1/% bCommandPrompt\r\n0/' UxVCtrl_JD2022/BUGGY_SIMULATOR_WORKSPACE/UxVCtrl.txt
+    - run: |
+        sed -i 's/COM6/127.0.0.1:5004/' SSC320.txt
+        sed -i 's/COM5/127.0.0.1:5007/' RazorAHRS0.txt
+        sed -i 's/COM14/127.0.0.1:5001/' ublox0.txt
+        cp -Rf "UxVCtrl_JD2022/Compatibility mode/Ubuntu/UxVCtrl_compat_ubuntu_jammy" UxVCtrl_JD2022/BUGGY_SIMULATOR_WORKSPACE/
+        cp -Rf "UxVCtrl_JD2022/Compatibility mode/Ubuntu/"*.so* UxVCtrl_JD2022/BUGGY_SIMULATOR_WORKSPACE/
+        sh -c "cd UxVCtrl_JD2022/BUGGY_SIMULATOR_WORKSPACE; chmod +x ./UxVCtrl_compat_ubuntu_jammy; ./UxVCtrl_compat_ubuntu_jammy &"
+        mkdir -p lib && mv -f ${{ matrix.cfg.cmake_out }} lib/hardwarex.so # Problem when the library is also in the current folder...?
       if: runner.os == 'Linux'
+    - run: |
+        sed -i "" 's/COM6/127.0.0.1:5004/' SSC320.txt
+        sed -i "" 's/COM5/127.0.0.1:5007/' RazorAHRS0.txt
+        sed -i "" 's/COM14/127.0.0.1:5001/' ublox0.txt
+        cp -Rf "UxVCtrl_JD2022/Compatibility mode/macOS/UxVCtrl_compat_macos_monterey" UxVCtrl_JD2022/BUGGY_SIMULATOR_WORKSPACE/
+        sh -c "cd UxVCtrl_JD2022/BUGGY_SIMULATOR_WORKSPACE; chmod +x ./UxVCtrl_compat_macos_monterey; ./UxVCtrl_compat_macos_monterey &"
+        mkdir -p lib && mv -f ${{ matrix.cfg.cmake_out }} lib/hardwarex.dylib
+      if: runner.os == 'macOS'
     - run: |
         wget http://www.ensta-bretagne.fr/lebars/Share/windows_server_core_prereq.zip --no-check-certificate -nv
         7z x windows_server_core_prereq.zip -o"/c/Windows" -y || true # ksuser.dll already on windows-2016...?
-        wget https://github.com/ENSTABretagneRobotics/UxVCtrl/releases/download/Fall2020/UxVCtrl-Fall2020.zip --no-check-certificate -nv
-        unzip -q -o UxVCtrl-Fall2020.zip
-        cp -Rf "UxVCtrl-Fall2020/Compatibility mode/Windows/UxVCtrl_compat.exe" UxVCtrl-Fall2020/BUGGY_SIMULATOR_WORKSPACE/
-        cp -Rf "UxVCtrl-Fall2020/Compatibility mode/Windows/"*.dll UxVCtrl-Fall2020/BUGGY_SIMULATOR_WORKSPACE/
-        perl -i -p0e 's/% bCommandPrompt\r\n1/% bCommandPrompt\r\n0/' UxVCtrl-Fall2020/BUGGY_SIMULATOR_WORKSPACE/UxVCtrl.txt
-        sh -c "cd UxVCtrl-Fall2020/BUGGY_SIMULATOR_WORKSPACE; ./UxVCtrl_compat.exe &"
         sed -i 's/COM6/127.0.0.1:5004/' SSC320.txt
-        python -c "from hardwarex import *; import time; pSSC32 = CreateSSC32(); ConnectSSC32(pSSC32, 'SSC320.txt'); time.sleep(0.1); result = SetPWMSSC32(pSSC32, 0, 1400); result; time.sleep(0.1); result = SetPWMSSC32(pSSC32, 2, 2000); result; time.sleep(0.5); DisconnectSSC32(pSSC32); DestroySSC32(pSSC32)"
         sed -i 's/COM5/127.0.0.1:5007/' RazorAHRS0.txt
-        python -c "from hardwarex import *; import time; pRazorAHRS = CreateRazorAHRS(); ConnectRazorAHRS(pRazorAHRS, 'RazorAHRS0.txt'); result = GetLatestDataRazorAHRS(pRazorAHRS); razorahrsdata = result[1]; print('Yaw =',razorahrsdata.Yaw*180.0/3.14,', Pitch =',razorahrsdata.Pitch*180.0/3.14,', Roll =',razorahrsdata.Roll*180.0/3.14,'\n'); time.sleep(1); result = GetLatestDataRazorAHRS(pRazorAHRS); razorahrsdata = result[1]; print('Yaw =',razorahrsdata.Yaw*180.0/3.14,', Pitch =',razorahrsdata.Pitch*180.0/3.14,', Roll =',razorahrsdata.Roll*180.0/3.14,'\n'); DisconnectRazorAHRS(pRazorAHRS); DestroyRazorAHRS(pRazorAHRS)"
         sed -i 's/COM14/127.0.0.1:5001/' ublox0.txt
+        cp -Rf "UxVCtrl_JD2022/Compatibility mode/Windows/UxVCtrl_compat.exe" UxVCtrl_JD2022/BUGGY_SIMULATOR_WORKSPACE/
+        cp -Rf "UxVCtrl_JD2022/Compatibility mode/Windows/"*.dll UxVCtrl_JD2022/BUGGY_SIMULATOR_WORKSPACE/
+        sh -c "cd UxVCtrl_JD2022/BUGGY_SIMULATOR_WORKSPACE; ./UxVCtrl_compat.exe &"
+        mkdir -p ${{ matrix.cfg.arch }} && mv -f ${{ matrix.cfg.cmake_out }} ./${{ matrix.cfg.arch }}/hardwarex.dll
+      if: runner.os == 'Windows'
+    - run: |
+        python -c "from hardwarex import *; import time; pSSC32 = CreateSSC32(); ConnectSSC32(pSSC32, 'SSC320.txt'); time.sleep(0.1); result = SetPWMSSC32(pSSC32, 0, 1400); result; time.sleep(0.1); result = SetPWMSSC32(pSSC32, 2, 2000); result; time.sleep(0.5); DisconnectSSC32(pSSC32); DestroySSC32(pSSC32)"
+        python -c "from hardwarex import *; import time; pRazorAHRS = CreateRazorAHRS(); ConnectRazorAHRS(pRazorAHRS, 'RazorAHRS0.txt'); result = GetLatestDataRazorAHRS(pRazorAHRS); razorahrsdata = result[1]; print('Yaw =',razorahrsdata.Yaw*180.0/3.14,', Pitch =',razorahrsdata.Pitch*180.0/3.14,', Roll =',razorahrsdata.Roll*180.0/3.14,'\n'); time.sleep(1); result = GetLatestDataRazorAHRS(pRazorAHRS); razorahrsdata = result[1]; print('Yaw =',razorahrsdata.Yaw*180.0/3.14,', Pitch =',razorahrsdata.Pitch*180.0/3.14,', Roll =',razorahrsdata.Roll*180.0/3.14,'\n'); DisconnectRazorAHRS(pRazorAHRS); DestroyRazorAHRS(pRazorAHRS)"
         python -c "from hardwarex import *; import time; publox = Createublox(); Connectublox(publox, 'ublox0.txt'); result = GetNMEASentenceublox(publox); nmeadata = result[1]; print('(LAT,LON) = (',nmeadata.Latitude,',',nmeadata.Longitude,')\n'); Disconnectublox(publox); Destroyublox(publox)"
+      if: matrix.cfg.arch != 'arm64'
+
+    - run: mv -f lib/hardwarex.so ${{ matrix.cfg.cmake_out }}
+      if: runner.os == 'Linux'
+    - run: mv -f lib/hardwarex.dylib ${{ matrix.cfg.cmake_out }}
+      if: runner.os == 'macOS'
+    - run: mv -f ./${{ matrix.cfg.arch }}/hardwarex.dll ${{ matrix.cfg.cmake_out }}
       if: runner.os == 'Windows'
 
     # Deployment

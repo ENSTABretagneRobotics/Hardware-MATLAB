@@ -151,6 +151,7 @@ See also https://sourceforge.net/p/predef/wiki/Architectures/.
 // To fix...
 
 #pragma GCC diagnostic ignored "-Wwrite-strings"
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 //#if (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)) || (__GNUC__ > 4))
 //#pragma GCC diagnostic push
 //#endif // (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)) || (__GNUC__ > 4))

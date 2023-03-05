@@ -1,16 +1,21 @@
-Default release : disable 3rd_support defines, rebuild all, run UpgradeDLL.bat and UpgradeDLLConfigPython.bat, git sync, download auto draft release, run hardwarex.bat (need MATLAB R2017b 64 bit and R2015b 32 bit,...), git sync
+Default release : disable 3rd_support defines, rebuild all, run UpgradeDLL.bat and UpgradeDLLConfigPython.bat, git sync, download auto draft release, run hardwarex.bat (need MATLAB R2017b 64 bit and R2015b 32 bit, see also message about macOS (need MACBOOK14) and Linux (need saltp7-l)...), git sync
 3rd_support release : download auto draft release, prepare %USERPROFILE%\Downloads\hardwarex_with_3rd_support\, run hardwarex_with_3rd_support.bat (need MATLAB R2017b 64 bit and R2015b 32 bit, mavlink versions,...), upload hardwarex_with_3rd_support.zip
 
 Update Hardware-CPP, MATLAB, Python (check structures), in particular mavlink messages...
 
-char/array of char parameters : see GetInfoRequestRPLIDAR(), GetAllSupportedScanModesRPLIDAR...
+Malloc 10 contiguous int with ctypes?->voir https://stackoverflow.com/questions/33953669/ctypes-allocate-double-pass-it-to-c-then-use-it-in-python
+Ctypes : probablement partout où il y a array de plusieurs éléments écrits, il faudrait que ce soit du create_string_buffer() (en particulier MDM)...?->ça parait bizarre qu'on soit obligé de faire ça...
+Brancher lidar au mac (car les pb alloc se voient plus facilement sous arm?) et faire tests en remettant arrays pour SerialNumber?
+char/array of char parameters: see GetInfoRequestRPLIDAR(), GetAllSupportedScanModesRPLIDAR...
 
 
+pour chaque thread, avoir une var partagée pour la valeur de retour de GetData(), qui serait alors retournée et immédiatement remise à un code d'erreur par GetDataFromThread()...
+actions add tests for linux and mac (only i64) like windows, auto test with UxVCtrl/UxVSim, SITL...
+actions mac m1 cross compile (for 3rd_support, would need to ensure cmake cross compile params are passed also to the dependencies...), faire action lipo qui attend la fin des autres et télécharge les releases...
 rplidar sdk only works in C++ while Matlab is checking the headers in C...
-Linux : might need to put full path for includepath in hardwarex_init.m when using local folders for sbgECom, MAVLinkSDK...
-auto test with UxVCtrl/UxVSim, SITL...
+Linux: might need to put full path for includepath in hardwarex_init.m when using local folders for sbgECom, MAVLinkSDK...
+
 Fix latest mavlink MAVPACKED mavlink_types.h (check if it is also a problem for Linux)...
-patchproto for linux and mac?->propose to run manually hardwarex_setup to generate a hardwarex_proto.m to be able to patch it, and change manually hardwarex_init.m to use the proto...?
 
 Warning: The data type 's_IO_markerPtr' used by structure s_IO_FILE does not exist.  The structure may not be usable. 
 > In loadlibrary
@@ -42,27 +47,6 @@ Warning: The data type 'FcnPtr' used by structure s_SbgEComHandle does not exist
 Warning: The data type 'error' used by structure SBG does not exist.  The structure may not be usable. 
 > In loadlibrary
   In hardwarex_init (line 19) 
-Warning: The data type 'error' used by structure NAV_PVT_PL_UBX does not exist.  The structure may not be usable. 
-> In loadlibrary
-  In hardwarex_init (line 19) 
-Warning: The data type 'error' used by structure NAV_PVT_PL_UBX does not exist.  The structure may not be usable. 
-> In loadlibrary
-  In hardwarex_init (line 19) 
-Warning: The data type 'error' used by structure NAV_PVT_PL_UBX does not exist.  The structure may not be usable. 
-> In loadlibrary
-  In hardwarex_init (line 19) 
-Warning: The data type 'error' used by structure NAV_SOL_PL_UBX does not exist.  The structure may not be usable. 
-> In loadlibrary
-  In hardwarex_init (line 19) 
-Warning: The data type 'error' used by structure NAV_STATUS_PL_UBX does not exist.  The structure may not be usable. 
-> In loadlibrary
-  In hardwarex_init (line 19) 
-Warning: The data type 'error' used by structure NAV_STATUS_PL_UBX does not exist.  The structure may not be usable. 
-> In loadlibrary
-  In hardwarex_init (line 19) 
-Warning: The data type 'error' used by structure NAV_STATUS_PL_UBX does not exist.  The structure may not be usable. 
-> In loadlibrary
-  In hardwarex_init (line 19) 
 
 RPLIDAR : faudrait que le code CPP récupère les données tout le temps dans un thread...
 
@@ -80,7 +64,10 @@ Simplify by gathering Create, Connect...?
 
 OLD
 
-patch hardwarex_proto.m for structures indicated in warnings...
+Pb avec python mac m1...? Mais matlab m1 OK (sauf que comme matlab est en i64, la partie a64 n'est pas testée donc sans doute la dylib a64 marche pas, et peut-être pas que problème avec thread, tester en C les fonctions...), vm i64 OK-> Padding _pack_ = 1 https://stackoverflow.com/questions/53182796/python-ctypes-issue-on-different-oses/53185316#53185316 ...?
+gcc -Wall hardwarex_test.c -o hardwarex_test ./hardwarex.dylib ->a l'air de marcher, sauf que le nom de lib à mettre est pas clair...->clarifié noms de lib
+Tester maca64?->peut-être pas la peine vu que appel de DLL en C marche, essayer d'appeler en python les fonctions de la dll de différentes manières, les valeurs de retour doivent pas être bien récupérées...->Tester quand même maca64 au cas où même pb de pointeur freed alors que var pas réellement déréférencée en matlab...->semble OK voir comment regrouper proto et thunk... 
+
 Bitfields 'error' in UBX...
 https://fr.mathworks.com/matlabcentral/answers/103180-why-do-i-get-warnings-when-loading-a-dll-with-loadlibrary-in-matlab-7-13-r2011b
 http://fr.mathworks.com/help/matlab/matlab_external/limitations-to-shared-library-support.html
