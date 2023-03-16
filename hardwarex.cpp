@@ -66,8 +66,9 @@ THREAD_IDENTIFIER RPLIDAROtherScanThreadId;
 CRITICAL_SECTION RPLIDARCS;
 double angleRPLIDAR = 0;
 double distanceRPLIDAR = 0;
-double anglesRPLIDAR[NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR];
-double distancesRPLIDAR[NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR];
+int nbMeasurementsRPLIDAR = 0;
+double anglesRPLIDAR[MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR];
+double distancesRPLIDAR[MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR];
 BOOL bNewScanRPLIDAR = FALSE;
 int qualityRPLIDAR = FALSE;
 BOOL bExitScanRPLIDAR = FALSE;
@@ -1337,9 +1338,9 @@ HARDWAREX_API int StartOtherScanRequestRPLIDARx(RPLIDAR* pRPLIDAR, int scanmodei
 	return StartOtherScanRequestRPLIDAR(pRPLIDAR, scanmodeid);
 }
 
-HARDWAREX_API int GetOtherScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan)
+HARDWAREX_API int GetOtherScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan, int* pNbMeasurements)
 {
-	return GetOtherScanDataResponseRPLIDAR(pRPLIDAR, pDistances, pAngles, pbNewScan);
+	return GetOtherScanDataResponseRPLIDAR(pRPLIDAR, pDistances, pAngles, pbNewScan, pNbMeasurements);
 }
 
 HARDWAREX_API int ConnectRPLIDARx(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
@@ -1411,21 +1412,23 @@ THREAD_PROC_RETURN_VALUE RPLIDARExpressScanThread(void* pParam)
 THREAD_PROC_RETURN_VALUE RPLIDAROtherScanThread(void* pParam)
 {
 	RPLIDAR* pRPLIDAR = (RPLIDAR*)pParam;
-	double angles[NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR];
-	double distances[NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR];
+	int nbMeasurements = NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR;
+	double angles[MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR];
+	double distances[MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR];
 	BOOL bNewScan = FALSE;
 
 	for (;;)
 	{
 		//mSleep(pRPLIDAR->threadperiod);
-		memset(distances, 0, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
-		memset(angles, 0, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
-		GetOtherScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan);
-		//if (GetOtherScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan) == EXIT_SUCCESS)
+		memset(distances, 0, MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR*sizeof(double));
+		memset(angles, 0, MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR*sizeof(double));
+		GetOtherScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan, &nbMeasurements);
+		//if (GetOtherScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan, &nbMeasurements) == EXIT_SUCCESS)
 		{
 			EnterCriticalSection(&RPLIDARCS);
-			memcpy(distancesRPLIDAR, distances, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
-			memcpy(anglesRPLIDAR, angles, NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+			nbMeasurementsRPLIDAR = nbMeasurements;
+			memcpy(distancesRPLIDAR, distances, nbMeasurements*sizeof(double));
+			memcpy(anglesRPLIDAR, angles, nbMeasurements*sizeof(double));
 			bNewScanRPLIDAR = bNewScan;
 			LeaveCriticalSection(&RPLIDARCS);
 		}
@@ -1466,15 +1469,16 @@ HARDWAREX_API int GetExpressScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR
 	return EXIT_SUCCESS;
 }
 
-HARDWAREX_API int GetOtherScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan)
+HARDWAREX_API int GetOtherScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan, int* pNbMeasurements)
 {
 	UNREFERENCED_PARAMETER(pRPLIDAR);
 
 	// id[pRPLIDAR->szCfgFile] to be able to handle several devices...
 
 	EnterCriticalSection(&RPLIDARCS);
-	memcpy(pDistances, distancesRPLIDAR, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
-	memcpy(pAngles, anglesRPLIDAR, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
+	*pNbMeasurements = nbMeasurementsRPLIDAR;
+	memcpy(pDistances, distancesRPLIDAR, nbMeasurementsRPLIDAR*sizeof(double));
+	memcpy(pAngles, anglesRPLIDAR, nbMeasurementsRPLIDAR*sizeof(double));
 	*pbNewScan = bNewScanRPLIDAR;
 	LeaveCriticalSection(&RPLIDARCS);
 

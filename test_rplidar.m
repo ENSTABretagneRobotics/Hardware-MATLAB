@@ -24,7 +24,7 @@ pRPLIDAR = CreateRPLIDAR();
 str = sprintf('Distance at %f deg = %f m\n', angle*180.0/pi, distance);
 %[result, distances, angles, bNewScan] = GetExpressScanDataResponseRPLIDAR(pRPLIDAR);
 %str = sprintf('Distance at %f deg = %f m\n', angles(1)*180.0/pi, distances(1));
-%[result, distances, angles, bNewScan] = GetOtherScanDataResponseRPLIDAR(pRPLIDAR);
+%[result, distances, angles, bNewScan, nbMeasurements] = GetOtherScanDataResponseRPLIDAR(pRPLIDAR);
 %str = sprintf('Distance at %f deg = %f m\n', angles(1)*180.0/pi, distances(1));
 disp(str);
 
@@ -40,16 +40,19 @@ scale = 6;
 count = 0; alldistances = []; allangles = [];
 key = 0;
 while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
-    [result, distances, angles, bNewScan, quality] = GetScanDataResponseRPLIDAR(pRPLIDAR);
-    %[result, distances, angles, bNewScan, quality] = GetScanDataResponseFromThreadRPLIDAR(pRPLIDAR);
-    %[result, distances, angles, bNewScan] = GetExpressScanDataResponseRPLIDAR(pRPLIDAR);
-    %[result, distances, angles, bNewScan] = GetExpressScanDataResponseFromThreadRPLIDAR(pRPLIDAR);    
-    %[result, distances, angles, bNewScan] = GetOtherScanDataResponseRPLIDAR(pRPLIDAR);
-    %[result, distances, angles, bNewScan] = GetOtherScanDataResponseFromThreadRPLIDAR(pRPLIDAR);    
-    alldistances = [alldistances distances]; allangles = [allangles angles]; 
+    [result, distances, angles, bNewScan, quality] = GetScanDataResponseRPLIDAR(pRPLIDAR); nbMeasurements = 1; % A2 Standard Scan mode
+    %[result, distances, angles, bNewScan, quality] = GetScanDataResponseFromThreadRPLIDAR(pRPLIDAR); nbMeasurements = 1;
+    %[result, distances, angles, bNewScan] = GetExpressScanDataResponseRPLIDAR(pRPLIDAR); nbMeasurements = 32; % A2 Legacy Express Scan mode
+    %[result, distances, angles, bNewScan] = GetExpressScanDataResponseFromThreadRPLIDAR(pRPLIDAR); nbMeasurements = 32; 
+    %[result, distances, angles, bNewScan, nbMeasurements] = GetOtherScanDataResponseRPLIDAR(pRPLIDAR); % S2 Dense Scan mode
+    %[result, distances, angles, bNewScan, nbMeasurements] = GetOtherScanDataResponseFromThreadRPLIDAR(pRPLIDAR);
+    for i = 1:nbMeasurements 
+       alldistances = [alldistances distances(i)]; allangles = [allangles angles(i)];
+    end
     %if bNewScan
-    if count > 360
-    %if count > 720/32
+    if count > 360 % A2 Standard Scan mode
+    %if count > 720/32 % A2 Legacy Express Scan mode
+    %if count > 360/0.12/40 % S2 Dense Scan mode
        clf; hold on; axis([-scale,scale,-scale,scale]);
        plot(alldistances.*cos(allangles), alldistances.*sin(allangles), '.');
        pause(0.01); key = get(gcf,'CurrentCharacter');

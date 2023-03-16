@@ -244,11 +244,12 @@ extern "C" {
 	HARDWAREX_API int StartExpressScanRequestRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int GetExpressScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan);
 	HARDWAREX_API int StartOtherScanRequestRPLIDARx(RPLIDAR* pRPLIDAR, int scanmodeid);
-	HARDWAREX_API int GetOtherScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan);
+	HARDWAREX_API int GetOtherScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan, int* pNbMeasurements);
 	HARDWAREX_API int ConnectRPLIDARx(RPLIDAR* pRPLIDAR, char* szCfgFilePath);
 	HARDWAREX_API int DisconnectRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int GetScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistance, double* pAngle, BOOL* pbNewScan, int* pQuality);
 	HARDWAREX_API int GetExpressScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan);
+	HARDWAREX_API int GetOtherScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan, int* pNbMeasurements);
 	HARDWAREX_API int StartScanThreadRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int StopScanThreadRPLIDARx(RPLIDAR* pRPLIDAR);
 	HARDWAREX_API int StartExpressScanThreadRPLIDARx(RPLIDAR* pRPLIDAR);
