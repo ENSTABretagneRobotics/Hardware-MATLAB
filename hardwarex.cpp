@@ -4,19 +4,23 @@
 #include <deque>
 #endif // __cplusplus
 
+#pragma region Global variables
 THREAD_IDENTIFIER SBGThreadId;
 CRITICAL_SECTION SBGCS;
 SBGDATA sbgdataSBG;
+int resSBG = EXIT_FAILURE;
 BOOL bExitSBG = FALSE;
 
 THREAD_IDENTIFIER MTThreadId;
 CRITICAL_SECTION MTCS;
 MTDATA mtdataMT;
+int resMT = EXIT_FAILURE;
 BOOL bExitMT = FALSE;
 
 THREAD_IDENTIFIER RazorAHRSThreadId;
 CRITICAL_SECTION RazorAHRSCS;
 RAZORAHRSDATA razorahrsdataRazorAHRS;
+int resRazorAHRS = EXIT_FAILURE;
 BOOL bExitRazorAHRS = FALSE;
 
 // No thread yet for MDM...
@@ -25,11 +29,13 @@ THREAD_IDENTIFIER P33xThreadId;
 CRITICAL_SECTION P33xCS;
 double pressureP33x = 0;
 double temperatureP33x = 0;
+int resP33x = EXIT_FAILURE;
 BOOL bExitP33x = FALSE;
 
 THREAD_IDENTIFIER NMEADeviceThreadId;
 CRITICAL_SECTION NMEADeviceCS;
 NMEADATA nmeadataNMEADevice;
+int resNMEADevice = EXIT_FAILURE;
 BOOL bExitNMEADevice = FALSE;
 
 THREAD_IDENTIFIER ubloxNMEAThreadId;
@@ -37,18 +43,21 @@ THREAD_IDENTIFIER ubloxUBXThreadId;
 CRITICAL_SECTION ubloxCS;
 NMEADATA nmeadataublox;
 UBXDATA ubxdataublox;
+int resublox = EXIT_FAILURE;
 BOOL bExitNMEAublox = FALSE;
 BOOL bExitUBXublox = FALSE;
 
 THREAD_IDENTIFIER IM483IThreadId;
 CRITICAL_SECTION IM483ICS;
 double angleIM483I = 0;
+int resIM483I = EXIT_FAILURE;
 BOOL bExitIM483I = FALSE;
 
 THREAD_IDENTIFIER SSC32ThreadId;
 CRITICAL_SECTION SSC32CS;
 int selectedchannelsSSC32[NB_CHANNELS_PWM_SSC32];
 int pwsSSC32[NB_CHANNELS_PWM_SSC32];
+int resSSC32 = EXIT_FAILURE;
 BOOL bExitSSC32 = FALSE;
 
 THREAD_IDENTIFIER PololuThreadId;
@@ -56,12 +65,14 @@ CRITICAL_SECTION PololuCS;
 int selectedchannelsPololu[NB_CHANNELS_PWM_POLOLU];
 int pwsPololu[NB_CHANNELS_PWM_POLOLU];
 int valuesPololu[NB_CHANNELS_POLOLU];
+int resPololu = EXIT_FAILURE;
 BOOL bExitPololu = FALSE;
 
 THREAD_IDENTIFIER HokuyoThreadId;
 CRITICAL_SECTION HokuyoCS;
 double anglesHokuyo[MAX_SLITDIVISION_HOKUYO];
 double distancesHokuyo[MAX_SLITDIVISION_HOKUYO];
+int resHokuyo = EXIT_FAILURE;
 BOOL bExitHokuyo = FALSE;
 
 THREAD_IDENTIFIER RPLIDARScanThreadId;
@@ -79,6 +90,7 @@ int qualityRPLIDAR = 0;
 std::deque<double> anglesvectorRPLIDAR;
 std::deque<double> distancesvectorRPLIDAR;
 #endif // __cplusplus
+int resRPLIDAR = EXIT_FAILURE;
 BOOL bExitScanRPLIDAR = FALSE;
 BOOL bExitExpressScanRPLIDAR = FALSE;
 BOOL bExitOtherScanRPLIDAR = FALSE;
@@ -89,8 +101,10 @@ CRITICAL_SECTION MAVLinkDeviceCS;
 int selectedchannelsMAVLinkDevice[NB_CHANNELS_PWM_MAVLINKDEVICE];
 int pwsMAVLinkDevice[NB_CHANNELS_PWM_MAVLINKDEVICE];
 MAVLINKDATA mavlinkdataMAVLinkDevice;
+int resMAVLinkDevice = EXIT_FAILURE;
 BOOL bExitMAVLinkDevice = FALSE;
 #endif // ENABLE_MAVLINK_SUPPORT
+#pragma endregion
 
 #pragma region SBG
 HARDWAREX_API SBG* CreateSBGx(void)
@@ -135,6 +149,7 @@ HARDWAREX_API int DisconnectSBGx(SBG* pSBG)
 THREAD_PROC_RETURN_VALUE SBGThread(void* pParam)
 {
 	SBG* pSBG = (SBG*)pParam;
+	int res = EXIT_FAILURE, err = EXIT_SUCCESS;
 	SBGDATA sbgdata;
 
 	memset(&sbgdata, 0, sizeof(SBGDATA));
@@ -145,15 +160,18 @@ THREAD_PROC_RETURN_VALUE SBGThread(void* pParam)
 #endif // ENABLE_SBG_SDK_SUPPORT
 		//memset(&sbgdata, 0, sizeof(SBGDATA));
 #ifdef ENABLE_SBG_SDK_SUPPORT
-		GetLatestDataSBG(pSBG, &sbgdata);
+		res = GetLatestDataSBG(pSBG, &sbgdata);
+		if (res != EXIT_SUCCESS) err = res;
 		//if (GetLatestDataSBG(pSBG, &sbgdata) == EXIT_SUCCESS)
 #else
-		GetFrameSBG(pSBG, &sbgdata);
+		res = GetFrameSBG(pSBG, &sbgdata);
+		if (res != EXIT_SUCCESS) err = res;
 		//if (GetFrameSBG(pSBG, &sbgdata) == EXIT_SUCCESS)
 #endif // ENABLE_SBG_SDK_SUPPORT
 		{
 			EnterCriticalSection(&SBGCS);
 			sbgdataSBG = sbgdata;
+			resSBG = err;
 			LeaveCriticalSection(&SBGCS);
 		}
 		if (bExitSBG) break;
@@ -164,19 +182,23 @@ THREAD_PROC_RETURN_VALUE SBGThread(void* pParam)
 
 HARDWAREX_API int GetLatestDataFromThreadSBGx(SBG* pSBG, SBGDATA* pSBGData)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pSBG);
 
 	// id[pSBG->szCfgFile] to be able to handle several devices...
 
 	EnterCriticalSection(&SBGCS);
 	*pSBGData = sbgdataSBG;
+	res = resSBG;
 	LeaveCriticalSection(&SBGCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int StartThreadSBGx(SBG* pSBG)
 {
+	resSBG = EXIT_FAILURE;
 	bExitSBG = FALSE;
 	memset(&sbgdataSBG, 0, sizeof(SBGDATA));
 	InitCriticalSection(&SBGCS);
@@ -190,6 +212,7 @@ HARDWAREX_API int StopThreadSBGx(SBG* pSBG)
 	bExitSBG = TRUE;
 	WaitForThread(SBGThreadId);
 	DeleteCriticalSection(&SBGCS);
+	resSBG = EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 #pragma endregion
@@ -233,6 +256,7 @@ HARDWAREX_API int DisconnectMTx(MT* pMT)
 THREAD_PROC_RETURN_VALUE MTThread(void* pParam)
 {
 	MT* pMT = (MT*)pParam;
+	int res = EXIT_FAILURE, err = EXIT_SUCCESS;
 	MTDATA mtdata;
 
 	memset(&mtdata, 0, sizeof(MTDATA));
@@ -240,11 +264,13 @@ THREAD_PROC_RETURN_VALUE MTThread(void* pParam)
 	{
 		mSleep(pMT->threadperiod);
 		//memset(&mtdata, 0, sizeof(MTDATA));
-		GetLatestDataMT(pMT, &mtdata);
+		res = GetLatestDataMT(pMT, &mtdata);
+		if (res != EXIT_SUCCESS) err = res;
 		//if (GetLatestDataMT(pMT, &mtdata) == EXIT_SUCCESS)
 		{
 			EnterCriticalSection(&MTCS);
 			mtdataMT = mtdata;
+			resMT = err;
 			LeaveCriticalSection(&MTCS);
 		}
 		if (bExitMT) break;
@@ -255,19 +281,23 @@ THREAD_PROC_RETURN_VALUE MTThread(void* pParam)
 
 HARDWAREX_API int GetLatestDataFromThreadMTx(MT* pMT, MTDATA* pMTData)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pMT);
 
 	// id[pMT->szCfgFile] to be able to handle several devices...
 
 	EnterCriticalSection(&MTCS);
 	*pMTData = mtdataMT;
+	res = resMT;
 	LeaveCriticalSection(&MTCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int StartThreadMTx(MT* pMT)
 {
+	resMT = EXIT_FAILURE;
 	bExitMT = FALSE;
 	memset(&mtdataMT, 0, sizeof(MTDATA));
 	InitCriticalSection(&MTCS);
@@ -281,6 +311,7 @@ HARDWAREX_API int StopThreadMTx(MT* pMT)
 	bExitMT = TRUE;
 	WaitForThread(MTThreadId);
 	DeleteCriticalSection(&MTCS);
+	resMT = EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 #pragma endregion
@@ -324,6 +355,7 @@ HARDWAREX_API int DisconnectRazorAHRSx(RAZORAHRS* pRazorAHRS)
 THREAD_PROC_RETURN_VALUE RazorAHRSThread(void* pParam)
 {
 	RAZORAHRS* pRazorAHRS = (RAZORAHRS*)pParam;
+	int res = EXIT_FAILURE, err = EXIT_SUCCESS;
 	RAZORAHRSDATA razorahrsdata;
 
 	memset(&razorahrsdata, 0, sizeof(RAZORAHRSDATA));
@@ -331,11 +363,13 @@ THREAD_PROC_RETURN_VALUE RazorAHRSThread(void* pParam)
 	{
 		mSleep(pRazorAHRS->threadperiod);
 		//memset(&razorahrsdata, 0, sizeof(RAZORAHRSDATA));
-		GetLatestDataRazorAHRS(pRazorAHRS, &razorahrsdata);
+		res = GetLatestDataRazorAHRS(pRazorAHRS, &razorahrsdata);
+		if (res != EXIT_SUCCESS) err = res;
 		//if (GetLatestDataRazorAHRS(pRazorAHRS, &razorahrsdata) == EXIT_SUCCESS)
 		{
 			EnterCriticalSection(&RazorAHRSCS);
 			razorahrsdataRazorAHRS = razorahrsdata;
+			resRazorAHRS = err;
 			LeaveCriticalSection(&RazorAHRSCS);
 		}
 		if (bExitRazorAHRS) break;
@@ -346,19 +380,23 @@ THREAD_PROC_RETURN_VALUE RazorAHRSThread(void* pParam)
 
 HARDWAREX_API int GetLatestDataFromThreadRazorAHRSx(RAZORAHRS* pRazorAHRS, RAZORAHRSDATA* pRazorAHRSData)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pRazorAHRS);
 
 	// id[pRazorAHRS->szCfgFile] to be able to handle several devices...
 
 	EnterCriticalSection(&RazorAHRSCS);
 	*pRazorAHRSData = razorahrsdataRazorAHRS;
+	res = resRazorAHRS;
 	LeaveCriticalSection(&RazorAHRSCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int StartThreadRazorAHRSx(RAZORAHRS* pRazorAHRS)
 {
+	resRazorAHRS = EXIT_FAILURE;
 	bExitRazorAHRS = FALSE;
 	memset(&razorahrsdataRazorAHRS, 0, sizeof(RAZORAHRSDATA));
 	InitCriticalSection(&RazorAHRSCS);
@@ -372,6 +410,7 @@ HARDWAREX_API int StopThreadRazorAHRSx(RAZORAHRS* pRazorAHRS)
 	bExitRazorAHRS = TRUE;
 	WaitForThread(RazorAHRSThreadId);
 	DeleteCriticalSection(&RazorAHRSCS);
+	resRazorAHRS = EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 #pragma endregion
@@ -447,19 +486,23 @@ HARDWAREX_API int DisconnectP33xx(P33X* pP33x)
 THREAD_PROC_RETURN_VALUE P33xThread(void* pParam)
 {
 	P33X* pP33x = (P33X*)pParam;
+	int res = EXIT_FAILURE, err = EXIT_SUCCESS;
 	double pressure = 0, temperature = 0;
 
 	for (;;)
 	{
 		mSleep(pP33x->threadperiod/2);
 		pressure = 0;
-		GetPressureP33x(pP33x, &pressure);
+		res = GetPressureP33x(pP33x, &pressure);
+		if (res != EXIT_SUCCESS) err = res;
 		mSleep(pP33x->threadperiod/2);
 		temperature = 0;
-		GetTemperatureP33x(pP33x, &temperature);
+		res = GetTemperatureP33x(pP33x, &temperature);
+		if (res != EXIT_SUCCESS) err = res;
 		EnterCriticalSection(&P33xCS);
 		pressureP33x = pressure;
 		temperatureP33x = temperature;
+		resP33x = err;
 		LeaveCriticalSection(&P33xCS);
 		if (bExitP33x) break;
 	}
@@ -469,32 +512,39 @@ THREAD_PROC_RETURN_VALUE P33xThread(void* pParam)
 
 HARDWAREX_API int GetPressureFromThreadP33xx(P33X* pP33x, double* pPressure)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pP33x);
 
 	// id[pP33x->szCfgFile] to be able to handle several devices...
 
 	EnterCriticalSection(&P33xCS);
 	*pPressure = pressureP33x;
+	res = resP33x;
 	LeaveCriticalSection(&P33xCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int GetTemperatureFromThreadP33xx(P33X* pP33x, double* pTemperature)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pP33x);
 
 	// id[pP33x->szCfgFile] to be able to handle several devices...
 
 	EnterCriticalSection(&P33xCS);
 	*pTemperature = temperatureP33x;
+	res = resP33x;
 	LeaveCriticalSection(&P33xCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int StartThreadP33xx(P33X* pP33x)
 {
+	resP33x = EXIT_FAILURE;
 	bExitP33x = FALSE;
 	InitCriticalSection(&P33xCS);
 	return CreateDefaultThread(P33xThread, (void*)pP33x, &P33xThreadId);
@@ -507,6 +557,7 @@ HARDWAREX_API int StopThreadP33xx(P33X* pP33x)
 	bExitP33x = TRUE;
 	WaitForThread(P33xThreadId);
 	DeleteCriticalSection(&P33xCS);
+	resP33x = EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 #pragma endregion
@@ -550,6 +601,7 @@ HARDWAREX_API int DisconnectNMEADevicex(NMEADEVICE* pNMEADevice)
 THREAD_PROC_RETURN_VALUE NMEADeviceThread(void* pParam)
 {
 	NMEADEVICE* pNMEADevice = (NMEADEVICE*)pParam;
+	int res = EXIT_FAILURE, err = EXIT_SUCCESS;
 	NMEADATA nmeadata;
 
 	memset(&nmeadata, 0, sizeof(NMEADATA));
@@ -557,9 +609,11 @@ THREAD_PROC_RETURN_VALUE NMEADeviceThread(void* pParam)
 	{
 		mSleep(pNMEADevice->threadperiod);
 		memset(&nmeadata, 0, sizeof(NMEADATA));
-		GetLatestDataNMEADevice(pNMEADevice, &nmeadata);
+		res = GetLatestDataNMEADevice(pNMEADevice, &nmeadata);
+		if (res != EXIT_SUCCESS) err = res;
 		EnterCriticalSection(&NMEADeviceCS);
 		nmeadataNMEADevice = nmeadata;
+		resNMEADevice = err;
 		LeaveCriticalSection(&NMEADeviceCS);
 		if (bExitNMEADevice) break;
 	}
@@ -569,19 +623,23 @@ THREAD_PROC_RETURN_VALUE NMEADeviceThread(void* pParam)
 
 HARDWAREX_API int GetLatestDataFromThreadNMEADevicex(NMEADEVICE* pNMEADevice, NMEADATA* pNMEAData)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pNMEADevice);
 
 	// id[pNMEADevice->szCfgFile] to be able to handle several devices...
 
 	EnterCriticalSection(&NMEADeviceCS);
 	*pNMEAData = nmeadataNMEADevice;
+	res = resNMEADevice;
 	LeaveCriticalSection(&NMEADeviceCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int StartThreadNMEADevicex(NMEADEVICE* pNMEADevice)
 {
+	resNMEADevice = EXIT_FAILURE;
 	bExitNMEADevice = FALSE;
 	InitCriticalSection(&NMEADeviceCS);
 	return CreateDefaultThread(NMEADeviceThread, (void*)pNMEADevice, &NMEADeviceThreadId);
@@ -594,6 +652,7 @@ HARDWAREX_API int StopThreadNMEADevicex(NMEADEVICE* pNMEADevice)
 	bExitNMEADevice = TRUE;
 	WaitForThread(NMEADeviceThreadId);
 	DeleteCriticalSection(&NMEADeviceCS);
+	resNMEADevice = EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 #pragma endregion
@@ -642,6 +701,7 @@ HARDWAREX_API int Disconnectubloxx(UBLOX* publox)
 THREAD_PROC_RETURN_VALUE ubloxNMEAThread(void* pParam)
 {
 	UBLOX* publox = (UBLOX*)pParam;
+	int res = EXIT_FAILURE, err = EXIT_SUCCESS;
 	NMEADATA nmeadata;
 
 	memset(&nmeadata, 0, sizeof(NMEADATA));
@@ -649,11 +709,13 @@ THREAD_PROC_RETURN_VALUE ubloxNMEAThread(void* pParam)
 	{
 		//mSleep(publox->threadperiod);
 		//memset(&nmeadata, 0, sizeof(NMEADATA));
-		GetNMEASentenceublox(publox, &nmeadata);
+		res = GetNMEASentenceublox(publox, &nmeadata);
+		if (res != EXIT_SUCCESS) err = res;
 		//if (GetNMEASentenceublox(publox, &nmeadata) == EXIT_SUCCESS)
 		{
 			EnterCriticalSection(&ubloxCS);
 			nmeadataublox = nmeadata;
+			resublox = err;
 			LeaveCriticalSection(&ubloxCS);
 		}
 		if (bExitNMEAublox) break;
@@ -665,6 +727,7 @@ THREAD_PROC_RETURN_VALUE ubloxNMEAThread(void* pParam)
 THREAD_PROC_RETURN_VALUE ubloxUBXThread(void* pParam)
 {
 	UBLOX* publox = (UBLOX*)pParam;
+	int res = EXIT_FAILURE, err = EXIT_SUCCESS;
 	UBXDATA ubxdata;
 
 	memset(&ubxdata, 0, sizeof(UBXDATA));
@@ -672,11 +735,13 @@ THREAD_PROC_RETURN_VALUE ubloxUBXThread(void* pParam)
 	{
 		//mSleep(publox->threadperiod);
 		//memset(&ubxdata, 0, sizeof(UBXDATA));
-		GetUBXPacketublox(publox, &ubxdata);
+		res = GetUBXPacketublox(publox, &ubxdata);
+		if (res != EXIT_SUCCESS) err = res;
 		//if (GetUBXPacketublox(publox, &ubxdata) == EXIT_SUCCESS)
 		{
 			EnterCriticalSection(&ubloxCS);
 			ubxdataublox = ubxdata;
+			resublox = err;
 			LeaveCriticalSection(&ubloxCS);
 		}
 		if (bExitUBXublox) break;
@@ -687,32 +752,39 @@ THREAD_PROC_RETURN_VALUE ubloxUBXThread(void* pParam)
 
 HARDWAREX_API int GetNMEASentenceFromThreadubloxx(UBLOX* publox, NMEADATA* pNMEAData)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(publox);
 
 	// id[publox->szCfgFile] to be able to handle several devices...
 
 	EnterCriticalSection(&ubloxCS);
 	*pNMEAData = nmeadataublox;
+	res = resublox;
 	LeaveCriticalSection(&ubloxCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int GetUBXPacketFromThreadubloxx(UBLOX* publox, UBXDATA* pUBXData)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(publox);
 
 	// id[publox->szCfgFile] to be able to handle several devices...
 
 	EnterCriticalSection(&ubloxCS);
 	*pUBXData = ubxdataublox;
+	res = resublox;
 	LeaveCriticalSection(&ubloxCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int StartNMEAThreadubloxx(UBLOX* publox)
 {
+	resublox = EXIT_FAILURE;
 	bExitNMEAublox = FALSE;
 	memset(&nmeadataublox, 0, sizeof(NMEADATA));
 	InitCriticalSection(&ubloxCS);
@@ -726,11 +798,13 @@ HARDWAREX_API int StopNMEAThreadubloxx(UBLOX* publox)
 	bExitNMEAublox = TRUE;
 	WaitForThread(ubloxNMEAThreadId);
 	DeleteCriticalSection(&ubloxCS);
+	resublox = EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 
 HARDWAREX_API int StartUBXThreadubloxx(UBLOX* publox)
 {
+	resublox = EXIT_FAILURE;
 	bExitUBXublox = FALSE;
 	memset(&ubxdataublox, 0, sizeof(UBXDATA));
 	InitCriticalSection(&ubloxCS);
@@ -744,6 +818,7 @@ HARDWAREX_API int StopUBXThreadubloxx(UBLOX* publox)
 	bExitUBXublox = TRUE;
 	WaitForThread(ubloxUBXThreadId);
 	DeleteCriticalSection(&ubloxCS);
+	resublox = EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 #pragma endregion
@@ -802,6 +877,7 @@ HARDWAREX_API int DisconnectIM483Ix(IM483I* pIM483I)
 THREAD_PROC_RETURN_VALUE IM483IThread(void* pParam)
 {
 	IM483I* pIM483I = (IM483I*)pParam;
+	int res = EXIT_FAILURE, err = EXIT_SUCCESS;
 	double angle = 0;
 
 	mSleep(pIM483I->threadperiod);
@@ -811,8 +887,12 @@ THREAD_PROC_RETURN_VALUE IM483IThread(void* pParam)
 		EnterCriticalSection(&IM483ICS);
 		angle = angleIM483I;
 		LeaveCriticalSection(&IM483ICS);
-		SetMaxAngleIM483I(pIM483I, angle);
+		res = SetMaxAngleIM483I(pIM483I, angle);
+		if (res != EXIT_SUCCESS) err = res;
 		mSleep(pIM483I->threadperiod);
+		EnterCriticalSection(&IM483ICS);
+		resIM483I = err;
+		LeaveCriticalSection(&IM483ICS);
 		if (bExitIM483I) break;
 	}
 
@@ -821,19 +901,23 @@ THREAD_PROC_RETURN_VALUE IM483IThread(void* pParam)
 
 HARDWAREX_API int SetMaxAngleFromThreadIM483Ix(IM483I* pIM483I, double angle)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pIM483I);
 
 	// id[pIM483I->szCfgFile] to be able to handle several devices...
 
 	EnterCriticalSection(&IM483ICS);
 	angleIM483I = angle;
+	res = resIM483I;
 	LeaveCriticalSection(&IM483ICS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int StartThreadIM483Ix(IM483I* pIM483I)
 {
+	resIM483I = EXIT_FAILURE;
 	bExitIM483I = FALSE;
 	InitCriticalSection(&IM483ICS);
 	return CreateDefaultThread(IM483IThread, (void*)pIM483I, &IM483IThreadId);
@@ -846,6 +930,7 @@ HARDWAREX_API int StopThreadIM483Ix(IM483I* pIM483I)
 	bExitIM483I = TRUE;
 	WaitForThread(IM483IThreadId);
 	DeleteCriticalSection(&IM483ICS);
+	resIM483I = EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 #pragma endregion
@@ -904,6 +989,7 @@ HARDWAREX_API int DisconnectSSC32x(SSC32* pSSC32)
 THREAD_PROC_RETURN_VALUE SSC32Thread(void* pParam)
 {
 	SSC32* pSSC32 = (SSC32*)pParam;
+	int res = EXIT_FAILURE, err = EXIT_SUCCESS;
 	int selectedchannels[NB_CHANNELS_PWM_SSC32];
 	int pws[NB_CHANNELS_PWM_SSC32];
 
@@ -915,8 +1001,12 @@ THREAD_PROC_RETURN_VALUE SSC32Thread(void* pParam)
 		memcpy(selectedchannels, selectedchannelsSSC32, NB_CHANNELS_PWM_SSC32*sizeof(int));
 		memcpy(pws, pwsSSC32, NB_CHANNELS_PWM_SSC32*sizeof(int));
 		LeaveCriticalSection(&SSC32CS);
-		SetAllPWMsSSC32(pSSC32, selectedchannels, pws);
+		res = SetAllPWMsSSC32(pSSC32, selectedchannels, pws);
+		if (res != EXIT_SUCCESS) err = res;
 		mSleep(pSSC32->threadperiod);
+		EnterCriticalSection(&SSC32CS);
+		resSSC32 = err;
+		LeaveCriticalSection(&SSC32CS);
 		if (bExitSSC32) break;
 	}
 
@@ -925,6 +1015,8 @@ THREAD_PROC_RETURN_VALUE SSC32Thread(void* pParam)
 
 HARDWAREX_API int SetAllPWMsFromThreadSSC32x(SSC32* pSSC32, int* selectedchannels, int* pws)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pSSC32);
 
 	// id[pSSC32->szCfgFile] to be able to handle several devices...
@@ -932,13 +1024,15 @@ HARDWAREX_API int SetAllPWMsFromThreadSSC32x(SSC32* pSSC32, int* selectedchannel
 	EnterCriticalSection(&SSC32CS);
 	memcpy(selectedchannelsSSC32, selectedchannels, NB_CHANNELS_PWM_SSC32*sizeof(int));
 	memcpy(pwsSSC32, pws, NB_CHANNELS_PWM_SSC32*sizeof(int));
+	res = resSSC32;
 	LeaveCriticalSection(&SSC32CS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int StartThreadSSC32x(SSC32* pSSC32)
 {
+	resSSC32 = EXIT_FAILURE;
 	bExitSSC32 = FALSE;
 	InitCriticalSection(&SSC32CS);
 	return CreateDefaultThread(SSC32Thread, (void*)pSSC32, &SSC32ThreadId);
@@ -951,6 +1045,7 @@ HARDWAREX_API int StopThreadSSC32x(SSC32* pSSC32)
 	bExitSSC32 = TRUE;
 	WaitForThread(SSC32ThreadId);
 	DeleteCriticalSection(&SSC32CS);
+	resSSC32 = EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 #pragma endregion
@@ -1004,6 +1099,7 @@ HARDWAREX_API int DisconnectPololux(POLOLU* pPololu)
 THREAD_PROC_RETURN_VALUE PololuThread(void* pParam)
 {
 	POLOLU* pPololu = (POLOLU*)pParam;
+	int res = EXIT_FAILURE, err = EXIT_SUCCESS;
 	int selectedchannels[NB_CHANNELS_PWM_POLOLU];
 	int pws[NB_CHANNELS_PWM_POLOLU];
 	int value = 0;
@@ -1018,78 +1114,96 @@ THREAD_PROC_RETURN_VALUE PololuThread(void* pParam)
 		memcpy(selectedchannels, selectedchannelsPololu, NB_CHANNELS_PWM_POLOLU*sizeof(int));
 		memcpy(pws, pwsPololu, NB_CHANNELS_PWM_POLOLU*sizeof(int));
 		LeaveCriticalSection(&PololuCS);
-		SetAllPWMsPololu(pPololu, selectedchannels, pws);
+		res = SetAllPWMsPololu(pPololu, selectedchannels, pws);
+		if (res != EXIT_SUCCESS) err = res;
 		mSleep(10);
 		if (pPololu->winddiranaloginputchan != -1)
 		{
 			value = 0;
-			GetValuePololu(pPololu, pPololu->winddiranaloginputchan, &value);
+			res = GetValuePololu(pPololu, pPololu->winddiranaloginputchan, &value);
+			if (res != EXIT_SUCCESS) err = res;
 			mSleep(10);
 			EnterCriticalSection(&PololuCS);
 			valuesPololu[pPololu->winddiranaloginputchan] = value;
+			resPololu = err;
 			LeaveCriticalSection(&PololuCS);
 		}
 		//else mSleep(10);
 		if (pPololu->windspeedanaloginputchan != -1)
 		{
 			value = 0;
-			GetValuePololu(pPololu, pPololu->windspeedanaloginputchan, &value);
+			res = GetValuePololu(pPololu, pPololu->windspeedanaloginputchan, &value);
+			if (res != EXIT_SUCCESS) err = res;
 			mSleep(10);
 			EnterCriticalSection(&PololuCS);
 			valuesPololu[pPololu->windspeedanaloginputchan] = value;
+			resPololu = err;
 			LeaveCriticalSection(&PololuCS);
 		}
 		//else mSleep(10);
 		if (pPololu->vbat1analoginputchan != -1)
 		{
 			value = 0;
-			GetValuePololu(pPololu, pPololu->vbat1analoginputchan, &value);
+			res = GetValuePololu(pPololu, pPololu->vbat1analoginputchan, &value);
+			if (res != EXIT_SUCCESS) err = res;
 			mSleep(10);
 			EnterCriticalSection(&PololuCS);
 			valuesPololu[pPololu->vbat1analoginputchan] = value;
+			resPololu = err;
 			LeaveCriticalSection(&PololuCS);
 		}
 		//else mSleep(10);
 		if (pPololu->ibat1analoginputchan != -1)
 		{
 			value = 0;
-			GetValuePololu(pPololu, pPololu->ibat1analoginputchan, &value);
+			res = GetValuePololu(pPololu, pPololu->ibat1analoginputchan, &value);
+			if (res != EXIT_SUCCESS) err = res;
 			mSleep(10);
 			EnterCriticalSection(&PololuCS);
 			valuesPololu[pPololu->ibat1analoginputchan] = value;
+			resPololu = err;
 			LeaveCriticalSection(&PololuCS);
 		}
 		//else mSleep(10);
 		if (pPololu->vbat2analoginputchan != -1)
 		{
 			value = 0;
-			GetValuePololu(pPololu, pPololu->vbat2analoginputchan, &value);
+			res = GetValuePololu(pPololu, pPololu->vbat2analoginputchan, &value);
+			if (res != EXIT_SUCCESS) err = res;
 			mSleep(10);
 			EnterCriticalSection(&PololuCS);
 			valuesPololu[pPololu->vbat2analoginputchan] = value;
+			resPololu = err;
 			LeaveCriticalSection(&PololuCS);
 		}
 		//else mSleep(10);
 		if (pPololu->ibat2analoginputchan != -1)
 		{
 			value = 0;
-			GetValuePololu(pPololu, pPololu->ibat2analoginputchan, &value);
+			res = GetValuePololu(pPololu, pPololu->ibat2analoginputchan, &value);
+			if (res != EXIT_SUCCESS) err = res;
 			mSleep(10);
 			EnterCriticalSection(&PololuCS);
 			valuesPololu[pPololu->ibat2analoginputchan] = value;
+			resPololu = err;
 			LeaveCriticalSection(&PololuCS);
 		}
 		//else mSleep(10);
 		if (pPololu->switchanaloginputchan != -1)
 		{
 			value = 0;
-			GetValuePololu(pPololu, pPololu->switchanaloginputchan, &value);
+			res = GetValuePololu(pPololu, pPololu->switchanaloginputchan, &value);
+			if (res != EXIT_SUCCESS) err = res;
 			mSleep(10);
 			EnterCriticalSection(&PololuCS);
 			valuesPololu[pPololu->switchanaloginputchan] = value;
+			resPololu = err;
 			LeaveCriticalSection(&PololuCS);
 		}
 		//else mSleep(10);
+		EnterCriticalSection(&PololuCS);
+		resPololu = err;
+		LeaveCriticalSection(&PololuCS);
 		if (bExitPololu) break;
 	}
 
@@ -1098,6 +1212,8 @@ THREAD_PROC_RETURN_VALUE PololuThread(void* pParam)
 
 HARDWAREX_API int SetAllPWMsFromThreadPololux(POLOLU* pPololu, int* selectedchannels, int* pws)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pPololu);
 
 	// id[pPololu->szCfgFile] to be able to handle several devices...
@@ -1105,26 +1221,31 @@ HARDWAREX_API int SetAllPWMsFromThreadPololux(POLOLU* pPololu, int* selectedchan
 	EnterCriticalSection(&PololuCS);
 	memcpy(selectedchannelsPololu, selectedchannels, NB_CHANNELS_PWM_POLOLU*sizeof(int));
 	memcpy(pwsPololu, pws, NB_CHANNELS_PWM_POLOLU*sizeof(int));
+	res = resPololu;
 	LeaveCriticalSection(&PololuCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int GetValueFromThreadPololux(POLOLU* pPololu, int channel, int* pValue)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pPololu);
 
 	// id[pPololu->szCfgFile] to be able to handle several devices...
 
 	EnterCriticalSection(&PololuCS);
-	if ((channel >= 0)&&(channel < NB_CHANNELS_POLOLU)) *pValue = valuesPololu[channel];	
+	if ((channel >= 0)&&(channel < NB_CHANNELS_POLOLU)) *pValue = valuesPololu[channel];
+	res = resPololu;
 	LeaveCriticalSection(&PololuCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int StartThreadPololux(POLOLU* pPololu)
 {
+	resPololu = EXIT_FAILURE;
 	bExitPololu = FALSE;
 	InitCriticalSection(&PololuCS);
 	return CreateDefaultThread(PololuThread, (void*)pPololu, &PololuThreadId);
@@ -1137,6 +1258,7 @@ HARDWAREX_API int StopThreadPololux(POLOLU* pPololu)
 	bExitPololu = TRUE;
 	WaitForThread(PololuThreadId);
 	DeleteCriticalSection(&PololuCS);
+	resPololu = EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 #pragma endregion
@@ -1180,6 +1302,7 @@ HARDWAREX_API int DisconnectHokuyox(HOKUYO* pHokuyo)
 THREAD_PROC_RETURN_VALUE HokuyoThread(void* pParam)
 {
 	HOKUYO* pHokuyo = (HOKUYO*)pParam;
+	int res = EXIT_FAILURE, err = EXIT_SUCCESS;
 	double angles[MAX_SLITDIVISION_HOKUYO];
 	double distances[MAX_SLITDIVISION_HOKUYO];
 
@@ -1188,12 +1311,14 @@ THREAD_PROC_RETURN_VALUE HokuyoThread(void* pParam)
 		//mSleep(pHokuyo->threadperiod);
 		memset(distances, 0, MAX_SLITDIVISION_HOKUYO*sizeof(double));
 		memset(angles, 0, MAX_SLITDIVISION_HOKUYO*sizeof(double));
-		GetLatestDataHokuyo(pHokuyo, distances, angles);
+		res = GetLatestDataHokuyo(pHokuyo, distances, angles);
+		if (res != EXIT_SUCCESS) err = res;
 		// if (GetLatestDataHokuyo(pHokuyo, distances, angles) == EXIT8SUCCESS)
 		{
 			EnterCriticalSection(&HokuyoCS);
 			memcpy(distancesHokuyo, distances, MAX_SLITDIVISION_HOKUYO*sizeof(double));
 			memcpy(anglesHokuyo, angles, MAX_SLITDIVISION_HOKUYO*sizeof(double));
+			resHokuyo = err;
 			LeaveCriticalSection(&HokuyoCS);
 		}
 		if (bExitHokuyo) break;
@@ -1204,6 +1329,8 @@ THREAD_PROC_RETURN_VALUE HokuyoThread(void* pParam)
 
 HARDWAREX_API int GetLatestDataFromThreadHokuyox(HOKUYO* pHokuyo, double* pDistances, double* pAngles)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pHokuyo);
 
 	// id[pHokuyo->szCfgFile] to be able to handle several devices...
@@ -1211,13 +1338,15 @@ HARDWAREX_API int GetLatestDataFromThreadHokuyox(HOKUYO* pHokuyo, double* pDista
 	EnterCriticalSection(&HokuyoCS);
 	memcpy(pDistances, distancesHokuyo, MAX_SLITDIVISION_HOKUYO*sizeof(double));
 	memcpy(pAngles, anglesHokuyo, MAX_SLITDIVISION_HOKUYO*sizeof(double));
+	res = resHokuyo;
 	LeaveCriticalSection(&HokuyoCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int StartThreadHokuyox(HOKUYO* pHokuyo)
 {
+	resHokuyo = EXIT_FAILURE;
 	bExitHokuyo = FALSE;
 	InitCriticalSection(&HokuyoCS);
 	return CreateDefaultThread(HokuyoThread, (void*)pHokuyo, &HokuyoThreadId);
@@ -1230,6 +1359,7 @@ HARDWAREX_API int StopThreadHokuyox(HOKUYO* pHokuyo)
 	bExitHokuyo = TRUE;
 	WaitForThread(HokuyoThreadId);
 	DeleteCriticalSection(&HokuyoCS);
+	resHokuyo = EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 #pragma endregion
@@ -1374,14 +1504,17 @@ HARDWAREX_API int DisconnectRPLIDARx(RPLIDAR* pRPLIDAR)
 THREAD_PROC_RETURN_VALUE RPLIDARScanThread(void* pParam)
 {
 	RPLIDAR* pRPLIDAR = (RPLIDAR*)pParam;
+	int res = EXIT_FAILURE, err = EXIT_SUCCESS;
 	double angle = 0;
 	double distance = 0;
 	BOOL bNewScan = FALSE, bAutoNewScan = FALSE;
 	int quality = 0, j = 0, nb = 0, nbprev = 0;
 
 #ifdef __cplusplus
+	EnterCriticalSection(&RPLIDARCS);
 	anglesvectorRPLIDAR = std::deque<double>();
 	distancesvectorRPLIDAR = std::deque<double>();
+	LeaveCriticalSection(&RPLIDARCS);
 #endif // __cplusplus
 
 	for (;;)
@@ -1389,7 +1522,8 @@ THREAD_PROC_RETURN_VALUE RPLIDARScanThread(void* pParam)
 		//mSleep(pRPLIDAR->threadperiod);
 		angle = 0;
 		distance = 0;
-		GetScanDataResponseRPLIDAR(pRPLIDAR, &distance, &angle, &bNewScan, &quality);
+		res = GetScanDataResponseRPLIDAR(pRPLIDAR, &distance, &angle, &bNewScan, &quality);
+		if (res != EXIT_SUCCESS) err = res;
 		//if (GetScanDataResponseRPLIDAR(pRPLIDAR, &distance, &angle, &bNewScan, &quality) == EXIT_SUCCESS)
 		{
 			EnterCriticalSection(&RPLIDARCS);
@@ -1447,6 +1581,7 @@ THREAD_PROC_RETURN_VALUE RPLIDARScanThread(void* pParam)
 			}
 #endif // __cplusplus
 
+			resRPLIDAR = err;
 			LeaveCriticalSection(&RPLIDARCS);
 		}
 		if (bExitScanRPLIDAR) break;
@@ -1458,14 +1593,17 @@ THREAD_PROC_RETURN_VALUE RPLIDARScanThread(void* pParam)
 THREAD_PROC_RETURN_VALUE RPLIDARExpressScanThread(void* pParam)
 {
 	RPLIDAR* pRPLIDAR = (RPLIDAR*)pParam;
+	int res = EXIT_FAILURE, err = EXIT_SUCCESS;
 	double angles[NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR];
 	double distances[NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR];
 	BOOL bNewScan = FALSE, bAutoNewScan = FALSE;
 	int i = 0, j = 0, nb = 0, nbprev = 0;
 
 #ifdef __cplusplus
+	EnterCriticalSection(&RPLIDARCS);
 	anglesvectorRPLIDAR = std::deque<double>();
 	distancesvectorRPLIDAR = std::deque<double>();
+	LeaveCriticalSection(&RPLIDARCS);
 #endif // __cplusplus
 
 	for (;;)
@@ -1473,7 +1611,8 @@ THREAD_PROC_RETURN_VALUE RPLIDARExpressScanThread(void* pParam)
 		//mSleep(pRPLIDAR->threadperiod);
 		memset(distances, 0, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
 		memset(angles, 0, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
-		GetExpressScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan);
+		res = GetExpressScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan);
+		if (res != EXIT_SUCCESS) err = res;
 		//if (GetExpressScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan) == EXIT_SUCCESS)
 		{
 			EnterCriticalSection(&RPLIDARCS);
@@ -1533,6 +1672,7 @@ THREAD_PROC_RETURN_VALUE RPLIDARExpressScanThread(void* pParam)
 			}
 #endif // __cplusplus
 
+			resRPLIDAR = err;
 			LeaveCriticalSection(&RPLIDARCS);
 		}
 		if (bExitExpressScanRPLIDAR) break;
@@ -1544,6 +1684,7 @@ THREAD_PROC_RETURN_VALUE RPLIDARExpressScanThread(void* pParam)
 THREAD_PROC_RETURN_VALUE RPLIDAROtherScanThread(void* pParam)
 {
 	RPLIDAR* pRPLIDAR = (RPLIDAR*)pParam;
+	int res = EXIT_FAILURE, err = EXIT_SUCCESS;
 	int nbMeasurements = NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR;
 	double angles[MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR];
 	double distances[MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR];
@@ -1551,8 +1692,10 @@ THREAD_PROC_RETURN_VALUE RPLIDAROtherScanThread(void* pParam)
 	int i = 0, j = 0, nb = 0, nbprev = 0;
 
 #ifdef __cplusplus
+	EnterCriticalSection(&RPLIDARCS);
 	anglesvectorRPLIDAR = std::deque<double>();
 	distancesvectorRPLIDAR = std::deque<double>();
+	LeaveCriticalSection(&RPLIDARCS);
 #endif // __cplusplus
 
 	for (;;)
@@ -1560,7 +1703,8 @@ THREAD_PROC_RETURN_VALUE RPLIDAROtherScanThread(void* pParam)
 		//mSleep(pRPLIDAR->threadperiod);
 		memset(distances, 0, MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR*sizeof(double));
 		memset(angles, 0, MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR*sizeof(double));
-		GetOtherScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan, &nbMeasurements);
+		res = GetOtherScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan, &nbMeasurements);
+		if (res != EXIT_SUCCESS) err = res;
 		//if (GetOtherScanDataResponseRPLIDAR(pRPLIDAR, distances, angles, &bNewScan, &nbMeasurements) == EXIT_SUCCESS)
 		{
 			EnterCriticalSection(&RPLIDARCS);
@@ -1621,6 +1765,7 @@ THREAD_PROC_RETURN_VALUE RPLIDAROtherScanThread(void* pParam)
 			}
 #endif // __cplusplus
 
+			resRPLIDAR = err;
 			LeaveCriticalSection(&RPLIDARCS);
 		}
 		if (bExitOtherScanRPLIDAR) break;
@@ -1631,6 +1776,8 @@ THREAD_PROC_RETURN_VALUE RPLIDAROtherScanThread(void* pParam)
 
 HARDWAREX_API int GetScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistance, double* pAngle, BOOL* pbNewScan, int *pQuality)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pRPLIDAR);
 
 	// id[pRPLIDAR->szCfgFile] to be able to handle several devices...
@@ -1640,13 +1787,16 @@ HARDWAREX_API int GetScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, doubl
 	*pAngle = angleRPLIDAR;
 	*pbNewScan = bNewScanRPLIDAR;
 	*pQuality = qualityRPLIDAR;
+	res = resRPLIDAR;
 	LeaveCriticalSection(&RPLIDARCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int GetExpressScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pRPLIDAR);
 
 	// id[pRPLIDAR->szCfgFile] to be able to handle several devices...
@@ -1655,13 +1805,16 @@ HARDWAREX_API int GetExpressScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR
 	memcpy(pDistances, distancesRPLIDAR, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
 	memcpy(pAngles, anglesRPLIDAR, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
 	*pbNewScan = bNewScanRPLIDAR;
+	res = resRPLIDAR;
 	LeaveCriticalSection(&RPLIDARCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int GetOtherScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, BOOL* pbNewScan, int* pNbMeasurements)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pRPLIDAR);
 
 	// id[pRPLIDAR->szCfgFile] to be able to handle several devices...
@@ -1671,13 +1824,16 @@ HARDWAREX_API int GetOtherScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, 
 	memcpy(pDistances, distancesRPLIDAR, nbMeasurementsRPLIDAR*sizeof(double));
 	memcpy(pAngles, anglesRPLIDAR, nbMeasurementsRPLIDAR*sizeof(double));
 	*pbNewScan = bNewScanRPLIDAR;
+	res = resRPLIDAR;
 	LeaveCriticalSection(&RPLIDARCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int GetLast360DataFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, int* pNbMeasurements)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pRPLIDAR);
 
 	// id[pRPLIDAR->szCfgFile] to be able to handle several devices...
@@ -1690,18 +1846,19 @@ HARDWAREX_API int GetLast360DataFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pD
 		pAngles[i] = anglesvectorRPLIDAR[i];
 		pDistances[i] = distancesvectorRPLIDAR[i];
 	}
+	res = resRPLIDAR;
 	LeaveCriticalSection(&RPLIDARCS);
 
 	if (*pNbMeasurements <= 0) return EXIT_TIMEOUT;
+	return res;
 #else
 	return EXIT_NOT_IMPLEMENTED;
 #endif // __cplusplus
-
-	return EXIT_SUCCESS;
 }
 
 HARDWAREX_API int StartScanThreadRPLIDARx(RPLIDAR* pRPLIDAR)
 {
+	resRPLIDAR = EXIT_FAILURE;
 	bExitScanRPLIDAR = FALSE;
 	InitCriticalSection(&RPLIDARCS);
 	return CreateDefaultThread(RPLIDARScanThread, (void*)pRPLIDAR, &RPLIDARScanThreadId);
@@ -1714,11 +1871,13 @@ HARDWAREX_API int StopScanThreadRPLIDARx(RPLIDAR* pRPLIDAR)
 	bExitScanRPLIDAR = TRUE;
 	WaitForThread(RPLIDARScanThreadId);
 	DeleteCriticalSection(&RPLIDARCS);
+	resRPLIDAR = EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 
 HARDWAREX_API int StartExpressScanThreadRPLIDARx(RPLIDAR* pRPLIDAR)
 {
+	resRPLIDAR = EXIT_FAILURE;
 	bExitExpressScanRPLIDAR = FALSE;
 	InitCriticalSection(&RPLIDARCS);
 	return CreateDefaultThread(RPLIDARExpressScanThread, (void*)pRPLIDAR, &RPLIDARExpressScanThreadId);
@@ -1731,11 +1890,13 @@ HARDWAREX_API int StopExpressScanThreadRPLIDARx(RPLIDAR* pRPLIDAR)
 	bExitExpressScanRPLIDAR = TRUE;
 	WaitForThread(RPLIDARExpressScanThreadId);
 	DeleteCriticalSection(&RPLIDARCS);
+	resRPLIDAR = EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 
 HARDWAREX_API int StartOtherScanThreadRPLIDARx(RPLIDAR* pRPLIDAR)
 {
+	resRPLIDAR = EXIT_FAILURE;
 	bExitOtherScanRPLIDAR = FALSE;
 	InitCriticalSection(&RPLIDARCS);
 	return CreateDefaultThread(RPLIDAROtherScanThread, (void*)pRPLIDAR, &RPLIDAROtherScanThreadId);
@@ -1748,6 +1909,7 @@ HARDWAREX_API int StopOtherScanThreadRPLIDARx(RPLIDAR* pRPLIDAR)
 	bExitOtherScanRPLIDAR = TRUE;
 	WaitForThread(RPLIDAROtherScanThreadId);
 	DeleteCriticalSection(&RPLIDARCS);
+	resRPLIDAR = EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 #pragma endregion
@@ -1802,6 +1964,7 @@ HARDWAREX_API int DisconnectMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice)
 THREAD_PROC_RETURN_VALUE MAVLinkDeviceThread(void* pParam)
 {
 	MAVLINKDEVICE* pMAVLinkDevice = (MAVLINKDEVICE*)pParam;
+	int res = EXIT_FAILURE, err = EXIT_SUCCESS;
 	int selectedchannels[NB_CHANNELS_PWM_MAVLINKDEVICE];
 	int pws[NB_CHANNELS_PWM_MAVLINKDEVICE];
 	MAVLINKDATA mavlinkdata;
@@ -1814,14 +1977,17 @@ THREAD_PROC_RETURN_VALUE MAVLinkDeviceThread(void* pParam)
 		memcpy(selectedchannels, selectedchannelsMAVLinkDevice, NB_CHANNELS_PWM_MAVLINKDEVICE*sizeof(int));
 		memcpy(pws, pwsMAVLinkDevice, NB_CHANNELS_PWM_MAVLINKDEVICE*sizeof(int));
 		LeaveCriticalSection(&MAVLinkDeviceCS);
-		SetAllPWMsMAVLinkDevice(pMAVLinkDevice, selectedchannels, pws);
+		res = SetAllPWMsMAVLinkDevice(pMAVLinkDevice, selectedchannels, pws);
+		if (res != EXIT_SUCCESS) err = res;
 		uSleep(1000*pMAVLinkDevice->threadperiod/2);
 		//memset(&mavlinkdata, 0, sizeof(MAVLINKDATA));
-		GetLatestDataMAVLinkDevice(pMAVLinkDevice, &mavlinkdata);
+		res = GetLatestDataMAVLinkDevice(pMAVLinkDevice, &mavlinkdata);
+		if (res != EXIT_SUCCESS) err = res;
 		//if (GetLatestDataMAVLinkDevice(pMAVLinkDevice, &mavlinkdata) == EXIT_SUCCESS)
 		{
 			EnterCriticalSection(&MAVLinkDeviceCS);
 			mavlinkdataMAVLinkDevice = mavlinkdata;
+			resMAVLinkDevice = err;
 			LeaveCriticalSection(&MAVLinkDeviceCS);
 		}
 		if (bExitMAVLinkDevice) break;
@@ -1832,6 +1998,8 @@ THREAD_PROC_RETURN_VALUE MAVLinkDeviceThread(void* pParam)
 
 HARDWAREX_API int SetAllPWMsFromThreadMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, int* selectedchannels, int* pws)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pMAVLinkDevice);
 
 	// id[pMAVLinkDevice->szCfgFile] to be able to handle several devices...
@@ -1839,26 +2007,31 @@ HARDWAREX_API int SetAllPWMsFromThreadMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevi
 	EnterCriticalSection(&MAVLinkDeviceCS);
 	memcpy(selectedchannelsMAVLinkDevice, selectedchannels, NB_CHANNELS_PWM_MAVLINKDEVICE*sizeof(int));
 	memcpy(pwsMAVLinkDevice, pws, NB_CHANNELS_PWM_MAVLINKDEVICE*sizeof(int));
+	res = resMAVLinkDevice;
 	LeaveCriticalSection(&MAVLinkDeviceCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int GetLatestDataFromThreadMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice, MAVLINKDATA* pMAVLinkData)
 {
+	int res = EXIT_FAILURE;
+
 	UNREFERENCED_PARAMETER(pMAVLinkDevice);
 
 	// id[pMAVLinkDevice->szCfgFile] to be able to handle several devices...
 
 	EnterCriticalSection(&MAVLinkDeviceCS);
 	*pMAVLinkData = mavlinkdataMAVLinkDevice;
+	res = resMAVLinkDevice;
 	LeaveCriticalSection(&MAVLinkDeviceCS);
 
-	return EXIT_SUCCESS;
+	return res;
 }
 
 HARDWAREX_API int StartThreadMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice)
 {
+	resMAVLinkDevice = EXIT_FAILURE;
 	bExitMAVLinkDevice = FALSE;
 	memset(&mavlinkdataMAVLinkDevice, 0, sizeof(MAVLINKDATA));
 	InitCriticalSection(&MAVLinkDeviceCS);
@@ -1872,6 +2045,7 @@ HARDWAREX_API int StopThreadMAVLinkDevicex(MAVLINKDEVICE* pMAVLinkDevice)
 	bExitMAVLinkDevice = TRUE;
 	WaitForThread(MAVLinkDeviceThreadId);
 	DeleteCriticalSection(&MAVLinkDeviceCS);
+	resMAVLinkDevice = EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 #pragma endregion
