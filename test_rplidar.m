@@ -33,35 +33,37 @@ fig = figure('Position',[200 200 400 400],'NumberTitle','off');
 set(fig,'WindowStyle','Modal'); axis('off');
 scale = 6;
 
-%[result] = StartScanThreadRPLIDAR(pRPLIDAR); 
-%[result] = StartExpressScanThreadRPLIDAR(pRPLIDAR); 
-%[result] = StartOtherScanThreadRPLIDAR(pRPLIDAR); 
+[result] = StartScanThreadRPLIDAR(pRPLIDAR);
+%[result] = StartExpressScanThreadRPLIDAR(pRPLIDAR);
+%[result] = StartOtherScanThreadRPLIDAR(pRPLIDAR);
 
 count = 0; alldistances = []; allangles = [];
 key = 0;
 while (isempty(key)||(key ~= 27)) % Wait for ESC key (ASCII code 27).
-    [result, distances, angles, bNewScan, quality] = GetScanDataResponseRPLIDAR(pRPLIDAR); nbMeasurements = 1; % A2 Standard Scan mode
+    %[result, distances, angles, bNewScan, quality] = GetScanDataResponseRPLIDAR(pRPLIDAR); nbMeasurements = 1; % A2 Standard Scan mode
     %[result, distances, angles, bNewScan, quality] = GetScanDataResponseFromThreadRPLIDAR(pRPLIDAR); nbMeasurements = 1;
     %[result, distances, angles, bNewScan] = GetExpressScanDataResponseRPLIDAR(pRPLIDAR); nbMeasurements = 32; % A2 Legacy Express Scan mode
-    %[result, distances, angles, bNewScan] = GetExpressScanDataResponseFromThreadRPLIDAR(pRPLIDAR); nbMeasurements = 32; 
+    %[result, distances, angles, bNewScan] = GetExpressScanDataResponseFromThreadRPLIDAR(pRPLIDAR); nbMeasurements = 32;
     %[result, distances, angles, bNewScan, nbMeasurements] = GetOtherScanDataResponseRPLIDAR(pRPLIDAR); % S2 Dense Scan mode
     %[result, distances, angles, bNewScan, nbMeasurements] = GetOtherScanDataResponseFromThreadRPLIDAR(pRPLIDAR);
-    for i = 1:nbMeasurements 
-       alldistances = [alldistances distances(i)]; allangles = [allangles angles(i)];
+    [result, distances, angles, nbMeasurements] = GetLast360DataFromThreadRPLIDAR(pRPLIDAR);
+    for i = 1:nbMeasurements
+        alldistances = [alldistances distances(i)]; allangles = [allangles angles(i)];
     end
     %if bNewScan
-    if count > 360 % A2 Standard Scan mode
+    %if count > 360 % A2 Standard Scan mode
     %if count > 720/32 % A2 Legacy Express Scan mode
     %if count > 360/0.12/40 % S2 Dense Scan mode
-       clf; hold on; axis([-scale,scale,-scale,scale]);
-       plot(alldistances.*cos(allangles), alldistances.*sin(allangles), '.');
-       pause(0.01); key = get(gcf,'CurrentCharacter');
-       count = 0; alldistances = []; allangles = []; 
-    end    
+    if true % GetLast360DataFromThreadRPLIDAR()
+        clf; hold on; axis square; axis([-scale,scale,-scale,scale]);
+        plot(alldistances.*cos(allangles), alldistances.*sin(allangles), '.');
+        pause(0.01); key = get(gcf,'CurrentCharacter');
+        count = 0; alldistances = []; allangles = [];
+    end
     count = count+1;
 end
 
-%[result] = StopScanThreadRPLIDAR(pRPLIDAR);
+[result] = StopScanThreadRPLIDAR(pRPLIDAR);
 %[result] = StopExpressScanThreadRPLIDAR(pRPLIDAR);
 %[result] = StopOtherScanThreadRPLIDAR(pRPLIDAR);
 

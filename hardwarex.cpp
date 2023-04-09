@@ -1,5 +1,9 @@
 #include "hardwarex.h"
 
+#ifdef __cplusplus
+#include <deque>
+#endif // __cplusplus
+
 THREAD_IDENTIFIER SBGThreadId;
 CRITICAL_SECTION SBGCS;
 SBGDATA sbgdataSBG;
@@ -70,7 +74,11 @@ int nbMeasurementsRPLIDAR = 0;
 double anglesRPLIDAR[MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR];
 double distancesRPLIDAR[MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR];
 BOOL bNewScanRPLIDAR = FALSE;
-int qualityRPLIDAR = FALSE;
+int qualityRPLIDAR = 0;
+#ifdef __cplusplus
+std::deque<double> anglesvectorRPLIDAR;
+std::deque<double> distancesvectorRPLIDAR;
+#endif // __cplusplus
 BOOL bExitScanRPLIDAR = FALSE;
 BOOL bExitExpressScanRPLIDAR = FALSE;
 BOOL bExitOtherScanRPLIDAR = FALSE;
@@ -1345,11 +1353,21 @@ HARDWAREX_API int GetOtherScanDataResponseRPLIDARx(RPLIDAR* pRPLIDAR, double* pD
 
 HARDWAREX_API int ConnectRPLIDARx(RPLIDAR* pRPLIDAR, char* szCfgFilePath)
 {
+#ifdef __cplusplus
+	anglesvectorRPLIDAR = std::deque<double>();
+	distancesvectorRPLIDAR = std::deque<double>();
+#endif // __cplusplus
+
 	return ConnectRPLIDAR(pRPLIDAR, szCfgFilePath);
 }
 
 HARDWAREX_API int DisconnectRPLIDARx(RPLIDAR* pRPLIDAR)
 {
+#ifdef __cplusplus
+	anglesvectorRPLIDAR = std::deque<double>();
+	distancesvectorRPLIDAR = std::deque<double>();
+#endif // __cplusplus
+
 	return DisconnectRPLIDAR(pRPLIDAR);
 }
 
@@ -1358,8 +1376,13 @@ THREAD_PROC_RETURN_VALUE RPLIDARScanThread(void* pParam)
 	RPLIDAR* pRPLIDAR = (RPLIDAR*)pParam;
 	double angle = 0;
 	double distance = 0;
-	BOOL bNewScan = FALSE;
-	int quality = 0;
+	BOOL bNewScan = FALSE, bAutoNewScan = FALSE;
+	int quality = 0, j = 0, nb = 0, nbprev = 0;
+
+#ifdef __cplusplus
+	anglesvectorRPLIDAR = std::deque<double>();
+	distancesvectorRPLIDAR = std::deque<double>();
+#endif // __cplusplus
 
 	for (;;)
 	{
@@ -1374,6 +1397,56 @@ THREAD_PROC_RETURN_VALUE RPLIDARScanThread(void* pParam)
 			angleRPLIDAR = angle;
 			bNewScanRPLIDAR = bNewScan;
 			qualityRPLIDAR = quality;
+
+#ifdef __cplusplus
+			if (pRPLIDAR->maxhist == 0)
+			{
+				// Try to detect the beginning of a new scan with the angle discontinuity...
+				// Try to be a little bit robust w.r.t. non-decreasing outliers...
+				if (((int)anglesvectorRPLIDAR.size() >= 5)&&
+					((angle-anglesvectorRPLIDAR[(int)anglesvectorRPLIDAR.size()-5]) > M_PI)&&
+					((angle-anglesvectorRPLIDAR[(int)anglesvectorRPLIDAR.size()-4]) > M_PI)&&
+					((angle-anglesvectorRPLIDAR[(int)anglesvectorRPLIDAR.size()-3]) > M_PI)&&
+					((angle-anglesvectorRPLIDAR[(int)anglesvectorRPLIDAR.size()-2]) > M_PI)&&
+					((angle-anglesvectorRPLIDAR[(int)anglesvectorRPLIDAR.size()-1]) > M_PI))
+					bAutoNewScan = TRUE; else bAutoNewScan = FALSE;
+				if (bAutoNewScan)
+				{
+					// Try to automatically remove old data...
+					for (j = nbprev-nb-1; j >= 0; j--)
+					{
+						if ((int)anglesvectorRPLIDAR.size() > 0)
+						{
+							anglesvectorRPLIDAR.pop_front();
+							distancesvectorRPLIDAR.pop_front();
+						}
+					}
+					nbprev = nb;
+					nb = 0;
+				}
+			}
+
+			anglesvectorRPLIDAR.push_back(angle);
+			distancesvectorRPLIDAR.push_back(distance);
+
+			if (pRPLIDAR->maxhist == 0)
+			{
+				// Try to automatically remove old data...
+				nb++;
+				if ((nb <= nbprev)&&((int)anglesvectorRPLIDAR.size() > 0))
+				{
+					anglesvectorRPLIDAR.pop_front();
+					distancesvectorRPLIDAR.pop_front();
+				}
+			}
+			if (((pRPLIDAR->maxhist > 0)&&((int)anglesvectorRPLIDAR.size() > pRPLIDAR->maxhist))||
+				((int)anglesvectorRPLIDAR.size() > MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR))
+			{
+				anglesvectorRPLIDAR.pop_front();
+				distancesvectorRPLIDAR.pop_front();
+			}
+#endif // __cplusplus
+
 			LeaveCriticalSection(&RPLIDARCS);
 		}
 		if (bExitScanRPLIDAR) break;
@@ -1387,7 +1460,13 @@ THREAD_PROC_RETURN_VALUE RPLIDARExpressScanThread(void* pParam)
 	RPLIDAR* pRPLIDAR = (RPLIDAR*)pParam;
 	double angles[NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR];
 	double distances[NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR];
-	BOOL bNewScan = FALSE;
+	BOOL bNewScan = FALSE, bAutoNewScan = FALSE;
+	int i = 0, j = 0, nb = 0, nbprev = 0;
+
+#ifdef __cplusplus
+	anglesvectorRPLIDAR = std::deque<double>();
+	distancesvectorRPLIDAR = std::deque<double>();
+#endif // __cplusplus
 
 	for (;;)
 	{
@@ -1401,6 +1480,59 @@ THREAD_PROC_RETURN_VALUE RPLIDARExpressScanThread(void* pParam)
 			memcpy(distancesRPLIDAR, distances, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
 			memcpy(anglesRPLIDAR, angles, NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR*sizeof(double));
 			bNewScanRPLIDAR = bNewScan;
+
+#ifdef __cplusplus
+			for (i = 0; i < NB_MEASUREMENTS_EXPRESS_SCAN_DATA_RESPONSE_RPLIDAR; i++)
+			{
+				if (pRPLIDAR->maxhist == 0)
+				{
+					// Try to detect the beginning of a new scan with the angle discontinuity...
+					// Try to be a little bit robust w.r.t. non-decreasing outliers...
+					if (((int)anglesvectorRPLIDAR.size() >= 5)&&
+						((angles[i]-anglesvectorRPLIDAR[(int)anglesvectorRPLIDAR.size()-5]) > M_PI)&&
+						((angles[i]-anglesvectorRPLIDAR[(int)anglesvectorRPLIDAR.size()-4]) > M_PI)&&
+						((angles[i]-anglesvectorRPLIDAR[(int)anglesvectorRPLIDAR.size()-3]) > M_PI)&&
+						((angles[i]-anglesvectorRPLIDAR[(int)anglesvectorRPLIDAR.size()-2]) > M_PI)&&
+						((angles[i]-anglesvectorRPLIDAR[(int)anglesvectorRPLIDAR.size()-1]) > M_PI))
+						bAutoNewScan = TRUE; else bAutoNewScan = FALSE;
+					if (bAutoNewScan)
+					{
+						// Try to automatically remove old data...
+						for (j = nbprev-nb-1; j >= 0; j--)
+						{
+							if ((int)anglesvectorRPLIDAR.size() > 0)
+							{
+								anglesvectorRPLIDAR.pop_front();
+								distancesvectorRPLIDAR.pop_front();
+							}
+						}
+						nbprev = nb;
+						nb = 0;
+					}
+				}
+
+				anglesvectorRPLIDAR.push_back(angles[i]);
+				distancesvectorRPLIDAR.push_back(distances[i]);
+
+				if (pRPLIDAR->maxhist == 0)
+				{
+					// Try to automatically remove old data...
+					nb++;
+					if ((nb <= nbprev)&&((int)anglesvectorRPLIDAR.size() > 0))
+					{
+						anglesvectorRPLIDAR.pop_front();
+						distancesvectorRPLIDAR.pop_front();
+					}
+				}
+				if (((pRPLIDAR->maxhist > 0)&&((int)anglesvectorRPLIDAR.size() > pRPLIDAR->maxhist))||
+					((int)anglesvectorRPLIDAR.size() > MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR))
+				{
+					anglesvectorRPLIDAR.pop_front();
+					distancesvectorRPLIDAR.pop_front();
+				}
+			}
+#endif // __cplusplus
+
 			LeaveCriticalSection(&RPLIDARCS);
 		}
 		if (bExitExpressScanRPLIDAR) break;
@@ -1415,7 +1547,13 @@ THREAD_PROC_RETURN_VALUE RPLIDAROtherScanThread(void* pParam)
 	int nbMeasurements = NB_MEASUREMENTS_OTHER_SCAN_DATA_RESPONSE_RPLIDAR;
 	double angles[MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR];
 	double distances[MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR];
-	BOOL bNewScan = FALSE;
+	BOOL bNewScan = FALSE, bAutoNewScan = FALSE;
+	int i = 0, j = 0, nb = 0, nbprev = 0;
+
+#ifdef __cplusplus
+	anglesvectorRPLIDAR = std::deque<double>();
+	distancesvectorRPLIDAR = std::deque<double>();
+#endif // __cplusplus
 
 	for (;;)
 	{
@@ -1430,6 +1568,59 @@ THREAD_PROC_RETURN_VALUE RPLIDAROtherScanThread(void* pParam)
 			memcpy(distancesRPLIDAR, distances, nbMeasurements*sizeof(double));
 			memcpy(anglesRPLIDAR, angles, nbMeasurements*sizeof(double));
 			bNewScanRPLIDAR = bNewScan;
+
+#ifdef __cplusplus
+			for (i = 0; i < nbMeasurements; i++)
+			{
+				if (pRPLIDAR->maxhist == 0)
+				{
+					// Try to detect the beginning of a new scan with the angle discontinuity...
+					// Try to be a little bit robust w.r.t. non-decreasing outliers...
+					if (((int)anglesvectorRPLIDAR.size() >= 5)&&
+						((angles[i]-anglesvectorRPLIDAR[(int)anglesvectorRPLIDAR.size()-5]) > M_PI)&&
+						((angles[i]-anglesvectorRPLIDAR[(int)anglesvectorRPLIDAR.size()-4]) > M_PI)&&
+						((angles[i]-anglesvectorRPLIDAR[(int)anglesvectorRPLIDAR.size()-3]) > M_PI)&&
+						((angles[i]-anglesvectorRPLIDAR[(int)anglesvectorRPLIDAR.size()-2]) > M_PI)&&
+						((angles[i]-anglesvectorRPLIDAR[(int)anglesvectorRPLIDAR.size()-1]) > M_PI))
+						bAutoNewScan = TRUE; else bAutoNewScan = FALSE;
+					if (bAutoNewScan)
+					{
+						// Try to automatically remove old data...
+						for (j = nbprev-nb-1; j >= 0; j--)
+						{
+							if ((int)anglesvectorRPLIDAR.size() > 0)
+							{
+								anglesvectorRPLIDAR.pop_front();
+								distancesvectorRPLIDAR.pop_front();
+							}
+						}
+						nbprev = nb;
+						nb = 0;
+					}
+				}
+
+				anglesvectorRPLIDAR.push_back(angles[i]);
+				distancesvectorRPLIDAR.push_back(distances[i]);
+
+				if (pRPLIDAR->maxhist == 0)
+				{
+					// Try to automatically remove old data...
+					nb++;
+					if ((nb <= nbprev)&&((int)anglesvectorRPLIDAR.size() > 0))
+					{
+						anglesvectorRPLIDAR.pop_front();
+						distancesvectorRPLIDAR.pop_front();
+					}
+				}
+				if (((pRPLIDAR->maxhist > 0)&&((int)anglesvectorRPLIDAR.size() > pRPLIDAR->maxhist))||
+					((int)anglesvectorRPLIDAR.size() > MAX_NB_MEASUREMENTS_PER_SCAN_RPLIDAR))
+				{
+					anglesvectorRPLIDAR.pop_front();
+					distancesvectorRPLIDAR.pop_front();
+				}
+			}
+#endif // __cplusplus
+
 			LeaveCriticalSection(&RPLIDARCS);
 		}
 		if (bExitOtherScanRPLIDAR) break;
@@ -1481,6 +1672,30 @@ HARDWAREX_API int GetOtherScanDataResponseFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, 
 	memcpy(pAngles, anglesRPLIDAR, nbMeasurementsRPLIDAR*sizeof(double));
 	*pbNewScan = bNewScanRPLIDAR;
 	LeaveCriticalSection(&RPLIDARCS);
+
+	return EXIT_SUCCESS;
+}
+
+HARDWAREX_API int GetLast360DataFromThreadRPLIDARx(RPLIDAR* pRPLIDAR, double* pDistances, double* pAngles, int* pNbMeasurements)
+{
+	UNREFERENCED_PARAMETER(pRPLIDAR);
+
+	// id[pRPLIDAR->szCfgFile] to be able to handle several devices...
+
+#ifdef __cplusplus
+	EnterCriticalSection(&RPLIDARCS);
+	*pNbMeasurements = (int)anglesvectorRPLIDAR.size();
+	for (int i = *pNbMeasurements-1; i >= 0; i--)
+	{
+		pAngles[i] = anglesvectorRPLIDAR[i];
+		pDistances[i] = distancesvectorRPLIDAR[i];
+	}
+	LeaveCriticalSection(&RPLIDARCS);
+
+	if (*pNbMeasurements <= 0) return EXIT_TIMEOUT;
+#else
+	return EXIT_NOT_IMPLEMENTED;
+#endif // __cplusplus
 
 	return EXIT_SUCCESS;
 }

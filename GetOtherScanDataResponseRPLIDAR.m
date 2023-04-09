@@ -8,7 +8,7 @@ nbMeasurements = 96;
 pDistances = libpointer('doublePtr', distances);
 pAngles = libpointer('doublePtr', angles);
 pbNewScan = libpointer('int32Ptr', bNewScan);
-pNbMeasurements = libpointer('int32Ptr', bNewScan);
+pNbMeasurements = libpointer('int32Ptr', nbMeasurements);
 
 result = calllib('hardwarex', 'GetOtherScanDataResponseRPLIDARx', pRPLIDAR, pDistances, pAngles, pbNewScan, pNbMeasurements);
 
