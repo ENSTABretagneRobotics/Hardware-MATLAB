@@ -54,12 +54,13 @@ UBX could be supported (need to define the structures in Python...)...
 
 critical sections should be everywhere especially for Pololu and SSC32...
 
-For the thread, only 1 device of the same type can be used...
 Simplify by gathering Create, Connect...?
 
 
 
 OLD
+
+For the thread, only 1 device of the same type can be used...->Multiple device handling when using threads, init global vars...?
 
 pour chaque thread, avoir une var partagée pour la valeur de retour de GetData(), qui serait alors retournée et immédiatement remise à un code d'erreur par GetDataFromThread()...->remettre à un code pourrait juste faire que GetDataFromThread() retourne ce code juste parce que le thread n'a pas eu le temps de remettre à jour les dernières données, ce qui n'est pas une erreur...
 
