@@ -5,7 +5,7 @@
 % MATLAB).
 % These files will be necessary for MATLAB 64 bit users that do not have
 % Visual Studio (they should be provided in the x64 folder).
-addpath('.');
+addpath(pwd); % Old MATLAB versions e.g. R2015b do not seem to always translate addpath('.') to an absolute path.
 switch (computer)
     case 'PCWIN64'
         addpath('x64');

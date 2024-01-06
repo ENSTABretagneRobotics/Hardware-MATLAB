@@ -4,7 +4,7 @@
 % unloadlibrary('hardwarex');
 % at the end (this will not be done automatically, unloadlibrary might fail if all the variables that use types from the library are not removed using clean...).
 if not(libisloaded('hardwarex'))
-    addpath('.');
+    addpath(pwd); % Old MATLAB versions e.g. R2015b do not seem to always translate addpath('.') to an absolute path.
     switch (computer)
         case 'PCWIN64'
             addpath('x64');
