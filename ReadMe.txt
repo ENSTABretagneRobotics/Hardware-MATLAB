@@ -1,7 +1,7 @@
 Hardware-MATLAB
 ===============
 Windows: 
-- Launch MATLAB preferably by right-clicking on `Run as administrator` on MATLAB shortcut (this is sometimes required to be able to access serial devices).
+- Launch MATLAB (if needed by right-clicking on `Run as administrator` on MATLAB shortcut, this is sometimes required to be able to access serial devices).
 - Check `test_razorahrs.m`, `test_rplidar.m`, etc. files for usage information.
 
 Linux, macOS, or other problem: 
