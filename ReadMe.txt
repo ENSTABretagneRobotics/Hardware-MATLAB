@@ -9,7 +9,7 @@ Linux, macOS, or other problem:
 
 Change the device path (e.g. `COM9`) and other parameters in the configuration files (`RazorAHRS0.txt`, `RPLIDAR0.txt`, etc.) if necessary. Mind the line endings in the configuration files depending on the OS (use e.g. the command `dos2unix *.txt` to convert line endings for Linux)! Ensure that you closed any other application that might use the devices (reboot if unsure). Note that you need to press the ESC key to exit cleanly the test script, if you interrupt the script by `CTRL+C`, MATLAB might crash or you might not be able to launch successfully again the test script...
 
-Sample: http://www.ensta-bretagne.fr/lebars/Share/buggy_real_gps.zip for the buggy based on an Android smartphone described on http://www.ensta-bretagne.fr/lebars/buggy_android_full.pdf .
+Sample: https://www.ensta-bretagne.fr/lebars/Share/buggy_real_gps.zip for the buggy based on an Android smartphone described on https://www.ensta-bretagne.fr/lebars/buggy_android_full.pdf .
 
 Tested on Windows 10 64 bit using MATLAB R2022b 64 bit and MATLAB R2015b 32 bit.
 
@@ -28,4 +28,4 @@ Hardware support:
 - SSC-32: Lynxmotion SSC-32, SSC-32u servo controllers.
 - ublox: ublox GPS (only with NMEA protocol), Furuno WS200 weather station, or other NMEA-compatible devices with supported NMEA sentences.
 
-See also https://github.com/ENSTABretagneRobotics/Hardware-CPP , https://github.com/ENSTABretagneRobotics/Hardware-Python , https://github.com/ENSTABretagneRobotics/Hardware-Java , https://github.com/ENSTABretagneRobotics/Android .
+See also https://github.com/ENSTABretagneRobotics/Hardware-CPP , https://github.com/ENSTABretagneRobotics/Hardware-CPP-GUI , https://github.com/ENSTABretagneRobotics/Hardware-Python , https://github.com/ENSTABretagneRobotics/Hardware-Java , https://github.com/ENSTABretagneRobotics/Android .

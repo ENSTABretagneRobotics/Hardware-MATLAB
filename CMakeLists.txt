@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8...3.16)
+cmake_minimum_required(VERSION 3.14...3.25)
 
 if(${CMAKE_VERSION} VERSION_LESS "3.12")
 	message(WARNING "CMake < 3.12 is not fully supported...")
@@ -473,6 +473,8 @@ add_definitions(-D DISABLE_AIS_SUPPORT)
 
 if(WIN32)
 	if(MSVC)
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W4")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
 		if(ENABLE_STATIC)
 			if(CMAKE_VERSION VERSION_LESS 3.15.0)
 				set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")
